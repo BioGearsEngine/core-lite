@@ -170,7 +170,6 @@ public:
   void SetAirwayMode(CDM::enumBioGearsAirwayMode::value mode);
 protected:
   void SetupCardiovascular();
-  void SetupRenal();
   void SetupRenalLite();
   void SetupTissue();
   void SetupGastrointestinal();
