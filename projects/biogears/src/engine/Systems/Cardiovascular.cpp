@@ -538,8 +538,8 @@ void Cardiovascular::AtSteadyState()
       ChronicRenalStenosis();
     if (m_data.GetConditions().HasChronicVentricularSystolicDysfunction())
       ChronicHeartFailure();
-    if (m_data.GetConditions().HasChronicPericardialEffusion())
-      ChronicPericardialEffusion();
+    //if (m_data.GetConditions().HasChronicPericardialEffusion())
+    //  ChronicPericardialEffusion();
   }
 
   m_LeftHeartElastanceMax_mmHg_Per_mL = m_data.GetConfiguration().GetLeftHeartElastanceMaximum(FlowElastanceUnit::mmHg_Per_mL);
@@ -1045,7 +1045,7 @@ void Cardiovascular::ProcessActions()
 {
   TraumaticBrainInjury();
   Hemorrhage();
-  PericardialEffusion();
+  //PericardialEffusion();
   CPR();
   CardiacArrest();
 }

@@ -101,13 +101,13 @@
 	<Action xsi:type="AdvanceTimeData">
         <Time value="30" unit="s"/>       
     </Action>
-    <Action xsi:type="HemorrhageData" Compartment="RightKidney">
+    <Action xsi:type="HemorrhageData" Compartment="Kidney">
 		<InitialRate value="25" unit="mL/min"/>
     </Action>
     <Action xsi:type="AdvanceTimeData">
         <Time value="30" unit="min"/>       
     </Action>
-    <Action xsi:type="HemorrhageData" Compartment="RightKidney">
+    <Action xsi:type="HemorrhageData" Compartment="Kidney">
 		<InitialRate value="0" unit="mL/min"/>
     </Action>
     <Action xsi:type="AdvanceTimeData">

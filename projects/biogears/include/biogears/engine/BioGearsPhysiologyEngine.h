@@ -570,6 +570,7 @@ namespace tatrc {
         DEFINE_STATIC_STRING(AortaHemorrhage);
         DEFINE_STATIC_STRING(ArmsHemorrhage);
         DEFINE_STATIC_STRING(GutHemorrhage);
+        DEFINE_STATIC_STRING(KidneyHemorrhage);
         DEFINE_STATIC_STRING(LegsHemorrhage);
 
         // Vascular To Tissue Links
