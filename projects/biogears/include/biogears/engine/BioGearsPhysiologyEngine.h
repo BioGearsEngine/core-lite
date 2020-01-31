@@ -311,7 +311,7 @@ namespace tatrc {
         DEFINE_STATIC_STRING_EX(Myocardium, MyocardiumVasculature);
         DEFINE_STATIC_STRING(LeftHeart);
         DEFINE_STATIC_STRING(RightHeart);
-        DEFINE_STATIC_STRING(Pericardium);
+        //DEFINE_STATIC_STRING(Pericardium);
         DEFINE_STATIC_STRING(VenaCava);
         // Pulmonary
         DEFINE_STATIC_STRING(PulmonaryArteries);
@@ -353,7 +353,7 @@ namespace tatrc {
         static const std::vector<std::string>& GetValues()
         {
           static std::vector<std::string> _values = {
-            Aorta, Heart, Myocardium, LeftHeart, RightHeart, Pericardium, VenaCava, PulmonaryArteries, PulmonaryCapillaries, 
+            Aorta, Heart, Myocardium, LeftHeart, RightHeart, VenaCava, PulmonaryArteries, PulmonaryCapillaries, 
             PulmonaryVeins, Lungs, LeftLung, LeftPulmonaryArteries, LeftPulmonaryCapillaries, LeftPulmonaryVeins, RightLung, 
             RightPulmonaryArteries, RightPulmonaryCapillaries, RightPulmonaryVeins, Kidney, RenalArtery, Nephron, 
             AfferentArteriole, GlomerularCapillaries, EfferentArteriole, PeritubularCapillaries, BowmansCapsules, Tubules, RenalVein, 

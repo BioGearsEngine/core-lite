@@ -169,6 +169,16 @@ void Tissue::Initialize()
   GetStoredFat().SetValue(m_data.GetPatient().GetWeight(MassUnit::g) * m_data.GetPatient().GetBodyFatFraction().GetValue(), MassUnit::g);
 
   GetDehydrationFraction().SetValue(0);
+
+  SEScalarMassPerVolume albuminConcentration;
+  albuminConcentration.SetValue(45.0, MassPerVolumeUnit::g_Per_L);
+  // Currently, substances are not where they need to be, we will hard code this for now until we fix them
+  /// \todo Remove SetBodyState hardcode and replace with computed values after substance redux is complete
+  m_data.GetSaturationCalculator().SetBodyState(albuminConcentration,
+                                                m_data.GetBloodChemistry().GetHematocrit(),
+                                                m_data.GetEnergy().GetCoreTemperature(),
+                                                m_data.GetBloodChemistry().GetStrongIonDifference(),
+                                                m_data.GetBloodChemistry().GetPhosphate());
 }
 
 bool Tissue::Load(const CDM::BioGearsTissueSystemData& in)
@@ -538,7 +548,7 @@ void Tissue::Process()
   OtherDiffusion();
   //////
   tisWatch.lap();
-  ManageSubstancesAndSaturation();
+  //ManageSubstancesAndSaturation();
   satTime += tisWatch.lap();
   CalculateVitals();
 

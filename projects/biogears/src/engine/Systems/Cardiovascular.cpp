@@ -368,8 +368,8 @@ void Cardiovascular::SetUp()
     m_pBrainResistanceUpstream = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToBrain1);
 
     m_pVenaCavaHemorrhage = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::VenaCavaBleed);
-    m_pGndToPericardium = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::GroundToPericardium1);
-    m_pPericardiumToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Pericardium1ToGround);
+    //m_pGndToPericardium = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::GroundToPericardium1);
+    //m_pPericardiumToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Pericardium1ToGround);
     m_pRightHeartToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::RightHeart3ToGround);
     m_pRightHeart = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::RightHeart1ToRightHeart3);
     m_pLeftHeartToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::LeftHeart3ToGround);
@@ -387,7 +387,7 @@ void Cardiovascular::SetUp()
     m_LeftPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftPulmonaryCapillaries);
     m_RightPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightPulmonaryCapillaries);
     m_VenaCava = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava);
-    m_Pericardium = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Pericardium);
+    //m_Pericardium = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Pericardium);
     m_LeftHeart = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftHeart);
     m_RightHeart = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightHeart);
     //Nodes
