@@ -227,7 +227,6 @@ private:
   SELiquidCompartment* m_LeftPulmonaryCapillaries;
   SELiquidCompartment* m_LeftPulmonaryArteries;
   SELiquidCompartment* m_LeftPulmonaryVeins;
-  SELiquidCompartment* m_Pericardium;
   SELiquidCompartment* m_RightHeart;
   SELiquidCompartment* m_RightPulmonaryCapillaries;
   SELiquidCompartment* m_RightPulmonaryArteries;

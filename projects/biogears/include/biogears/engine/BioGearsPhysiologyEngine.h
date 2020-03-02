@@ -238,7 +238,7 @@ namespace tatrc {
         DEFINE_STATIC_STRING_EX(Myocardium, MyocardiumVasculature);
         DEFINE_STATIC_STRING(LeftHeart);
         DEFINE_STATIC_STRING(RightHeart);
-        DEFINE_STATIC_STRING(Pericardium);
+        //DEFINE_STATIC_STRING(Pericardium);
         DEFINE_STATIC_STRING(VenaCava);
         // Pulmonary
         DEFINE_STATIC_STRING(PulmonaryArteries);
@@ -297,7 +297,7 @@ namespace tatrc {
         static const std::vector<std::string>& GetValues()
         {
           static std::vector<std::string> _values = {
-            Aorta, Heart, Myocardium, LeftHeart, RightHeart, Pericardium, VenaCava, PulmonaryArteries, PulmonaryCapillaries, PulmonaryVeins, Lungs, LeftLung, LeftPulmonaryArteries, LeftPulmonaryCapillaries, LeftPulmonaryVeins, RightLung, RightPulmonaryArteries, RightPulmonaryCapillaries, RightPulmonaryVeins, Kidneys, LeftKidney, LeftRenalArtery, LeftNephron, LeftAfferentArteriole, LeftGlomerularCapillaries, LeftEfferentArteriole, LeftPeritubularCapillaries, LeftBowmansCapsules, LeftTubules, LeftRenalVein, RightKidney, RightRenalArtery, RightNephron, RightAfferentArteriole, RightGlomerularCapillaries, RightEfferentArteriole, RightPeritubularCapillaries, RightBowmansCapsules, RightTubules, RightRenalVein, Bone, Brain, Fat, Gut, Splanchnic, SmallIntestine, LargeIntestine, Liver, Spleen, Skin, Muscle, LeftArm, LeftLeg, RightArm, RightLeg
+            Aorta, Heart, Myocardium, LeftHeart, RightHeart, VenaCava, PulmonaryArteries, PulmonaryCapillaries, PulmonaryVeins, Lungs, LeftLung, LeftPulmonaryArteries, LeftPulmonaryCapillaries, LeftPulmonaryVeins, RightLung, RightPulmonaryArteries, RightPulmonaryCapillaries, RightPulmonaryVeins, Kidneys, LeftKidney, LeftRenalArtery, LeftNephron, LeftAfferentArteriole, LeftGlomerularCapillaries, LeftEfferentArteriole, LeftPeritubularCapillaries, LeftBowmansCapsules, LeftTubules, LeftRenalVein, RightKidney, RightRenalArtery, RightNephron, RightAfferentArteriole, RightGlomerularCapillaries, RightEfferentArteriole, RightPeritubularCapillaries, RightBowmansCapsules, RightTubules, RightRenalVein, Bone, Brain, Fat, Gut, Splanchnic, SmallIntestine, LargeIntestine, Liver, Spleen, Skin, Muscle, LeftArm, LeftLeg, RightArm, RightLeg
             //,Ground
           };
           return _values;

@@ -455,9 +455,9 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
   Eigen::VectorXd x(3);
 
   //// Initial Guess - just use the last values
-  x(0) = m_subHCO3Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
-  x(1) = m_subCO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
-  x(2) = m_subO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
+  x(0) = HCO3_mM;
+  x(1) = CO2_mM;
+  x(2) = O2_mM;
 
   error_functor functor(*this);
   Eigen::NumericalDiff<error_functor> numDiff(functor);
@@ -871,80 +871,80 @@ void SaturationCalculator::CalculateHemoglobinSaturations(double O2PartialPressu
     temperature_C += 4.6;
 
   // Currently fixed, but could be expanded to be variable
-  double DPG = 4.65e-3; // standard 2; 3 - DPG concentration in RBCs; M
+  const double DPG = 4.65e-3; // standard 2; 3 - DPG concentration in RBCs; M
 
   // Fixed parameters
-  double Wpl = 0.94; // fractional water space in plasma; unitless
-  double Wrbc = 0.65; // fractional water space in RBCs; unitless
-  double Rrbc = 0.69; // Gibbs - Donnan ratio across RBC membrane; unitless
-  double Hbrbc = 5.18e-3; // hemoglobin concentration in RBCs; M
-  double K2 = 2.95e-5; // CO2 + HbNH2 equilibrium constant; unitless
-  double K2dp = 1.0e-6; // HbNHCOOH dissociation constant; M
-  double K2p = K2 / K2dp; // kf2p / kb2p; 1 / M
-  double K3 = 2.51e-5; // CO2 + O2HbNH2 equilibrium constant; unitless
-  double K3dp = 1.0e-6; // O2HbNHCOOH dissociation constant; M
-  double K3p = K3 / K3dp; // kf3p / kb3p; 1 / M
-  double K5dp = 2.63e-8; // HbNH3 + dissociation constant; M
-  double K6dp = 1.91e-8; // O2HbNH3 + dissociation constant; M
-  double nhill = 2.7 - 1.1 * CO_sat; // Hill coefficient; unitless
-  double n0 = nhill - 1.0 - 0.2 * CO_sat; // Deviation term
+  const double Wpl = 0.94; // fractional water space in plasma; unitless
+  const double Wrbc = 0.65; // fractional water space in RBCs; unitless
+  const double Rrbc = 0.69; // Gibbs - Donnan ratio across RBC membrane; unitless
+  const double Hbrbc = 5.18e-3; // hemoglobin concentration in RBCs; M
+  const double K2 = 2.95e-5; // CO2 + HbNH2 equilibrium constant; unitless
+  const double K2dp = 1.0e-6; // HbNHCOOH dissociation constant; M
+  const double K2p = K2 / K2dp; // kf2p / kb2p; 1 / M
+  const double K3 = 2.51e-5; // CO2 + O2HbNH2 equilibrium constant; unitless
+  const double K3dp = 1.0e-6; // O2HbNHCOOH dissociation constant; M
+  const double K3p = K3 / K3dp; // kf3p / kb3p; 1 / M
+  const double K5dp = 2.63e-8; // HbNH3 + dissociation constant; M
+  const double K6dp = 1.91e-8; // O2HbNH3 + dissociation constant; M
+  const double nhill = 2.7 - 1.1 * CO_sat; // Hill coefficient; unitless
+  const double n0 = nhill - 1.0 - 0.2 * CO_sat; // Deviation term
 
-  double pO20 = 100.0; // standard O2 partial pressure in blood; mmHg
-  double pCO20 = 40.0; // standard CO2 partial pressure in blood; mmHg
-  double pH0 = 7.24; // standard pH in RBCs; unitless
-  double DPG0 = 4.65e-3; // standard 2; 3 - DPG concentration in RBCs; M
-  double Temp0 = 37.0; // standard temperature in blood; degC
-  double fact = 1.0e-6 / Wpl; // a multiplicative factor; M / mmHg
-  double alphaO20 = fact * 1.37; // solubility of O2 in water at 37 C; M / mmHg
-  double alphaCO20 = fact * 30.7; // solubility of CO2 in water at 37 C; M / mmHg
-  double O20 = alphaO20 * pO20; // standard O2 concentration in RBCs; M
-  double CO20 = alphaCO20 * pCO20; // standard CO2 concentration in RBCs; M
-  double Hp0 = std::pow(10, (-pH0)); // standard H + concentration in RBCs; M
-  double pHpl0 = pH0 - log10(Rrbc); // standard pH in plasma; unitless
-  double P500 = 26.8 - 20 * CO_sat; // standard pO2 at 50% SHbO2; mmHg
-  double C500 = alphaO20 * P500; // standard O2 concentration at 50 % SHbO2; M
+  const double pO20 = 100.0; // standard O2 partial pressure in blood; mmHg
+  const double pCO20 = 40.0; // standard CO2 partial pressure in blood; mmHg
+  const double pH0 = 7.24; // standard pH in RBCs; unitless
+  const double DPG0 = 4.65e-3; // standard 2; 3 - DPG concentration in RBCs; M
+  const double Temp0 = 37.0; // standard temperature in blood; degC
+  const double fact = 1.0e-6 / Wpl; // a multiplicative factor; M / mmHg
+  const double alphaO20 = fact * 1.37; // solubility of O2 in water at 37 C; M / mmHg
+  const double alphaCO20 = fact * 30.7; // solubility of CO2 in water at 37 C; M / mmHg
+  const double O20 = alphaO20 * pO20; // standard O2 concentration in RBCs; M
+  const double CO20 = alphaCO20 * pCO20; // standard CO2 concentration in RBCs; M
+  const double Hp0 = std::pow(10, (-pH0)); // standard H + concentration in RBCs; M
+  const double pHpl0 = pH0 - log10(Rrbc); // standard pH in plasma; unitless
+  const double P500 = 26.8 - 20 * CO_sat; // standard pO2 at 50% SHbO2; mmHg
+  const double C500 = alphaO20 * P500; // standard O2 concentration at 50 % SHbO2; M
 
-  double Wbl = (1 - hematocrit) * Wpl + hematocrit * Wrbc;
-  double pHpl = pH - log10(Rrbc);
-  double pHpldiff = pHpl - pHpl0;
-  double pHdiff = pH - pH0;
-  double pCO2diff = CO2PartialPressureGuess_mmHg - pCO20;
-  double DPGdiff = DPG - DPG0;
-  double Tempdiff = temperature_C - Temp0;
-  double alphaO2 = fact * (1.37 - 0.0137 * Tempdiff + 0.00058 * Tempdiff * Tempdiff);
-  double alphaCO2 = fact * (30.7 - 0.57 * Tempdiff + 0.02 * Tempdiff * Tempdiff);
-  double pK1 = 6.091 - 0.0434 * pHpldiff + 0.0014 * Tempdiff * pHpldiff;
-  double K1 = std::pow(10, -pK1);
-  double O2 = alphaO2 * O2PartialPressureGuess_mmHg;
-  double CO2 = alphaCO2 * CO2PartialPressureGuess_mmHg;
-  double Hp = std::pow(10, -pH);
-  double Hppl = std::pow(10, -pHpl);
+  const double Wbl = (1 - hematocrit) * Wpl + hematocrit * Wrbc;
+  const double pHpl = pH - log10(Rrbc);
+  const double pHpldiff = pHpl - pHpl0;
+  const double pHdiff = pH - pH0;
+  const double pCO2diff = CO2PartialPressureGuess_mmHg - pCO20;
+  const double DPGdiff = DPG - DPG0;
+  const double Tempdiff = temperature_C - Temp0;
+  const double alphaO2 = fact * (1.37 - 0.0137 * Tempdiff + 0.00058 * Tempdiff * Tempdiff);
+  const double alphaCO2 = fact * (30.7 - 0.57 * Tempdiff + 0.02 * Tempdiff * Tempdiff);
+  const double pK1 = 6.091 - 0.0434 * pHpldiff + 0.0014 * Tempdiff * pHpldiff;
+  const double K1 = std::pow(10, -pK1);
+  const double O2 = alphaO2 * O2PartialPressureGuess_mmHg;
+  const double CO2 = alphaCO2 * CO2PartialPressureGuess_mmHg;
+  const double Hp = std::pow(10, -pH);
+  const double Hppl = std::pow(10, -pHpl);
 
-  double Term1 = K2p * (1 + K2dp / Hp);
-  double Term2 = K3p * (1 + K3dp / Hp);
-  double Term3 = (1 + Hp / K5dp);
-  double Term4 = (1 + Hp / K6dp);
-  double Term10 = K2p * (1 + K2dp / Hp0);
-  double Term20 = K3p * (1 + K3dp / Hp0);
-  double Term30 = (1 + Hp0 / K5dp);
-  double Term40 = (1 + Hp0 / K6dp);
-  double Kratio10 = (Term10 * CO20 + Term30) / (Term20 * CO20 + Term40);
-  double Kratio11 = (Term1 * CO20 + Term3) / (Term2 * CO20 + Term4);
-  double Kratio12 = (Term10 * alphaCO20 * CO2PartialPressureGuess_mmHg + Term30) / (Term20 * alphaCO20 * CO2PartialPressureGuess_mmHg + Term40);
-  double K4dp = Kratio10 * std::pow(O20, n0) / std::pow(C500, nhill);
-  double K4tp = K4dp / std::pow(O20, n0);
-  double Kratio20 = Kratio10 / K4tp; // = C500^nhill
-  double Kratio21 = Kratio11 / K4tp;
-  double Kratio22 = Kratio12 / K4tp;
+  const double Term1 = K2p * (1 + K2dp / Hp);
+  const double Term2 = K3p * (1 + K3dp / Hp);
+  const double Term3 = (1 + Hp / K5dp);
+  const double Term4 = (1 + Hp / K6dp);
+  const double Term10 = K2p * (1 + K2dp / Hp0);
+  const double Term20 = K3p * (1 + K3dp / Hp0);
+  const double Term30 = (1 + Hp0 / K5dp);
+  const double Term40 = (1 + Hp0 / K6dp);
+  const double Kratio10 = (Term10 * CO20 + Term30) / (Term20 * CO20 + Term40);
+  const double Kratio11 = (Term1 * CO20 + Term3) / (Term2 * CO20 + Term4);
+  const double Kratio12 = (Term10 * alphaCO20 * CO2PartialPressureGuess_mmHg + Term30) / (Term20 * alphaCO20 * CO2PartialPressureGuess_mmHg + Term40);
+  const double K4dp = Kratio10 * std::pow(O20, n0) / std::pow(C500, nhill);
+  const double K4tp = K4dp / std::pow(O20, n0);
+  const double Kratio20 = Kratio10 / K4tp; // = C500^nhill
+  const double Kratio21 = Kratio11 / K4tp;
+  const double Kratio22 = Kratio12 / K4tp;
 
-  double P501 = 26.765 - 21.279 * pHdiff + 8.872 * pHdiff * pHdiff;
-  double P502 = 26.80 + 0.0428 * pCO2diff + 3.64e-5 * pCO2diff * pCO2diff;
-  double P503 = 26.78 + 795.633533 * DPGdiff - 19660.8947 * DPGdiff * DPGdiff;
-  double P504 = 26.75 + 1.4945 * Tempdiff + 0.04335 * Tempdiff * Tempdiff + 0.0007 * Tempdiff * Tempdiff * Tempdiff;
-  double C501 = alphaO20 * P501;
-  double C502 = alphaO20 * P502;
-  double C503 = alphaO20 * P503;
-  double C504 = alphaO2 * P504;
+  const double P501 = 26.765 - 21.279 * pHdiff + 8.872 * pHdiff * pHdiff;
+  const double P502 = 26.80 + 0.0428 * pCO2diff + 3.64e-5 * pCO2diff * pCO2diff;
+  const double P503 = 26.78 + 795.633533 * DPGdiff - 19660.8947 * DPGdiff * DPGdiff;
+  const double P504 = 26.75 + 1.4945 * Tempdiff + 0.04335 * Tempdiff * Tempdiff + 0.0007 * Tempdiff * Tempdiff * Tempdiff;
+  const double C501 = alphaO20 * P501;
+  const double C502 = alphaO20 * P502;
+  const double C503 = alphaO20 * P503;
+  const double C504 = alphaO2 * P504;
 
   double n1 = 1.0;
   double n2 = 1.0;

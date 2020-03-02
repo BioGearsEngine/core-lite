@@ -2168,9 +2168,9 @@ void BioGears::SetupCardiovascular()
       Error("Blood volume greater than total blood volume");
     }
 
-    SEFluidCircuitNode& Pericardium = cCardiovascular.CreateNode(BGE::CardiovascularNode::Pericardium1);
+    /*SEFluidCircuitNode& Pericardium = cCardiovascular.CreateNode(BGE::CardiovascularNode::Pericardium1);
     Pericardium.GetVolumeBaseline().SetValue(15.0, VolumeUnit::mL);
-    Pericardium.GetPressure().SetValue(1.0, PressureUnit::mmHg);
+    Pericardium.GetPressure().SetValue(1.0, PressureUnit::mmHg);*/
 
     // Create Paths, set switch (diodes), compliances, and resistances where appropriate
     SEFluidCircuitPath& VenaCavaToRightHeart2 = cCardiovascular.CreatePath(VenaCava, RightHeart2, BGE::CardiovascularPath::VenaCavaToRightHeart2);
@@ -2324,9 +2324,9 @@ void BioGears::SetupCardiovascular()
     Myocardium1ToMyocardium2.GetResistanceBaseline().SetValue(systemicResistanceModifier * ResistanceMyocardiumVenous, FlowResistanceUnit::mmHg_s_Per_mL);
     SEFluidCircuitPath& Myocardium2ToVenaCava = cCardiovascular.CreatePath(Myocardium2, VenaCava, BGE::CardiovascularPath::Myocardium2ToVenaCava);
 
-    SEFluidCircuitPath& PericardiumToGround = cCardiovascular.CreatePath(Pericardium, Ground, BGE::CardiovascularPath::Pericardium1ToGround);
+    /*SEFluidCircuitPath& PericardiumToGround = cCardiovascular.CreatePath(Pericardium, Ground, BGE::CardiovascularPath::Pericardium1ToGround);
     SEFluidCircuitPath& GroundToPericardium = cCardiovascular.CreatePath(Ground, Pericardium, BGE::CardiovascularPath::GroundToPericardium1);
-    GroundToPericardium.GetFlowSourceBaseline().SetValue(0.0, VolumePerTimeUnit::mL_Per_s);
+    GroundToPericardium.GetFlowSourceBaseline().SetValue(0.0, VolumePerTimeUnit::mL_Per_s);*/
 
     SEFluidCircuitPath& Aorta1ToRightArm1 = cCardiovascular.CreatePath(Aorta1, RightArm1, BGE::CardiovascularPath::Aorta1ToRightArm1);
     Aorta1ToRightArm1.GetResistanceBaseline().SetValue(systemicResistanceModifier * ResistanceArmRight, FlowResistanceUnit::mmHg_s_Per_mL);
@@ -2447,7 +2447,7 @@ void BioGears::SetupCardiovascular()
     // The 1/4 full initialization gives decent results.
     RightHeart1ToRightHeart3.GetComplianceBaseline().SetValue(InitialComplianceHeartRight, FlowComplianceUnit::mL_Per_mmHg);
     LeftHeart1ToLeftHeart3.GetComplianceBaseline().SetValue(InitialComplianceHeartLeft, FlowComplianceUnit::mL_Per_mmHg);
-    PericardiumToGround.GetComplianceBaseline().SetValue(100.0, FlowComplianceUnit::mL_Per_mmHg);
+    //PericardiumToGround.GetComplianceBaseline().SetValue(100.0, FlowComplianceUnit::mL_Per_mmHg);
 
     double VolumeModifierAorta = 1.16722 * 1.018749, VolumeModifierBrain = 0.998011 * 1.038409, VolumeModifierBone = 1.175574 * 0.985629, VolumeModifierFat = 1.175573 * 0.986527;
     double VolumeModifierLargeIntestine = 1.17528 * 0.985609, VolumeModifierArmL = 1.175573 * 0.986529, VolumeModifierKidneyL = 0.737649 * 0.954339, VolumeModifierLegL = 1.175573 * 0.986529;
@@ -2611,8 +2611,8 @@ void BioGears::SetupCardiovascular()
     vMyocardium.MapNode(Myocardium2);
     /////////////////
     // Pericardium //
-    SELiquidCompartment& vPericardium = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::Pericardium);
-    vPericardium.MapNode(Pericardium);
+    /*SELiquidCompartment& vPericardium = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::Pericardium);
+    vPericardium.MapNode(Pericardium);*/
     ///////////////
     // Right Arm //
     SELiquidCompartment& vRightArm = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightArm);
@@ -2664,7 +2664,7 @@ void BioGears::SetupCardiovascular()
     vHeart.AddChild(vMyocardium);
     vHeart.AddChild(vLeftHeart);
     vHeart.AddChild(vRightHeart);
-    vHeart.AddChild(vPericardium);
+    //vHeart.AddChild(vPericardium);
     SELiquidCompartment& vLeftLung = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftLung);
     vLeftLung.AddChild(vLeftPulmonaryArteries);
     vLeftLung.AddChild(vLeftPulmonaryCapillaries);

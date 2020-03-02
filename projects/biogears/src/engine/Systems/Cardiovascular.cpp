@@ -108,8 +108,8 @@ void Cardiovascular::Clear()
   m_pAortaToSpleen = nullptr;
 
   m_pVenaCavaHemorrhage = nullptr;
-  m_pGndToPericardium = nullptr;
-  m_pPericardiumToGnd = nullptr;
+  /*m_pGndToPericardium = nullptr;
+  m_pPericardiumToGnd = nullptr;*/
   m_pRightHeartToGnd = nullptr;
   m_pRightHeart = nullptr;
   m_pLeftHeartToGnd = nullptr;
@@ -124,7 +124,7 @@ void Cardiovascular::Clear()
   m_LeftPulmonaryCapillaries = nullptr;
   m_LeftPulmonaryArteries = nullptr;
   m_LeftPulmonaryVeins = nullptr;
-  m_Pericardium = nullptr;
+  /*m_Pericardium = nullptr;*/
   m_RightHeart = nullptr;
   m_RightPulmonaryCapillaries = nullptr;
   m_RightPulmonaryArteries = nullptr;
@@ -336,7 +336,7 @@ void Cardiovascular::SetUp()
     m_LeftPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::LeftPulmonaryCapillaries);
     m_RightPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::RightPulmonaryCapillaries);
     m_VenaCava = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::VenaCava);
-    m_Pericardium = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Pericardium);
+    /*m_Pericardium = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Pericardium);*/
     m_LeftHeart = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::LeftHeart);
     m_RightHeart = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::RightHeart);
     //Nodes
@@ -415,8 +415,8 @@ void Cardiovascular::SetUp()
     m_pBrainResistanceUpstream = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToBrain1);
 
     m_pVenaCavaHemorrhage = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::VenaCavaBleed);
-    m_pGndToPericardium = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::GroundToPericardium1);
-    m_pPericardiumToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Pericardium1ToGround);
+    /*m_pGndToPericardium = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::GroundToPericardium1);
+    m_pPericardiumToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Pericardium1ToGround);*/
     m_pRightHeartToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::RightHeart3ToGround);
     m_pRightHeart = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::RightHeart1ToRightHeart3);
     m_pLeftHeartToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::LeftHeart3ToGround);
@@ -629,20 +629,20 @@ void Cardiovascular::ChronicHeartFailure()
 //--------------------------------------------------------------------------------------------------
 void Cardiovascular::ChronicPericardialEffusion()
 {
-  double deltaVolume_mL = m_data.GetConditions().GetChronicPericardialEffusion()->GetAccumulatedVolume().GetValue(VolumeUnit::mL);
-  if (deltaVolume_mL > 1000.0) {
-    Error("Cannot specify volume accumulation greater than 1000 mL. Accumulated volume is now set at 1000 mL.");
-    /// \error Cannot specify volume accumulation greater than 1000 mL. Accumulated volume is now set at 1000 mL.
-    deltaVolume_mL = 1000.0;
-  } else if (deltaVolume_mL < 0.0) {
-    Error("Cannot specify volume accumulation less than 0 mL. Accumulated volume is now set at 0 mL.");
-    /// \error Cannot specify volume accumulation less than 0 mL. Accumulated volume is now set at 0 mL.
-    deltaVolume_mL = 0.0;
-  }
+  //double deltaVolume_mL = m_data.GetConditions().GetChronicPericardialEffusion()->GetAccumulatedVolume().GetValue(VolumeUnit::mL);
+  //if (deltaVolume_mL > 1000.0) {
+  //  Error("Cannot specify volume accumulation greater than 1000 mL. Accumulated volume is now set at 1000 mL.");
+  //  /// \error Cannot specify volume accumulation greater than 1000 mL. Accumulated volume is now set at 1000 mL.
+  //  deltaVolume_mL = 1000.0;
+  //} else if (deltaVolume_mL < 0.0) {
+  //  Error("Cannot specify volume accumulation less than 0 mL. Accumulated volume is now set at 0 mL.");
+  //  /// \error Cannot specify volume accumulation less than 0 mL. Accumulated volume is now set at 0 mL.
+  //  deltaVolume_mL = 0.0;
+  //}
 
-  //Just throw this all on at once
-  //Only do this for a single time-step!
-  m_pGndToPericardium->GetNextFlowSource().SetValue(deltaVolume_mL / m_dT_s, VolumePerTimeUnit::mL_Per_s);
+  ////Just throw this all on at once
+  ////Only do this for a single time-step!
+  //m_pGndToPericardium->GetNextFlowSource().SetValue(deltaVolume_mL / m_dT_s, VolumePerTimeUnit::mL_Per_s);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -942,7 +942,7 @@ void Cardiovascular::CalculateVitalSigns()
   // Compute blood volume
   double blood_mL = 0;
   for (SELiquidCompartment* cmpt : m_data.GetCompartments().GetVascularLeafCompartments()) {
-    if (cmpt->HasVolume() && cmpt != m_Pericardium) //Don't include pericardium
+    if (cmpt->HasVolume()) 
     {
       blood_mL += cmpt->GetVolume(VolumeUnit::mL);
     }
@@ -1175,58 +1175,58 @@ void Cardiovascular::Hemorrhage()
 //--------------------------------------------------------------------------------------------------
 void Cardiovascular::PericardialEffusion()
 {
-  //We need to do this here because the circuit needs to be processed to modify the compliance pressure based on the volume change
-  if (m_data.GetConditions().HasChronicPericardialEffusion() && !m_data.GetActions().GetPatientActions().HasPericardialEffusion()) {
-    PericardialEffusionPressureApplication();
-  }
+  ////We need to do this here because the circuit needs to be processed to modify the compliance pressure based on the volume change
+  //if (m_data.GetConditions().HasChronicPericardialEffusion() && !m_data.GetActions().GetPatientActions().HasPericardialEffusion()) {
+  //  PericardialEffusionPressureApplication();
+  //}
 
-  if (!m_data.GetActions().GetPatientActions().HasPericardialEffusion())
-    return;
+  //if (!m_data.GetActions().GetPatientActions().HasPericardialEffusion())
+  //  return;
 
-  double complianceSlopeParameter = 0.0;
-  double complianceCurveParameter = 0.0;
-  double flowToPericardium_mL_per_s = 0.0;
-  double flowCubed_mL3_Per_s3 = 0.0;
-  double compliance_mL_Per_mmHg = 0.0;
-  double intrapericardialVolume_mL = m_Pericardium->GetVolume(VolumeUnit::mL);
-  double intrapericardialPressure_mmHg = m_Pericardium->GetPressure(PressureUnit::mmHg);
+  //double complianceSlopeParameter = 0.0;
+  //double complianceCurveParameter = 0.0;
+  //double flowToPericardium_mL_per_s = 0.0;
+  //double flowCubed_mL3_Per_s3 = 0.0;
+  //double compliance_mL_Per_mmHg = 0.0;
+  //double intrapericardialVolume_mL = m_Pericardium->GetVolume(VolumeUnit::mL);
+  //double intrapericardialPressure_mmHg = m_Pericardium->GetPressure(PressureUnit::mmHg);
 
-  double effusionRate_mL_Per_s = m_data.GetActions().GetPatientActions().GetPericardialEffusion()->GetEffusionRate().GetValue(VolumePerTimeUnit::mL_Per_s);
-  if (effusionRate_mL_Per_s <= 0.1 && effusionRate_mL_Per_s > 0.0) {
-    //Slow effusion
-    complianceSlopeParameter = 0.4;
-    complianceCurveParameter = 0.55;
-  } else if (effusionRate_mL_Per_s > 0.1 && effusionRate_mL_Per_s < 1.0) {
-    complianceSlopeParameter = 50;
-    complianceCurveParameter = 0.1;
-  } else if (effusionRate_mL_Per_s > 1.0) {
-    Error("Effusion rate is out of physiologic bounds. Effusion rate is reset to 1.0 milliliters per second.");
-    /// \error Effusion rate is out of physiologic bounds. Effusion rate is reset to 1.0 milliliters per second.
-    effusionRate_mL_Per_s = 1.0;
-    complianceSlopeParameter = 50;
-    complianceCurveParameter = 0.1;
-  } else if (effusionRate_mL_Per_s < 0.0) {
-    Error("Cannot specify effusion rate less than zero. Effusion rate is now set to 0.0.");
-    /// \error Cannot specify effusion rate less than zero. Effusion rate is now set to 0.0.
-    effusionRate_mL_Per_s = 0.0;
-    complianceSlopeParameter = 0.4;
-    complianceCurveParameter = 0.55;
-  }
+  //double effusionRate_mL_Per_s = m_data.GetActions().GetPatientActions().GetPericardialEffusion()->GetEffusionRate().GetValue(VolumePerTimeUnit::mL_Per_s);
+  //if (effusionRate_mL_Per_s <= 0.1 && effusionRate_mL_Per_s > 0.0) {
+  //  //Slow effusion
+  //  complianceSlopeParameter = 0.4;
+  //  complianceCurveParameter = 0.55;
+  //} else if (effusionRate_mL_Per_s > 0.1 && effusionRate_mL_Per_s < 1.0) {
+  //  complianceSlopeParameter = 50;
+  //  complianceCurveParameter = 0.1;
+  //} else if (effusionRate_mL_Per_s > 1.0) {
+  //  Error("Effusion rate is out of physiologic bounds. Effusion rate is reset to 1.0 milliliters per second.");
+  //  /// \error Effusion rate is out of physiologic bounds. Effusion rate is reset to 1.0 milliliters per second.
+  //  effusionRate_mL_Per_s = 1.0;
+  //  complianceSlopeParameter = 50;
+  //  complianceCurveParameter = 0.1;
+  //} else if (effusionRate_mL_Per_s < 0.0) {
+  //  Error("Cannot specify effusion rate less than zero. Effusion rate is now set to 0.0.");
+  //  /// \error Cannot specify effusion rate less than zero. Effusion rate is now set to 0.0.
+  //  effusionRate_mL_Per_s = 0.0;
+  //  complianceSlopeParameter = 0.4;
+  //  complianceCurveParameter = 0.55;
+  //}
 
-  m_pGndToPericardium->GetNextFlowSource().SetValue(effusionRate_mL_Per_s, VolumePerTimeUnit::mL_Per_s);
-  flowToPericardium_mL_per_s = m_pGndToPericardium->GetNextFlow(VolumePerTimeUnit::mL_Per_s);
-  flowCubed_mL3_Per_s3 = flowToPericardium_mL_per_s * flowToPericardium_mL_per_s * flowToPericardium_mL_per_s;
+  //m_pGndToPericardium->GetNextFlowSource().SetValue(effusionRate_mL_Per_s, VolumePerTimeUnit::mL_Per_s);
+  //flowToPericardium_mL_per_s = m_pGndToPericardium->GetNextFlow(VolumePerTimeUnit::mL_Per_s);
+  //flowCubed_mL3_Per_s3 = flowToPericardium_mL_per_s * flowToPericardium_mL_per_s * flowToPericardium_mL_per_s;
 
-  //Variable compliance calculation
-  if (flowCubed_mL3_Per_s3 < 0.0001) {
-    compliance_mL_Per_mmHg = m_pPericardiumToGnd->GetNextCompliance().GetValue(FlowComplianceUnit::mL_Per_mmHg);
-  } else {
-    compliance_mL_Per_mmHg = complianceSlopeParameter / flowCubed_mL3_Per_s3 - complianceCurveParameter * intrapericardialVolume_mL;
-  }
+  ////Variable compliance calculation
+  //if (flowCubed_mL3_Per_s3 < 0.0001) {
+  //  compliance_mL_Per_mmHg = m_pPericardiumToGnd->GetNextCompliance().GetValue(FlowComplianceUnit::mL_Per_mmHg);
+  //} else {
+  //  compliance_mL_Per_mmHg = complianceSlopeParameter / flowCubed_mL3_Per_s3 - complianceCurveParameter * intrapericardialVolume_mL;
+  //}
 
-  m_pPericardiumToGnd->GetNextCompliance().SetValue(compliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+  //m_pPericardiumToGnd->GetNextCompliance().SetValue(compliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
 
-  PericardialEffusionPressureApplication();
+  //PericardialEffusionPressureApplication();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1388,13 +1388,13 @@ void Cardiovascular::CardiacArrest()
 //--------------------------------------------------------------------------------------------------
 void Cardiovascular::PericardialEffusionPressureApplication()
 {
-  double intrapericardialPressure_mmHg = m_Pericardium->GetPressure(PressureUnit::mmHg);
+  //double intrapericardialPressure_mmHg = m_Pericardium->GetPressure(PressureUnit::mmHg);
 
-  double pressureResponseFraction = 0.4; //Tuning the pressure applied to the heart
+  //double pressureResponseFraction = 0.4; //Tuning the pressure applied to the heart
 
-  //Set the pressure on the right and left heart from the pericardium pressure
-  m_pRightHeartToGnd->GetPressureSourceBaseline().SetValue(pressureResponseFraction * intrapericardialPressure_mmHg, PressureUnit::mmHg);
-  m_pLeftHeartToGnd->GetPressureSourceBaseline().SetValue(pressureResponseFraction * intrapericardialPressure_mmHg, PressureUnit::mmHg);
+  ////Set the pressure on the right and left heart from the pericardium pressure
+  //m_pRightHeartToGnd->GetPressureSourceBaseline().SetValue(pressureResponseFraction * intrapericardialPressure_mmHg, PressureUnit::mmHg);
+  //m_pLeftHeartToGnd->GetPressureSourceBaseline().SetValue(pressureResponseFraction * intrapericardialPressure_mmHg, PressureUnit::mmHg);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1788,7 +1788,7 @@ void Cardiovascular::TuneCircuit()
         continue;
       bloodVolumeBaseline_mL += c->GetVolume(VolumeUnit::mL);
       c->Balance(BalanceLiquidBy::Concentration);
-      if (m_CirculatoryGraph->GetCompartment(c->GetName()) == nullptr && c->GetName() != m_Pericardium->GetName())
+      if (m_CirculatoryGraph->GetCompartment(c->GetName()) == nullptr)
         Info(std::string{"Cardiovascular Graph does not have cmpt "} + c->GetName());
       if (c->HasSubstanceQuantity(m_data.GetSubstances().GetHb())) // Unit testing does not have any Hb
         m_data.GetSaturationCalculator().CalculateBloodGasDistribution(*c); //so don't do this if we don't have Hb
