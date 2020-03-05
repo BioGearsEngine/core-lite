@@ -51,15 +51,15 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="FatVasculature" Unit="mL/min" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="KidneyVasculature" Unit="mL" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="KidneyVasculature" Unit="mL/min" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="LargeIntestineVasculature" Unit="mL" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="LargeIntestineVasculature" Unit="mL/min" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="LeftArmVasculature" Unit="mL" Precision="0"/>
+	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="GutVasculature" Unit="mL" Precision="0"/>
+	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="GutVasculature" Unit="mL/min" Precision="0"/>
+	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="ArmsVasculature" Unit="mL" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="LeftHeart" Unit="mL" Precision="6"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="LeftHeart" Unit="mL/min" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Pressure" Compartment="LeftHeart" Unit="mmHg" Precision="6"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="KidneyVasculature" Unit="mL" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="KidneyVasculature" Unit="mL/min" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="LeftLegVasculature" Unit="mL" Precision="0"/>
+	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="LegsVasculature" Unit="mL" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="LeftPulmonaryArteries" Unit="mL" Precision="1"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="LeftPulmonaryArteries" Unit="mL/min" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="LeftPulmonaryCapillaries" Unit="mL" Precision="1"/>
@@ -81,11 +81,9 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="PulmonaryVeins" Unit="mL" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="PulmonaryVeins" Unit="mL/min" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Pressure" Compartment="PulmonaryVeins" Unit="mmHg" Precision="1"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="RightArmVasculature" Unit="mL" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="RightHeart" Unit="mL" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="RightHeart" Unit="mL/min" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Pressure" Compartment="RightHeart" Unit="mmHg" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="RightLegVasculature" Unit="mL" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="RightPulmonaryArteries" Unit="mL" Precision="1"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="RightPulmonaryArteries" Unit="mL/min" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="RightPulmonaryCapillaries" Unit="mL" Precision="1"/>
@@ -94,12 +92,6 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="RightPulmonaryVeins" Unit="mL/min" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="SkinVasculature" Unit="mL" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="SkinVasculature" Unit="mL/min" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="SmallIntestineVasculature" Unit="mL" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="SmallIntestineVasculature" Unit="mL/min" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="SplanchnicVasculature" Unit="mL" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="SplanchnicVasculature" Unit="mL/min" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="SpleenVasculature" Unit="mL" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="SpleenVasculature" Unit="mL/min" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="Volume" Compartment="VenaCava" Unit="mL" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Name="InFlow" Compartment="VenaCava" Unit="mL/min" Precision="0"/>
   </DataRequests>

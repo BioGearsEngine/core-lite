@@ -77,12 +77,11 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="BrainVasculature"       Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/> 
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="FatVasculature"         Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/> 
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="GutVasculature"         Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/> 	
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="LeftKidneyVasculature"  Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/> 		
+	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="KidneyVasculature"  Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/> 		
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="LeftLungVasculature"    Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/>
   <DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="LiverVasculature"       Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="MuscleVasculature"      Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/> 
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="MyocardiumVasculature"  Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/> 
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="RightKidneyVasculature" Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/> 	
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="RightLungVasculature"   Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/> 		
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SkinVasculature"        Substance="Sarin" Name="Concentration" Unit="ug/L" Precision="4"/>
 

@@ -455,9 +455,9 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
   Eigen::VectorXd x(3);
 
   //// Initial Guess - just use the last values
-  x(0) = HCO3_mM;
-  x(1) = CO2_mM;
-  x(2) = O2_mM;
+  x(0) = m_subHCO3Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
+  x(1) = m_subCO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
+  x(2) = m_subO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
 
   error_functor functor(*this);
   Eigen::NumericalDiff<error_functor> numDiff(functor);

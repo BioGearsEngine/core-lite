@@ -67,8 +67,8 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SmallIntestineChyme"                        Name="Volume" Unit="mL" Precision="0"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SmallIntestineChyme" Substance="Sodium"     Name="Mass"   Unit="g" Precision="2"/>
 	
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SmallIntestineVasculature"                        Name="Volume"        Unit="mL" Precision="0"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SmallIntestineVasculature" Substance="Sodium"     Name="Concentration" Unit="g/L" Precision="2"/>
+	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="GutVasculature"                        Name="Volume"        Unit="mL" Precision="0"/>
+	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="GutVasculature" Substance="Sodium"     Name="Concentration" Unit="g/L" Precision="2"/>
 	
 	<DataRequest xsi:type="PhysiologyDataRequestData" Name="UrineOsmolality" Unit="mOsm/kg" Precision="1"/>
 	<DataRequest xsi:type="PhysiologyDataRequestData" Name="UrineOsmolarity" Unit="mOsm/L"  Precision="1"/>

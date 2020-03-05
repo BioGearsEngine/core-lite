@@ -114,71 +114,12 @@
     <Action xsi:type="AdvanceTimeData">
         <Time value="1" unit="min"/>       
     </Action>
-    <Action xsi:type="IntubationData" Type="RightMainstem"/>
-    <Action xsi:type="AnesthesiaMachineConfigurationData">
-      <Configuration>
-        <Connection>Tube</Connection>
-        <InletFlow value="5.0" unit="L/min"/>
-        <InspiratoryExpiratoryRatio value="0.5"/>
-        <OxygenFraction value="0.23"/>
-        <OxygenSource>Wall</OxygenSource>
-        <PositiveEndExpiredPressure value="1.0" unit="cmH2O"/>
-        <PrimaryGas>Nitrogen</PrimaryGas>
-        <RespiratoryRate value="16.0" unit="1/min"/>
-        <VentilatorPressure value="10.5" unit="cmH2O"/>
-        <OxygenBottleOne>
-          <Volume value="660" unit="L"/>
-        </OxygenBottleOne>
-        <OxygenBottleTwo>
-          <Volume value="660" unit="L"/>
-        </OxygenBottleTwo>
-      </Configuration>
-    </Action>
-    <Action xsi:type="AdvanceTimeData">
-        <Time value="1" unit="min"/>       
-    </Action>
-    <Action xsi:type="IntubationData" Type="Tracheal"/>
-    <Action xsi:type="EnvironmentChangeData">
-        <Conditions>
-    <Name>LocalEnvironment</Name>
-			<SurroundingType>Air</SurroundingType>
-			<AirVelocity value="0.0" unit="m/s"/>
-			<AmbientTemperature value="22.0" unit="degC"/>
-			<AtmosphericPressure value="700.0" unit="mmHg"/>
-			<ClothingResistance value="3.0" unit="clo"/>
-			<Emissivity value="0.9"/>
-			<MeanRadiantTemperature value="22.0" unit="degC"/>
-			<RelativeHumidity value="0.5"/>
-			<RespirationAmbientTemperature value="22.0" unit="degC"/>
-			<AmbientGas Name="Nitrogen">
-				<FractionAmount value="0.816"/>
-			</AmbientGas>
-			<AmbientGas Name="Oxygen">
-				<FractionAmount value="0.14"/>
-			</AmbientGas>
-			<AmbientGas Name="CarbonDioxide">
-				<FractionAmount value="0.044"/>
-			</AmbientGas>			
-        </Conditions>
-    </Action>
-    <Action xsi:type="AdvanceTimeData">
-        <Time value="1" unit="min"/>       
-    </Action>	
-    <Action xsi:type="IntubationData" Type="Off"/>
-    <Action xsi:type="AnesthesiaMachineConfigurationData">
-      <Configuration>
-        <Connection>Mask</Connection>
-      </Configuration>
-    </Action>
     <Action xsi:type="ExerciseData">
         <Intensity value="0.05"/>
     </Action>
     <Action xsi:type="AdvanceTimeData">
         <Time value="1" unit="min"/>       
     </Action>	
-    <Action xsi:type="MaskLeakData">
-        <Severity value="0.1"/>
-    </Action>
 	<Action xsi:type="AdvanceTimeData">
         <Time value="1" unit="min"/>
     </Action>
@@ -187,11 +128,6 @@
     </Action>
     <Action xsi:type="AdvanceTimeData">
         <Time value="1" unit="min"/>       
-    </Action>
-    <Action xsi:type="AnesthesiaMachineConfigurationData">
-      <Configuration> 
-        <Connection>Off</Connection>
-      </Configuration>
     </Action>
     <Action xsi:type="AdvanceTimeData">
         <Time value="1" unit="min"/>       
@@ -206,24 +142,6 @@
         <NozzleLoss value="0.04"/>
       </Configuration>
     </Action>  
-	<Action xsi:type="ConsciousRespirationData" AppendToPrevious="true">
-		<Command xsi:type="ForcedExhaleData">
-			<ExpiratoryReserveVolumeFraction value="1.0"/>
-			<Period value="3.0" unit="s"/>			
-		</Command>
-		<Command xsi:type="UseInhalerData"/>	
-		<Command xsi:type="ForcedInhaleData">
-			<InspiratoryCapacityFraction value="1.0"/>
-			<Period value="5.0" unit="s"/>          
-		</Command> 
-		<Command xsi:type="BreathHoldData">
-			<Period value="10.0" unit="s"/>          
-		</Command> 
-		<Command xsi:type="ForcedExhaleData">
-			<ExpiratoryReserveVolumeFraction value="0.0"/>
-			<Period value="3.0" unit="s"/>			
-		</Command>
-    </Action>	
 	<Action xsi:type="PatientAssessmentRequestData" Type="PulmonaryFunctionTest">
 	</Action>
     <Action xsi:type="AdvanceTimeData">

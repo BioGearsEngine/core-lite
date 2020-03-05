@@ -72,8 +72,8 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="Bladder" Substance="Sodium" Name="Concentration"  Unit="g/L" Precision="2"/>
 	
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="Ground"  Name="InFlow"   Unit="mL/min" Precision="3"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="Aorta"  Name="OutFlow"   Unit="mL/min" Precision="3"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="Aorta"  Name="InFlow"   Unit="mL/min" Precision="3"/>
+	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"  Name="OutFlow"   Unit="mL/min" Precision="3"/>
+	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"  Name="InFlow"   Unit="mL/min" Precision="3"/>
   </DataRequests>
 
 <!--Read me:
@@ -101,7 +101,7 @@
 	<Action xsi:type="AdvanceTimeData">
         <Time value="30" unit="s"/>       
     </Action>
-    <Action xsi:type="HemorrhageData" Compartment="Aorta">
+    <Action xsi:type="HemorrhageData" Compartment="VenaCava">
 		<InitialRate value="450" unit="mL/min"/>
     </Action>
     <Action xsi:type="AdvanceTimeData">

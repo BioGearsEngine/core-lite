@@ -79,7 +79,7 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="MyocardiumVasculature"  Substance="Pralidoxime" Name="Concentration" Unit="ug/L" Precision="4"/> 
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="RightLungVasculature"   Substance="Pralidoxime" Name="Concentration" Unit="ug/L" Precision="4"/> 		
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SkinVasculature"        Substance="Pralidoxime" Name="Concentration" Unit="ug/L" Precision="4"/>
-  <DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SpleenVasculature"      Substance="Pralidoxime" Name="Concentration" Unit="ug/L" Precision="4"/>
+  <DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="GutVasculature"      Substance="Pralidoxime" Name="Concentration" Unit="ug/L" Precision="4"/>
     	
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="BoneTissueExtracellular"        Substance="Pralidoxime" Name="Concentration" Unit="ug/L" Precision="4"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="BrainTissueExtracellular"       Substance="Pralidoxime" Name="Concentration" Unit="ug/L" Precision="4"/> 	

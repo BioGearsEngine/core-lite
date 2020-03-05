@@ -78,7 +78,7 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="MyocardiumVasculature"  Substance="Furosemide" Name="Concentration" Unit="ug/L" Precision="4"/> 
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="RightLungVasculature"   Substance="Furosemide" Name="Concentration" Unit="ug/L" Precision="4"/> 		
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SkinVasculature"        Substance="Furosemide" Name="Concentration" Unit="ug/L" Precision="4"/>
-  <DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SpleenVasculature"      Substance="Furosemide" Name="Concentration" Unit="ug/L" Precision="4"/>
+  <DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="GutVasculature"      Substance="Furosemide" Name="Concentration" Unit="ug/L" Precision="4"/>
 
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="BoneTissueExtracellular"        Substance="Furosemide" Name="Concentration" Unit="ug/L" Precision="4"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="BrainTissueExtracellular"       Substance="Furosemide" Name="Concentration" Unit="ug/L" Precision="4"/> 	

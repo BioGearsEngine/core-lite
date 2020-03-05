@@ -78,7 +78,7 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="MyocardiumVasculature"  Substance="Norepinephrine" Name="Concentration" Unit="ug/L" Precision="4"/> 
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="RightLungVasculature"   Substance="Norepinephrine" Name="Concentration" Unit="ug/L" Precision="4"/> 		
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SkinVasculature"        Substance="Norepinephrine" Name="Concentration" Unit="ug/L" Precision="4"/>
-    <DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SpleenVasculature"      Substance="Norepinephrine" Name="Concentration" Unit="ug/L" Precision="4"/>
+    <DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="GutVasculature"      Substance="Norepinephrine" Name="Concentration" Unit="ug/L" Precision="4"/>
 
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="BoneTissueExtracellular"        Substance="Norepinephrine" Name="Concentration" Unit="ug/L" Precision="4"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="BrainTissueExtracellular"       Substance="Norepinephrine" Name="Concentration" Unit="ug/L" Precision="4"/> 	

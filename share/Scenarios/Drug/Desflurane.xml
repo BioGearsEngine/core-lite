@@ -80,7 +80,7 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="MyocardiumVasculature"  Substance="Desflurane" Name="Concentration" Unit="ug/L" Precision="4"/> 
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="RightLungVasculature"   Substance="Desflurane" Name="Concentration" Unit="ug/L" Precision="4"/> 		
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SkinVasculature"        Substance="Desflurane" Name="Concentration" Unit="ug/L" Precision="4"/>
-    <DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SpleenVasculature"      Substance="Desflurane" Name="Concentration" Unit="ug/L" Precision="4"/>
+    <DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="GutVasculature"      Substance="Desflurane" Name="Concentration" Unit="ug/L" Precision="4"/>
 
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="BoneTissueExtracellular"        Substance="Desflurane" Name="Concentration" Unit="ug/L" Precision="4"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="BrainTissueExtracellular"       Substance="Desflurane" Name="Concentration" Unit="ug/L" Precision="4"/> 	

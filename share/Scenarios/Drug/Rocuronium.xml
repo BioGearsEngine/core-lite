@@ -79,7 +79,7 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="MyocardiumVasculature"  Substance="Rocuronium" Name="Concentration" Unit="ug/L" Precision="4"/> 
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="RightLungVasculature"   Substance="Rocuronium" Name="Concentration" Unit="ug/L" Precision="4"/> 		
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SkinVasculature"        Substance="Rocuronium" Name="Concentration" Unit="ug/L" Precision="4"/>
-  <DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="SpleenVasculature"      Substance="Rocuronium" Name="Concentration" Unit="ug/L" Precision="4"/>
+  <DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="GutVasculature"      Substance="Rocuronium" Name="Concentration" Unit="ug/L" Precision="4"/>
     	
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="BoneTissueExtracellular"        Substance="Rocuronium" Name="Concentration" Unit="ug/L" Precision="4"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="BrainTissueExtracellular"       Substance="Rocuronium" Name="Concentration" Unit="ug/L" Precision="4"/> 	

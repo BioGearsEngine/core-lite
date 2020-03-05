@@ -140,13 +140,4 @@
     <Action xsi:type="AdvanceTimeData">
         <Time value="90" unit="s"/>       
     </Action>
-    <Action xsi:type="IntubationData" Type="Tracheal"/>
-    <Action xsi:type="AnesthesiaMachineConfigurationData">
-      <Configuration>
-        <Connection>Tube</Connection>
-      </Configuration>
-    </Action>    
-    <Action xsi:type="AdvanceTimeData">
-        <Time value="500" unit="s"/>       
-    </Action>
 </Scenario>
