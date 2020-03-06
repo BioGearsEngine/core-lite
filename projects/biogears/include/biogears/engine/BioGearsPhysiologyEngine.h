@@ -311,7 +311,6 @@ namespace tatrc {
         DEFINE_STATIC_STRING_EX(Myocardium, MyocardiumVasculature);
         DEFINE_STATIC_STRING(LeftHeart);
         DEFINE_STATIC_STRING(RightHeart);
-        //DEFINE_STATIC_STRING(Pericardium);
         DEFINE_STATIC_STRING(VenaCava);
         // Pulmonary
         DEFINE_STATIC_STRING(PulmonaryArteries);

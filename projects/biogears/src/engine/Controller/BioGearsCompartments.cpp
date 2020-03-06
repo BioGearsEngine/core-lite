@@ -227,11 +227,9 @@ void BioGearsCompartments::StateChange()
     SORT_CMPTS_LITE(Urine, Liquid);
   }
 
-  if (!m_data.GetConfiguration().IsBioGearsLiteEnabled()) {
-    SORT_CMPTS(Vascular, Liquid);
-  } else {
-    SORT_CMPTS_LITE(Vascular, Liquid);
-  }
+
+  SORT_CMPTS_LITE(Vascular, Liquid);
+
   for (const std::string& name : BGE::VascularLiteCompartment::GetValues()) {
     SELiquidCompartment* cmpt = GetLiquidCompartment(name);
     if (cmpt == nullptr) {

@@ -324,105 +324,50 @@ void Cardiovascular::SetUp()
   //Circuits
   m_CirculatoryCircuit = &m_data.GetCircuits().GetActiveCardiovascularCircuit();
   m_CirculatoryGraph = &m_data.GetCompartments().GetActiveCardiovascularGraph();
-  if (!m_data.GetConfiguration().IsBioGearsLiteEnabled()) {
-    //Compartments
-    m_Aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Aorta);
-    m_AortaCO2 = m_Aorta->GetSubstanceQuantity(m_data.GetSubstances().GetCO2());
-    m_Brain = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Brain);
-    m_LeftPulmonaryArteries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::LeftPulmonaryArteries);
-    m_RightPulmonaryArteries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::RightPulmonaryArteries);
-    m_LeftPulmonaryVeins = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::LeftPulmonaryVeins);
-    m_RightPulmonaryVeins = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::RightPulmonaryVeins);
-    m_LeftPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::LeftPulmonaryCapillaries);
-    m_RightPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::RightPulmonaryCapillaries);
-    m_VenaCava = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::VenaCava);
-    /*m_Pericardium = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Pericardium);*/
-    m_LeftHeart = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::LeftHeart);
-    m_RightHeart = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::RightHeart);
-    //Nodes
-    m_MainPulmonaryArteries = m_CirculatoryCircuit->GetNode(BGE::CardiovascularNode::MainPulmonaryArteries);
-    m_LeftHeart2 = m_CirculatoryCircuit->GetNode(BGE::CardiovascularNode::LeftHeart2);
-    //Paths
-    m_LeftPulmonaryArteriesToVeins = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::LeftPulmonaryArteriesToLeftPulmonaryVeins);
-    m_LeftPulmonaryArteriesToCapillaries = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::LeftPulmonaryArteriesToLeftPulmonaryCapillaries);
-    m_RightPulmonaryArteriesToVeins = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::RightPulmonaryArteriesToRightPulmonaryVeins);
-    m_RightPulmonaryArteriesToCapillaries = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::RightPulmonaryArteriesToRightPulmonaryCapillaries);
+  
+  //Compartments
+  m_Aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta);
+  m_AortaCO2 = m_Aorta->GetSubstanceQuantity(m_data.GetSubstances().GetCO2());
+  m_Brain = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Brain);
+  m_LeftPulmonaryArteries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftPulmonaryArteries);
+  m_RightPulmonaryArteries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightPulmonaryArteries);
+  m_LeftPulmonaryVeins = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftPulmonaryVeins);
+  m_RightPulmonaryVeins = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightPulmonaryVeins);
+  m_LeftPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftPulmonaryCapillaries);
+  m_RightPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightPulmonaryCapillaries);
+  m_VenaCava = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava);
+  m_LeftHeart = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftHeart);
+  m_RightHeart = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightHeart);
+  //Nodes
+  m_MainPulmonaryArteries = m_CirculatoryCircuit->GetNode(BGE::CardiovascularLiteNode::MainPulmonaryArteries);
+  m_LeftHeart2 = m_CirculatoryCircuit->GetNode(BGE::CardiovascularLiteNode::LeftHeart2);
+  //Paths
+  m_LeftPulmonaryArteriesToVeins = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::LeftPulmonaryArteriesToLeftPulmonaryVeins);
+  m_LeftPulmonaryArteriesToCapillaries = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::LeftPulmonaryArteriesToLeftPulmonaryCapillaries);
+  m_RightPulmonaryArteriesToVeins = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::RightPulmonaryArteriesToRightPulmonaryVeins);
+  m_RightPulmonaryArteriesToCapillaries = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::RightPulmonaryArteriesToRightPulmonaryCapillaries);
 
-    m_pAortaToBone = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToBone1);
-    m_pAortaToBrain = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToBrain1);
-    m_pBrainToVenaCava = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Brain1ToBrain2);
-    m_pAortaToLiver = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToLiver1);
-    m_pAortaToLeftKidney = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToLeftKidney1);
-    m_pAortaToLargeIntestine = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToLargeIntestine);
-    m_pAortaToMuscle = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToMuscle1);
-    m_pMuscleToVenaCava = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Muscle1ToMuscle2);
-    m_pAortaToMyocardium = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToMyocardium1);
-    m_pMyocardiumToVenaCava = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Myocardium1ToMyocardium2);
-    m_pAortaToRightKidney = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToRightKidney1);
-    m_pAortaToSkin = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToSkin1);
-    m_pAortaToSmallIntestine = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToSmallIntestine);
-    m_pAortaToSplanchnic = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToSplanchnic);
-    m_pAortaToSpleen = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToSpleen);
+  m_pAortaToBone = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToBone1);
+  m_pAortaToBrain = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToBrain1);
+  m_pBrainToVenaCava = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Brain1ToBrain2);
+  m_pAortaToLiver = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToLiver1);
+  m_pAortaToLeftKidney = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToLeftKidney1);
+  m_pAortaToMuscle = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToMuscle1);
+  m_pMuscleToVenaCava = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Muscle1ToMuscle2);
+  m_pAortaToMyocardium = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToMyocardium1);
+  m_pMyocardiumToVenaCava = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Myocardium1ToMyocardium2);
+  m_pAortaToRightKidney = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToRightKidney1);
+  m_pAortaToSkin = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToSkin1);
 
-    m_pBrainResistanceDownstream = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Brain1ToBrain2);
-    m_pBrainResistanceUpstream = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToBrain1);
+  m_pBrainResistanceDownstream = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Brain1ToBrain2);
+  m_pBrainResistanceUpstream = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToBrain1);
 
-    m_pVenaCavaHemorrhage = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::VenaCavaBleed);
-    //m_pGndToPericardium = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::GroundToPericardium1);
-    //m_pPericardiumToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Pericardium1ToGround);
-    m_pRightHeartToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::RightHeart3ToGround);
-    m_pRightHeart = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::RightHeart1ToRightHeart3);
-    m_pLeftHeartToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::LeftHeart3ToGround);
-    m_pLeftHeart = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::LeftHeart1ToLeftHeart3);
-    m_LeftHeartToAorta = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::LeftHeart1ToAorta2);
-  } else {
-    //Compartments
-    m_Aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta);
-    m_AortaCO2 = m_Aorta->GetSubstanceQuantity(m_data.GetSubstances().GetCO2());
-    m_Brain = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Brain);
-    m_LeftPulmonaryArteries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftPulmonaryArteries);
-    m_RightPulmonaryArteries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightPulmonaryArteries);
-    m_LeftPulmonaryVeins = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftPulmonaryVeins);
-    m_RightPulmonaryVeins = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightPulmonaryVeins);
-    m_LeftPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftPulmonaryCapillaries);
-    m_RightPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightPulmonaryCapillaries);
-    m_VenaCava = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava);
-    //m_Pericardium = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Pericardium);
-    m_LeftHeart = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftHeart);
-    m_RightHeart = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightHeart);
-    //Nodes
-    m_MainPulmonaryArteries = m_CirculatoryCircuit->GetNode(BGE::CardiovascularLiteNode::MainPulmonaryArteries);
-    m_LeftHeart2 = m_CirculatoryCircuit->GetNode(BGE::CardiovascularLiteNode::LeftHeart2);
-    //Paths
-    m_LeftPulmonaryArteriesToVeins = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::LeftPulmonaryArteriesToLeftPulmonaryVeins);
-    m_LeftPulmonaryArteriesToCapillaries = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::LeftPulmonaryArteriesToLeftPulmonaryCapillaries);
-    m_RightPulmonaryArteriesToVeins = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::RightPulmonaryArteriesToRightPulmonaryVeins);
-    m_RightPulmonaryArteriesToCapillaries = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::RightPulmonaryArteriesToRightPulmonaryCapillaries);
-
-    m_pAortaToBone = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToBone1);
-    m_pAortaToBrain = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToBrain1);
-    m_pBrainToVenaCava = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Brain1ToBrain2);
-    m_pAortaToLiver = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToLiver1);
-    m_pAortaToLeftKidney = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToLeftKidney1);
-    m_pAortaToMuscle = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToMuscle1);
-    m_pMuscleToVenaCava = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Muscle1ToMuscle2);
-    m_pAortaToMyocardium = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToMyocardium1);
-    m_pMyocardiumToVenaCava = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Myocardium1ToMyocardium2);
-    m_pAortaToRightKidney = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToRightKidney1);
-    m_pAortaToSkin = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToSkin1);
-
-    m_pBrainResistanceDownstream = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Brain1ToBrain2);
-    m_pBrainResistanceUpstream = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Aorta1ToBrain1);
-
-    m_pVenaCavaHemorrhage = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::VenaCavaBleed);
-    /*m_pGndToPericardium = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::GroundToPericardium1);
-    m_pPericardiumToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::Pericardium1ToGround);*/
-    m_pRightHeartToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::RightHeart3ToGround);
-    m_pRightHeart = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::RightHeart1ToRightHeart3);
-    m_pLeftHeartToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::LeftHeart3ToGround);
-    m_pLeftHeart = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::LeftHeart1ToLeftHeart3);
-    m_LeftHeartToAorta = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::LeftHeart1ToAorta2);
-  }
+  m_pVenaCavaHemorrhage = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::VenaCavaBleed);
+  m_pRightHeartToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::RightHeart3ToGround);
+  m_pRightHeart = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::RightHeart1ToRightHeart3);
+  m_pLeftHeartToGnd = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::LeftHeart3ToGround);
+  m_pLeftHeart = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::LeftHeart1ToLeftHeart3);
+  m_LeftHeartToAorta = m_CirculatoryCircuit->GetPath(BGE::CardiovascularLitePath::LeftHeart1ToAorta2);
   
   /// \todo We are assuming that the complex renal system is connected. Make it agnostic.
   m_RenalArteryPath = m_CirculatoryCircuit->GetPath(BGE::RenalLitePath::RenalArteryToAfferentArteriole);

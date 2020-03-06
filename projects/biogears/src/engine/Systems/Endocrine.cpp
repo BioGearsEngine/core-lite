@@ -94,13 +94,9 @@ void Endocrine::SetUp()
   SESubstance* glucagon = &m_data.GetSubstances().GetGlucagon();
   m_glucagonMolarMass_g_Per_mol = glucagon->GetMolarMass(MassPerAmountUnit::g_Per_mol);
 
-  if (!m_data.GetConfiguration().IsBioGearsLiteEnabled()) {
-    m_splanchnicInsulin = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Splanchnic)->GetSubstanceQuantity(*insulin);
-    m_splanchnicGlucagon = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Splanchnic)->GetSubstanceQuantity(*glucagon);
-  } else {
-    m_splanchnicInsulin = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Gut)->GetSubstanceQuantity(*insulin);
-    m_splanchnicGlucagon = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Gut)->GetSubstanceQuantity(*glucagon);
-  }
+  m_splanchnicInsulin = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Gut)->GetSubstanceQuantity(*insulin);
+  m_splanchnicGlucagon = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Gut)->GetSubstanceQuantity(*glucagon);
+
  
 }
 
