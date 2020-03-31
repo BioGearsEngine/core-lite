@@ -1797,9 +1797,9 @@ void BioGears::SetupCardiovascularLite()
   vLiverToVenaCava.MapPath(Liver2ToVenaCava);
   /////////////////
   // Left Kidney //
-  SELiquidCompartmentLink& vAortaToLeftKidney = m_Compartments->CreateLiquidLink(vAorta, vLeftKidney, BGE::VascularLink::AortaToLeftKidney);
+  SELiquidCompartmentLink& vAortaToLeftKidney = m_Compartments->CreateLiquidLink(vAorta, vLeftKidney, BGE::VascularLiteLink::AortaToLeftKidney);
   vAortaToLeftKidney.MapPath(Aorta1ToLeftKidney1);
-  SELiquidCompartmentLink& vLeftKidneyToVenaCava = m_Compartments->CreateLiquidLink(vLeftKidney, vVenaCava, BGE::VascularLink::LeftKidneyToVenaCava);
+  SELiquidCompartmentLink& vLeftKidneyToVenaCava = m_Compartments->CreateLiquidLink(vLeftKidney, vVenaCava, BGE::VascularLiteLink::LeftKidneyToVenaCava);
   vLeftKidneyToVenaCava.MapPath(LeftKidney2ToVenaCava);
   //////////////
   // Leg //
@@ -1821,9 +1821,9 @@ void BioGears::SetupCardiovascularLite()
   vMyocardiumToVenaCava.MapPath(Myocardium2ToVenaCava);
   //////////////////
   // Right Kidney //
-  SELiquidCompartmentLink& vAortaToRightKidney = m_Compartments->CreateLiquidLink(vAorta, vRightKidney, BGE::VascularLink::AortaToRightKidney);
+  SELiquidCompartmentLink& vAortaToRightKidney = m_Compartments->CreateLiquidLink(vAorta, vRightKidney, BGE::VascularLiteLink::AortaToRightKidney);
   vAortaToRightKidney.MapPath(Aorta1ToRightKidney1);
-  SELiquidCompartmentLink& vRightKidneyToVenaCava = m_Compartments->CreateLiquidLink(vRightKidney, vVenaCava, BGE::VascularLink::RightKidneyToVenaCava);
+  SELiquidCompartmentLink& vRightKidneyToVenaCava = m_Compartments->CreateLiquidLink(vRightKidney, vVenaCava, BGE::VascularLiteLink::RightKidneyToVenaCava);
   vRightKidneyToVenaCava.MapPath(RightKidney2ToVenaCava);
   ///////////////
   // Skin //
@@ -2302,8 +2302,8 @@ void BioGears::SetupRenalLite()
 
   ////////////////////////////
   // AortaToRenalArtery, update left and right //
-  m_Compartments->DeleteLiquidLink(BGE::VascularLink::AortaToLeftKidney); // Replace this link
-  m_Compartments->DeleteLiquidLink(BGE::VascularLink::AortaToRightKidney); // Replace this link
+  m_Compartments->DeleteLiquidLink(BGE::VascularLiteLink::AortaToLeftKidney); // Replace this link
+  m_Compartments->DeleteLiquidLink(BGE::VascularLiteLink::AortaToRightKidney); // Replace this link
   SELiquidCompartmentLink& vAortaToRenalArtery = m_Compartments->CreateLiquidLink(vAorta, vRenalArtery, BGE::VascularLiteLink::AortaToKidney);
   vAortaToRenalArtery.MapPath(AortaConnectionToRenalArtery);
   ////////////////////////////////////////
@@ -2340,8 +2340,8 @@ void BioGears::SetupRenalLite()
   vPeritubularCapillariesToRenalVein.MapPath(PeritubularCapillariesToRenalVein);
   /////////////////////////////
   // RenalVeinToVenaCava, delete right //
-  m_Compartments->DeleteLiquidLink(BGE::VascularLink::RightKidneyToVenaCava); // Replace this link
-  m_Compartments->DeleteLiquidLink(BGE::VascularLink::LeftKidneyToVenaCava); // Replace this link
+  m_Compartments->DeleteLiquidLink(BGE::VascularLiteLink::RightKidneyToVenaCava); // Replace this link
+  m_Compartments->DeleteLiquidLink(BGE::VascularLiteLink::LeftKidneyToVenaCava); // Replace this link
   SELiquidCompartmentLink& vRenalVeinToVenaCava = m_Compartments->CreateLiquidLink(vRenalVein, vVenaCava, BGE::VascularLiteLink::KidneyToVenaCava);
   vRenalVeinToVenaCava.MapPath(RenalVeinToVenaCavaConnection);
   /////////////////////////////
@@ -2447,7 +2447,7 @@ void BioGears::SetupTissue()
   LymphToGround.GetComplianceBaseline().SetValue(Lymph.GetVolumeBaseline(VolumeUnit::mL) / Lymph.GetPressure(PressureUnit::mmHg), FlowComplianceUnit::mL_Per_mmHg);
   ///\ToDo:  Use P-V relationship in Himeno2015Mechanisms to get better initial compliance estimate
 
-  SELiquidCompartment* cVenaCava = m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::VenaCava);
+  SELiquidCompartment* cVenaCava = m_Compartments->GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava);
   SELiquidCompartment& cLymph = m_Compartments->CreateLiquidCompartment(BGE::LymphCompartment::Lymph);
   cLymph.MapNode(Lymph);
 
@@ -3750,7 +3750,7 @@ void BioGears::SetupGastrointestinal()
   cSmallIntestine.MapNode(SmallIntestineC1);
 
   //remove the link because substances are handled manually in model design
-  SELiquidCompartment* vSmallIntestine = m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::SmallIntestine);
+  SELiquidCompartment* vSmallIntestine = m_Compartments->GetLiquidCompartment(BGE::VascularLiteCompartment::Gut);
   //SELiquidCompartmentLink& lSmallIntestineChymeToVasculature = m_Compartments->CreateLiquidLink(cSmallIntestine, *vSmallIntestine, BGE::ChymeLink::SmallIntestineChymeToVasculature);
   //lSmallIntestineChymeToVasculature.MapPath(SmallIntestineC1ToSmallIntestine1);
 

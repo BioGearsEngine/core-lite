@@ -169,8 +169,8 @@ void HowToEngineUse()
   bg->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TidalVolume", VolumeUnit::mL);
   bg->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TotalLungVolume", VolumeUnit::mL);
   bg->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("OxygenSaturation");
-  bg->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularCompartment::Aorta, *O2, "PartialPressure");
-  bg->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularCompartment::Aorta, *CO2, "PartialPressure");
+  bg->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularLiteCompartment::Aorta, *O2, "PartialPressure");
+  bg->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularLiteCompartment::Aorta, *CO2, "PartialPressure");
   bg->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(BGE::PulmonaryCompartment::Lungs, "Volume");
   bg->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(BGE::PulmonaryCompartment::Carina, "InFlow");
 
@@ -238,7 +238,7 @@ void HowToEngineUse()
   // This allows a more direct access to the underlying data calculated by the methodology
   // For example, getting an Invasive Blood Pressure, any arterial compartment pressure can be pulled, i.e. femoral artery (right/left leg)
   // Since this is an arterial compartment, blood is flowing through this compartment, where as the carina compartment is air flow
-  bg->GetLogger()->Info(std::stringstream() << "Invasive Blood Pressure : " << bg->GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Aorta)->GetPressure(PressureUnit::mmHg) << PressureUnit::mmHg);
+  bg->GetLogger()->Info(std::stringstream() << "Invasive Blood Pressure : " << bg->GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta)->GetPressure(PressureUnit::mmHg) << PressureUnit::mmHg);
 
   bg->GetLogger()->Info(std::stringstream() << "RespirationRate : " << bg->GetRespiratorySystem()->GetRespirationRate(FrequencyUnit::Per_min) << "bpm");
   bg->GetLogger()->Info(std::stringstream() << "Total Lung Volume : " << bg->GetRespiratorySystem()->GetTotalLungVolume(VolumeUnit::mL) << VolumeUnit::mL);

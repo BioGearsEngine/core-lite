@@ -191,7 +191,7 @@ void HowToMechanicalVentialtion()
   //Compartment data
   //Arteriole bicarbonate
   SESubstance* HCO3 = bg->GetSubstanceManager().GetSubstance("Bicarbonate");
-  bg->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularCompartment::Aorta, *HCO3, "Concentration", MassPerVolumeUnit::ug_Per_mL);
+  bg->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularLiteCompartment::Aorta, *HCO3, "Concentration", MassPerVolumeUnit::ug_Per_mL);
   //Lactate - this should have a relationship to lactic acid
   SESubstance* Lactate = bg->GetSubstanceManager().GetSubstance("Lactate");
   bg->GetEngineTrack()->GetDataRequestManager().CreateSubstanceDataRequest().Set(*Lactate, "BloodConcentration", MassPerVolumeUnit::ug_Per_mL);

@@ -155,12 +155,12 @@ void Tissue::Initialize()
   GetRespiratoryExchangeRatio().SetValue(0.8);
 
   //Set baseline insulin and glucagon values after stabilization
-  GetLiverInsulinSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Liver)->GetSubstanceQuantity(*m_Insulin)->GetMolarity());
-  GetLiverGlucagonSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Liver)->GetSubstanceQuantity(*m_Glucagon)->GetConcentration());
-  GetMuscleInsulinSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Muscle)->GetSubstanceQuantity(*m_Insulin)->GetMolarity());
-  GetMuscleGlucagonSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Muscle)->GetSubstanceQuantity(*m_Glucagon)->GetConcentration());
-  GetFatInsulinSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Fat)->GetSubstanceQuantity(*m_Insulin)->GetMolarity());
-  GetFatGlucagonSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Fat)->GetSubstanceQuantity(*m_Glucagon)->GetConcentration());
+  GetLiverInsulinSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Liver)->GetSubstanceQuantity(*m_Insulin)->GetMolarity());
+  GetLiverGlucagonSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Liver)->GetSubstanceQuantity(*m_Glucagon)->GetConcentration());
+  GetMuscleInsulinSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle)->GetSubstanceQuantity(*m_Insulin)->GetMolarity());
+  GetMuscleGlucagonSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle)->GetSubstanceQuantity(*m_Glucagon)->GetConcentration());
+  GetFatInsulinSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Fat)->GetSubstanceQuantity(*m_Insulin)->GetMolarity());
+  GetFatGlucagonSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Fat)->GetSubstanceQuantity(*m_Glucagon)->GetConcentration());
 
   //Set nutrient stores (also reset in AtSteadyState)
   GetLiverGlycogen().SetValue(.065 * m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver)->GetTotalMass(MassUnit::g), MassUnit::g);
@@ -2231,7 +2231,7 @@ void Tissue::CalculateOncoticPressure()
     interstitialOncoticPressure_mmHg = 2.1 * totalProteinInterstitial_g_Per_dL + 0.16 * std::pow(totalProteinInterstitial_g_Per_dL, 2) + 0.009 * std::pow(totalProteinInterstitial_g_Per_dL, 3);
 
 
-    if (vascular->GetName() == BGE::VascularCompartment::Gut || vascular->GetName() == BGE::VascularCompartment::Lungs) {
+    if (vascular->GetName() == BGE::VascularLiteCompartment::Gut || vascular->GetName() == BGE::VascularLiteCompartment::Lungs) {
       for (auto c : vascular->GetChildren()) {
         try {
         vascularCOP = m_VascularCopPaths.at(c);
@@ -2242,17 +2242,12 @@ void Tissue::CalculateOncoticPressure()
           Fatal(e.what());
         }
       }
-    } else {
-      if (vascular->GetName() == BGE::VascularLiteCompartment::Lungs || vascular->GetName() == BGE::VascularLiteCompartment::Kidney) {
-        for (auto c : vascular->GetChildren()) {
-          vascularCOP = m_VascularCopPaths[c];
-          vascularCOP->GetNextPressureSource().SetValue(-vascularOncoticPressure_mmHg, PressureUnit::mmHg);
-        }
+    
       } else {
         vascularCOP = m_VascularCopPaths[vascular];
         vascularCOP->GetNextPressureSource().SetValue(-vascularOncoticPressure_mmHg, PressureUnit::mmHg);
       }
-    }
+   
     
     interstitialCOP = m_InterstitialCopPaths[tissue];
     interstitialCOP->GetNextPressureSource().SetValue(interstitialOncoticPressure_mmHg, PressureUnit::mmHg);
@@ -2420,7 +2415,7 @@ void Tissue::OtherDiffusion()
   for (auto diffSet : m_data.GetDiffusionCalculator().GetDiffusionSets()) {
     CoupledIonTransport(*diffSet.tissue, *diffSet.extracellular, *diffSet.intracellular, *diffSet.vascular);
     for (auto facilitatedSub : m_data.GetDiffusionCalculator().GetFacilitatedDiffusionSubstances()) {
-      if (facilitatedSub->GetName() == "Triacylglycerol" && diffSet.vascular->GetName() == BGE::VascularCompartment::Brain)
+      if (facilitatedSub->GetName() == "Triacylglycerol" && diffSet.vascular->GetName() == BGE::VascularLiteCompartment::Brain)
         continue;
       double massToAreaCoefficient_cm2_Per_g = 1.0; /// \todo Define relationship between tissue mass and membrane area.
       double capCoverage_cm2 = massToAreaCoefficient_cm2_Per_g * diffSet.tissue->GetTotalMass(MassUnit::g);
@@ -2450,8 +2445,8 @@ void Tissue::OtherDiffusion()
     diffSet.vascular->GetSubstanceQuantity(*m_Albumin)->Balance(BalanceLiquidBy::Mass);
     diffSet.extracellular->GetSubstanceQuantity(*m_Albumin)->Balance(BalanceLiquidBy::Mass);
   }
-  MoveMassByConvection(*m_data.GetCompartments().GetLiquidCompartment(BGE::LymphCompartment::Lymph), *m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::VenaCava), *m_Albumin, m_Dt_s);
+  MoveMassByConvection(*m_data.GetCompartments().GetLiquidCompartment(BGE::LymphCompartment::Lymph), *m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava), *m_Albumin, m_Dt_s);
   m_data.GetCompartments().GetLiquidCompartment(BGE::LymphCompartment::Lymph)->GetSubstanceQuantity(*m_Albumin)->Balance(BalanceLiquidBy::Mass);
-  m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::VenaCava)->GetSubstanceQuantity(*m_Albumin)->Balance(BalanceLiquidBy::Mass);
+  m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava)->GetSubstanceQuantity(*m_Albumin)->Balance(BalanceLiquidBy::Mass);
 }
 }

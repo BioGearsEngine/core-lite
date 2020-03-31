@@ -247,7 +247,7 @@ void BioGearsEngineTest::PerfusionLimitedDiffusionTest(SETestSuite& testSuite)
   intracellular.GetVolume().SetValue(1.0, VolumeUnit::mL); //Need fluid volume to balance.
   extracellular.GetVolume().SetValue(1.0, VolumeUnit::mL); //Should be fine, right? We don't validate and tissue concentrations.
 
-  SELiquidCompartment& vascular = bg.GetCompartments().CreateLiquidCompartment(BGE::VascularCompartment::Bone);
+  SELiquidCompartment& vascular = bg.GetCompartments().CreateLiquidCompartment(BGE::VascularLiteCompartment::Bone);
   vascular.GetVolume().SetValue(bVol_mL, VolumeUnit::mL);
   vascular.GetSubstanceQuantity(*sub)->GetConcentration().SetValue(bConc_ug_Per_mL, MassPerVolumeUnit::ug_Per_mL);
   vascular.GetSubstanceQuantity(*sub)->Balance(BalanceLiquidBy::Concentration);
@@ -861,11 +861,11 @@ void BioGearsEngineTest::DiffusionMatrixMathTest(const std::string& rptDirectory
   std::vector<SESubstance*> subs = { Na, K, Cl };
 
   //Grab some existing compartments--notice that this test was done using BioGears Lite
-  SELiquidCompartment* liverVas = bg.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Liver);
+  SELiquidCompartment* liverVas = bg.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Liver);
   SELiquidCompartment* liverTis = bg.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::LiverExtracellular);
-  SELiquidCompartment* skinVas = bg.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Skin);
+  SELiquidCompartment* skinVas = bg.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Skin);
   SELiquidCompartment* skinTis = bg.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::SkinExtracellular);
-  SELiquidCompartment* muscleVas = bg.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Muscle);
+  SELiquidCompartment* muscleVas = bg.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle);
   SELiquidCompartment* muscleTis = bg.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::MuscleExtracellular);
 
   //Set concentrations.  Liver uses vascular and intra values in engine and other cmpts mix the values so that we can see

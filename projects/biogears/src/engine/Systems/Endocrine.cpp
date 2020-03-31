@@ -83,7 +83,7 @@ void Endocrine::Unload(CDM::BioGearsEndocrineSystemData& data) const
 void Endocrine::SetUp()
 {
   m_dt_s = m_data.GetTimeStep().GetValue(TimeUnit::s);
-  SELiquidCompartment* aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Aorta);
+  SELiquidCompartment* aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta);
   SELiquidCompartment* kidney = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::EfferentArteriole);
 
   m_aortaEpinephrine = aorta->GetSubstanceQuantity(m_data.GetSubstances().GetEpi());

@@ -251,8 +251,8 @@ void Renal::SetUp()
   //Substance quantities
 
   //Compartments
-  m_aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Aorta);
-  m_venaCava = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::VenaCava);
+  m_aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta);
+  m_venaCava = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava);
   m_kidney = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Kidney);
 
   m_KidneyTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Kidney);

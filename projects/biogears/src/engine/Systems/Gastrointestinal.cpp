@@ -131,7 +131,7 @@ void Gastrointestinal::SetUp()
   m_secretionRate_mL_Per_s = 0.041; // Average from daily secretion rates : Gastric (1500mL) ,Small Intestine(1800mL), Large Intestine (200mL) form Guyton p775
   m_dT_s = m_data.GetTimeStep().GetValue(TimeUnit::s);
 
-  m_vSmallIntestine = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::SmallIntestine);
+  m_vSmallIntestine = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Gut);
   if (m_data.GetConfiguration().IsBioGearsLiteEnabled()) {
     m_vSmallIntestine = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Gut);
   }
