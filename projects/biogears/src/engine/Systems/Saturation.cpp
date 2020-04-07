@@ -96,9 +96,10 @@ public:
         CO2_scaling_factor = 0.1;
 
       logTerm = std::log10(bicarb_mM / co2_mM);
+      //double x = bicarb_mM / co2_mM;
+      //pH = 6.6 + ((2. / 2.3) * (((x - 1.) / (x + 1.)) + std::pow(((x - 1.) / ((3. * x) + 3.)), 3.)));
       pH = 6.1 + logTerm;
       m_SatCalc.CalculateHemoglobinSaturations(O2PartialPressureGuess_mmHg, CO2PartialPressureGuess_mmHg, pH, m_SatCalc.m_temperature_C, m_SatCalc.m_hematocrit, OxygenSaturation, CarbonDioxideSaturation, CO2_scaling_factor);
-      
     }
 
     double CO2_mM = m_SatCalc.m_subCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
@@ -398,18 +399,17 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
     double newHb_mM = m_subHbQ->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
     double newTotalHb_mM = newHbO2_mM + newHbCO2_mM + newHbO2CO2_mM + newHb_mM + newHbCO_mM;
     double diffTotal = newTotalHb_mM - oldTotalHb_mM;
-    if (std::abs(diffTotal) > 1.0e-8) {
+    if (std::abs(diffTotal) > 1.0e-6) {
       std::stringstream debugSS;
       debugSS << "CalculateCarbonMonoxideSpeciesDistribution failed to conserve hemoglobin. Difference = ";
       debugSS << diffTotal;
-      if (std::abs(diffTotal) > 1.0e-8)
-        Warning(debugSS.str());
+      Warning(debugSS.str());
     }
 
-    HbO2_mM = m_subHbO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Oxygen bound to 4 sites
-    HbCO2_mM = m_subHbCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Carbon Dioxide bound to 4 sites
-    HbO2CO2_mM = m_subHbO2CO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Oxygen and Carbon Dioxide bound to 4 sites
-    Hb_mM = m_subHbQ->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with nothing bound
+    HbO2_mM = newHbO2_mM; //m_subHbO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Oxygen bound to 4 sites
+    HbCO2_mM = newHbCO2_mM; //m_subHbCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Carbon Dioxide bound to 4 sites
+    HbO2CO2_mM = newHbO2CO2_mM; //m_subHbO2CO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Oxygen and Carbon Dioxide bound to 4 sites
+    Hb_mM = newHb_mM; //m_subHbQ->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with nothing bound
     O2_mM = m_subO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Dissolved Oxygen
     CO2_mM = m_subCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Dissolved Carbon Dioxide
     HCO3_mM = m_subHCO3Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Bicarbonate
@@ -455,16 +455,16 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
   Eigen::VectorXd x(3);
 
   //// Initial Guess - just use the last values
-  x(0) = m_subHCO3Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
-  x(1) = m_subCO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
-  x(2) = m_subO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
+  x(0) = HCO3_mM; //m_subHCO3Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
+  x(1) = CO2_mM; //m_subCO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
+  x(2) = O2_mM;  //m_subO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
 
   error_functor functor(*this);
   Eigen::NumericalDiff<error_functor> numDiff(functor);
   Eigen::HybridNonLinearSolver<Eigen::NumericalDiff<error_functor>, double> solver(numDiff);
   solver.parameters.maxfev = 250; // Maximum number of function evaluations - 250
   solver.parameters.xtol = 1.0e-6; // Maximum 2-norm of the solution vector 1.0e-6
-  solver.parameters.factor = 0.015; // Damping factor
+  solver.parameters.factor = 0.1; // Damping factor
 
   std::stringstream errMsg;
   std::stringstream check; //check for specific error
@@ -473,7 +473,7 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
   // Solve the acid base equations
   int ret = solver.solveNumericalDiffInit(x);
   while (ret == Eigen::HybridNonLinearSolverSpace::Running) {
-    ret = solver.solveNumericalDiffOneStep(x);
+  ret = solver.solveNumericalDiffOneStep(x);
   }
 
   switch (ret) {
@@ -519,20 +519,18 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
   }
 
   // Handle negative returns
-  if (x(0) < 0.0 || x(1) < 0.0 || x(2) < 0.0) { // Convert near-zero to zero
-    if (std::abs(x(0)) < approxZero) {
-      x(0) = 0.0;
-    }
-    if (std::abs(x(1)) < approxZero) {
-      x(1) = 0.0;
-    }
-    if (std::abs(x(2)) < approxZero) {
-      x(2) = 0.0;
-    }
-    // If the conversion didn't work then the negative is really negative, that's a problem
-    if (x(0) < 0.0 || x(1) < 0.0 || x(2) < 0.0) {
-      solverSolution = false;
-    }
+  if (std::abs(x(0)) < approxZero) {
+    x(0) = 0.0;
+  }
+  if (std::abs(x(1)) < approxZero) {
+    x(1) = 0.0;
+  }
+  if (std::abs(x(2)) < approxZero) {
+    x(2) = 0.0;
+  }
+  // If the conversion didn't work then the negative is really negative, that's a problem
+  if (x(0) < 0.0 || x(1) < 0.0 || x(2) < 0.0) {
+    solverSolution = false;
   }
 
   // Check saturations. If there is O2 and CO2 and the saturations are zero then the solver got on a bad gradient
@@ -545,7 +543,7 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
     resultantHCO3_mM = x(0);
     resultantDissolvedCO2_mM = x(1);
     resultantDissolvedO2_mM = x(2);
-    m_cmpt->GetPH().SetValue(6.1 + std::log10(resultantHCO3_mM/resultantDissolvedCO2_mM));
+    m_cmpt->GetPH().SetValue(6.1 + std::log10(resultantHCO3_mM / resultantDissolvedCO2_mM));
   } else {
 #ifdef VERBOSE
     Info("Secondary binding solution");
@@ -571,7 +569,7 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
     double currentBicarbCO2Percent = HCO3_mM / InputAmountTotalCO2_mM;
     double currentBoundCO2Percent = ((HbCO2_mM + HbO2CO2_mM) * 4.0) / InputAmountTotalCO2_mM;
     // Move towards the above listed percents
-    double dampingFactor = 0.1;
+    double dampingFactor = solver.parameters.factor;
     double targetDissolvedO2Percent = std::max(currentDissolvedO2Percent + dampingFactor * (0.01 - currentDissolvedO2Percent), 0.0);
     double targetBoundO2Percent = std::max(currentBoundO2Percent + dampingFactor * (0.99 - currentBoundO2Percent), 0.0);
     double targetDissolvedCO2Percent = std::max(currentDissolvedCO2Percent + dampingFactor * (0.05 - currentDissolvedCO2Percent), 0.0);
@@ -610,17 +608,17 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
     // If that didn't work, walk it in until it does work
     if (Hb_mM < 0. || HbCO2_mM < 0. || HbO2_mM < 0. || HbO2CO2_mM < 0.) {
       unsigned int itr = 0;
-      while (knob <= 1.0 && itr < 50) {
+      while (knob <= 1.0 && itr < 20) {
         itr++;
         knob += 0.2 * (1.0 - knob);
-        if (itr == 50)
+        if (itr == 20)
           knob = 1.0; //Last time through make sure knob is exactly 1.0
         HbO2CO2_mM = knob * std::min(HbReq4O2_mM, HbReq4CO2_mM);
         HbCO2_mM = HbReq4CO2_mM - HbO2CO2_mM;
         HbO2_mM = HbReq4O2_mM - HbO2CO2_mM;
         Hb_mM = InputAmountTotalHb_mM - (HbO2CO2_mM + HbCO2_mM + HbO2_mM);
         if (Hb_mM > 0. && HbCO2_mM > 0. && HbO2_mM > 0. && HbO2CO2_mM > 0.)
-          itr = 50;
+          itr = 20;
       }
     }
 
@@ -641,23 +639,23 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
       resultantCO2Sat = (HbCO2_mM + HbO2CO2_mM) / InputAmountTotalHb_mM;
     }
 
+    // This should absolutely never happen, but the error is here just in case
+    if (resultantO2Sat > (1.0 + ZERO_APPROX) || resultantO2Sat < -ZERO_APPROX || resultantCO2Sat > (1.0 + ZERO_APPROX) || resultantCO2Sat < -ZERO_APPROX)
+      Fatal("SaturationCalculator::CalculateBloodGasDistribution: Resultant saturation out of range. High probability of cows raining from the sky.");
+
     //Numerical error checks
-    if (resultantO2Sat > 1.0 && resultantO2Sat < 1.0 + ZERO_APPROX) {
+    if (resultantO2Sat > 1.0) {
       resultantO2Sat = 1.0;
     }
-    if (resultantO2Sat < 0.0 && resultantO2Sat > -ZERO_APPROX) {
+    if (resultantO2Sat < 0.0) {
       resultantO2Sat = 0.0;
     }
-    if (resultantCO2Sat > 1.0 && resultantCO2Sat < 1.0 + ZERO_APPROX) {
+    if (resultantCO2Sat > 1.0) {
       resultantCO2Sat = 1.0;
     }
-    if (resultantCO2Sat < 0.0 && resultantCO2Sat > -ZERO_APPROX) {
+    if (resultantCO2Sat < 0.0) {
       resultantCO2Sat = 0.0;
     }
-
-    // This should absolutely never happen, but the error is here just in case
-    if (resultantO2Sat > 1.0 || resultantO2Sat < 0.0 || resultantCO2Sat > 1.0 || resultantCO2Sat < 0.0)
-      Fatal("SaturationCalculator::CalculateBloodGasDistribution: Resultant saturation out of range. High probability of cows raining from the sky.");
 
     m_subO2Q->GetSaturation().SetValue(resultantO2Sat);
     m_subCO2Q->GetSaturation().SetValue(resultantCO2Sat);
@@ -721,7 +719,7 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
       Error(errMsg);
     }
   }
-
+ 
   // Calculate final results
   resultantBoundO2_mM = 4.0 * (resultantHbO2_mM + resultantHbO2CO2_mM);
   resultantBoundCO2_mM = 4.0 * (resultantHbCO2_mM + resultantHbO2CO2_mM);

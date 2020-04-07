@@ -7,7 +7,12 @@ option(${ROOT_PROJECT_NAME}_STAGE_RUNTIME "Automatically move files from share/ 
 find_path (
   ${ROOT_PROJECT_NAME}_Baseline_DIR
   NAME Scenarios
-  PATHS ${PROJECT_SOURCE_DIR}/../verification  ${PROJECT_SOURCE_DIR}/../validation ${PROJECT_SOURCE_DIR}/../baselines
+  PATHS ${PROJECT_SOURCE_DIR}/../verification/lite
+        ${PROJECT_SOURCE_DIR}/../validation/lite
+        ${PROJECT_SOURCE_DIR}/../baselines/lite
+        ${PROJECT_SOURCE_DIR}/../verification  
+        ${PROJECT_SOURCE_DIR}/../validation 
+        ${PROJECT_SOURCE_DIR}/../baselines
   DOC "Optional directory path to hiarchial filetree of baseline archives. This will be used by Java Utilities to find Baselines"
 )
 find_path (

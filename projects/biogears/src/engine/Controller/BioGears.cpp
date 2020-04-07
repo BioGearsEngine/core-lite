@@ -3330,97 +3330,6 @@ void BioGears::SetupTissue()
   //Cardiovascular lite needs to have small intestine, large intestine, spleen, splanchnic combined to GutV
   /////////
   // Gut //
-  if (!m_Config->IsBioGearsLiteEnabled()) {
-    SEFluidCircuitNode* SmallIntestineV = cCardiovascular.GetNode(BGE::CardiovascularNode::SmallIntestine1);
-    SEFluidCircuitNode* LargeIntestineV = cCardiovascular.GetNode(BGE::CardiovascularNode::LargeIntestine1);
-    SEFluidCircuitNode* SplanchnicV = cCardiovascular.GetNode(BGE::CardiovascularNode::Splanchnic1); //CV circuit has a "splanchnic", but this is essentially the Pancreas
-    SEFluidCircuitNode* SpleenV = cCardiovascular.GetNode(BGE::CardiovascularNode::Spleen1);
-    SEFluidCircuitNode& GutE1 = cCombinedCardiovascular.CreateNode(BGE::TissueLiteNode::GutE1);
-    SEFluidCircuitNode& GutE2 = cCombinedCardiovascular.CreateNode(BGE::TissueLiteNode::GutE2);
-    SEFluidCircuitNode& GutE3 = cCombinedCardiovascular.CreateNode(BGE::TissueLiteNode::GutE3);
-    SEFluidCircuitNode& GutI = cCombinedCardiovascular.CreateNode(BGE::TissueLiteNode::GutI);
-    SEFluidCircuitNode& GutL = cCombinedCardiovascular.CreateNode(BGE::TissueLiteNode::GutL); //Pre-lymphatic node
-
-    //Splanchnic takes from both intestines, "splanchnic" vascular (pancreas), spleen, liver, and myocardium.
-    //All of these compartments except liver have the same target vascular pressure.  We will need to account for
-    //the lower target pressure in the liver when constructing vascular COP paths to avoid backflow into liver vascular.
-    //For vNodePressure, we can take any of the values (except liver), so grab pancreas ("splanchnic vascular").
-
-    vNodePressure = SplanchnicV->GetPressure(PressureUnit::mmHg) / VolumeModifierGutLite;
-    e1NodePressure = vNodePressure - copVascular_mmHg; //Plasma colloid osmotic pressure opposes flow into tissue space (i.e. favor E1 to V)
-    e3NodePressure = vNodePressure - targetHydrostaticGradient_mmHg;
-    e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
-    if (e3NodePressure > preLymphaticPressureMin_mmHg) {
-      l1NodePressure = e3NodePressure;
-    } else {
-      l1NodePressure = preLymphaticPressureMin_mmHg;
-    }
-    l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
-
-    filteredFlow_mL_Per_min = (GutLiteTissueVolume * GutLiteEWFraction) / totalECWater_L * lymphTotalBody_mL_Per_min;
-    capillaryResistance_mmHg_min_Per_mL = (e1NodePressure - e2NodePressure) / filteredFlow_mL_Per_min;
-    lymphDrivePressure_mmHg = l1NodePressure - e3NodePressure;
-    lymphResistance_mmHg_min_Per_mL = (l1NodePressure - l2NodePressure) / filteredFlow_mL_Per_min;
-
-    GutE1.GetPressure().SetValue(e1NodePressure, PressureUnit::mmHg);
-    GutE2.GetPressure().SetValue(e2NodePressure, PressureUnit::mmHg);
-    GutE3.GetPressure().SetValue(e3NodePressure, PressureUnit::mmHg);
-    GutE3.GetVolumeBaseline().SetValue(GutLiteEWFraction * GutLiteTissueVolume * 1000.0, VolumeUnit::mL);
-    GutI.GetPressure().SetValue(e3NodePressure, PressureUnit::mmHg); //No hydrostatic pressure difference between intra/extra
-    GutI.GetVolumeBaseline().SetValue(GutLiteIWFraction * GutLiteTissueVolume * 1000.0, VolumeUnit::mL); //intracellular node
-    GutL.GetPressure().SetValue(l1NodePressure, PressureUnit::mmHg);
-
-    SEFluidCircuitPath& SmallIntestineVToGutE1 = cCombinedCardiovascular.CreatePath(*SmallIntestineV, GutE1, BGE::TissueLitePath::SmallIntestineVToGutE1);
-    SmallIntestineVToGutE1.GetPressureSourceBaseline().SetValue(-copVascular_mmHg, PressureUnit::mmHg);
-    SEFluidCircuitPath& LargeIntestineVToGutE1 = cCombinedCardiovascular.CreatePath(*LargeIntestineV, GutE1, BGE::TissueLitePath::LargeIntestineVToGutE1);
-    LargeIntestineVToGutE1.GetPressureSourceBaseline().SetValue(-copVascular_mmHg, PressureUnit::mmHg);
-    SEFluidCircuitPath& SplanchnicVToGutE1 = cCombinedCardiovascular.CreatePath(*SplanchnicV, GutE1, BGE::TissueLitePath::SplanchnicVToGutE1);
-    SplanchnicVToGutE1.GetPressureSourceBaseline().SetValue(-copVascular_mmHg, PressureUnit::mmHg);
-    SEFluidCircuitPath& SpleenVToGutE1 = cCombinedCardiovascular.CreatePath(*SpleenV, GutE1, BGE::TissueLitePath::SpleenVToGutE1);
-    SpleenVToGutE1.GetPressureSourceBaseline().SetValue(-copVascular_mmHg, PressureUnit::mmHg);
-
-    SEFluidCircuitPath& GutE1ToGutE2 = cCombinedCardiovascular.CreatePath(GutE1, GutE2, BGE::TissueLitePath::GutE1ToGutE2);
-    GutE1ToGutE2.GetResistanceBaseline().SetValue(capillaryResistance_mmHg_min_Per_mL, FlowResistanceUnit::mmHg_min_Per_mL);
-    SEFluidCircuitPath& GutE2ToGutE3 = cCombinedCardiovascular.CreatePath(GutE2, GutE3, BGE::TissueLitePath::GutE2ToGutE3);
-    GutE2ToGutE3.GetPressureSourceBaseline().SetValue(copExtracell_mmHg, PressureUnit::mmHg);
-    SEFluidCircuitPath& GutE3ToGround = cCombinedCardiovascular.CreatePath(GutE3, *Ground, BGE::TissueLitePath::GutE3ToGround);
-    GutE3ToGround.GetComplianceBaseline().SetValue(GutE3.GetVolumeBaseline(VolumeUnit::mL) / vNodePressure, FlowComplianceUnit::mL_Per_mmHg); //Might need to change this
-    SEFluidCircuitPath& GutE3ToGutI = cCombinedCardiovascular.CreatePath(GutE3, GutI, BGE::TissueLitePath::GutE3ToGutI);
-    GutE3ToGutI.GetFlowSourceBaseline().SetValue(0.0, VolumePerTimeUnit::mL_Per_s);
-    SEFluidCircuitPath& GutIToGround = cCombinedCardiovascular.CreatePath(GutI, *Ground, BGE::TissueLitePath::GutIToGround);
-    GutIToGround.GetComplianceBaseline().SetValue(GutI.GetVolumeBaseline(VolumeUnit::mL) / GutI.GetPressure(PressureUnit::mmHg), FlowComplianceUnit::mL_Per_mmHg);
-
-    SEFluidCircuitPath& GutE3ToGutL = cCombinedCardiovascular.CreatePath(GutE3, GutL, BGE::TissueLitePath::GutE3ToGutL);
-    GutE3ToGutL.GetPressureSourceBaseline().SetValue(lymphDrivePressure_mmHg, PressureUnit::mmHg);
-    SEFluidCircuitPath& GutLToLymph = cCombinedCardiovascular.CreatePath(GutL, Lymph, BGE::TissueLitePath::GutLToLymph);
-    GutLToLymph.GetResistanceBaseline().SetValue(lymphResistance_mmHg_min_Per_mL, FlowResistanceUnit::mmHg_min_Per_mL);
-    GutLToLymph.SetNextPolarizedState(CDM::enumOpenClosed::Open);
-
-    SETissueCompartment& GutTissue = m_Compartments->CreateTissueCompartment(BGE::TissueLiteCompartment::Gut);
-    SELiquidCompartment& GutExtracellular = m_Compartments->CreateLiquidCompartment(BGE::ExtravascularLiteCompartment::GutExtracellular);
-    SELiquidCompartment& GutIntracellular = m_Compartments->CreateLiquidCompartment(BGE::ExtravascularLiteCompartment::GutIntracellular);
-    GutTissue.GetMatrixVolume().SetValue((1 - GutLiteEWFraction - GutLiteIWFraction) * GutLiteTissueVolume * 1000.0, VolumeUnit::mL);
-    GutExtracellular.MapNode(GutE1);
-    GutExtracellular.MapNode(GutE2);
-    GutExtracellular.MapNode(GutE3);
-    GutIntracellular.MapNode(GutI);
-    GutExtracellular.MapNode(GutL);
-    GutExtracellular.GetWaterVolumeFraction().SetValue(GutLiteEWFraction);
-    GutIntracellular.GetWaterVolumeFraction().SetValue(GutLiteIWFraction);
-    GutTissue.GetAcidicPhospohlipidConcentration().SetValue(GutLiteAPL, MassPerMassUnit::mg_Per_g);
-    GutTissue.GetNeutralLipidsVolumeFraction().SetValue(GutLiteNLFraction);
-    GutTissue.GetNeutralPhospholipidsVolumeFraction().SetValue(GutLiteNPFraction);
-    GutTissue.GetTissueToPlasmaAlbuminRatio().SetValue(GutLiteARatio);
-    GutTissue.GetTissueToPlasmaAlphaAcidGlycoproteinRatio().SetValue(GutLiteAAGRatio);
-    GutTissue.GetTissueToPlasmaLipoproteinRatio().SetValue(GutLiteLRatio);
-    GutTissue.GetTotalMass().SetValue(GutLiteTissueMass, MassUnit::kg);
-    GutTissue.GetMembranePotential().SetValue(-84.8, ElectricPotentialUnit::mV);
-    GutTissue.GetReflectionCoefficient().SetValue(1.0);
-
-    gCombinedCardiovascular.AddCompartment(GutExtracellular);
-    gCombinedCardiovascular.AddCompartment(GutIntracellular);
-  } else {
-
     SEFluidCircuitNode* GutV = cCardiovascular.GetNode(BGE::CardiovascularLiteNode::Gut1);
     SEFluidCircuitNode& GutE1 = cCombinedCardiovascular.CreateNode(BGE::TissueLiteNode::GutE1);
     SEFluidCircuitNode& GutE2 = cCombinedCardiovascular.CreateNode(BGE::TissueLiteNode::GutE2);
@@ -3499,7 +3408,6 @@ void BioGears::SetupTissue()
 
     gCombinedCardiovascular.AddCompartment(GutExtracellular);
     gCombinedCardiovascular.AddCompartment(GutIntracellular);
-  }
   
 
   ////Finalize Circuit Changes
