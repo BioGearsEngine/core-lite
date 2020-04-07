@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/patient/conditions/SEChronicAnemia.h>
 #include <biogears/cdm/patient/conditions/SEChronicHeartFailure.h>
 #include <biogears/cdm/patient/conditions/SEChronicObstructivePulmonaryDisease.h>
-#include <biogears/cdm/patient/conditions/SEChronicPericardialEffusion.h>
 #include <biogears/cdm/patient/conditions/SEChronicRenalStenosis.h>
 #include <biogears/cdm/patient/conditions/SEChronicVentricularSystolicDysfunction.h>
 #include <biogears/cdm/patient/conditions/SEDehydration.h>
@@ -64,13 +63,7 @@ SECondition* SECondition::newFromBind(const CDM::ConditionData& data, SESubstanc
     SEChronicVentricularSystolicDysfunction* cc = new SEChronicVentricularSystolicDysfunction();
     cc->Load(*ccVentSysDysfuncData);
     return cc;
-  }
-  const CDM::ChronicPericardialEffusionData* ccPericardialEffusionData = dynamic_cast<const CDM::ChronicPericardialEffusionData*>(&data);
-  if (ccPericardialEffusionData != nullptr) {
-    SEChronicPericardialEffusion* cc = new SEChronicPericardialEffusion();
-    cc->Load(*ccPericardialEffusionData);
-    return cc;
-  }
+  }  
   const CDM::ChronicRenalStenosisData* ccRenalStenosisData = dynamic_cast<const CDM::ChronicRenalStenosisData*>(&data);
   if (ccRenalStenosisData != nullptr) {
     SEChronicRenalStenosis* cc = new SEChronicRenalStenosis();

@@ -17,7 +17,6 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/patient/SEPatient.h>
 #include <biogears/cdm/patient/conditions/SEChronicAnemia.h>
 #include <biogears/cdm/patient/conditions/SEChronicHeartFailure.h>
-#include <biogears/cdm/patient/conditions/SEChronicPericardialEffusion.h>
 #include <biogears/cdm/patient/conditions/SEChronicRenalStenosis.h>
 #include <biogears/cdm/properties/SEScalar0To1.h>
 #include <biogears/cdm/properties/SEScalarAmountPerVolume.h>
@@ -559,35 +558,6 @@ void Cardiovascular::ChronicHeartFailure()
 
 //--------------------------------------------------------------------------------------------------
 /// \brief
-/// Establishes the pericardial effusion condition.
-///
-/// \details
-/// Pericardial effusion can be either chronic (slow) or acute (fast).
-/// Chronic effusion will eventually lead to tamponade, acute effusion leads
-/// immediately to tamponade and imminent death. The chronic effusion parameters
-/// are set in the BioGears engine so that life-threatening tamponade will occur
-/// in about 30 minutes after the insult.
-//--------------------------------------------------------------------------------------------------
-void Cardiovascular::ChronicPericardialEffusion()
-{
-  //double deltaVolume_mL = m_data.GetConditions().GetChronicPericardialEffusion()->GetAccumulatedVolume().GetValue(VolumeUnit::mL);
-  //if (deltaVolume_mL > 1000.0) {
-  //  Error("Cannot specify volume accumulation greater than 1000 mL. Accumulated volume is now set at 1000 mL.");
-  //  /// \error Cannot specify volume accumulation greater than 1000 mL. Accumulated volume is now set at 1000 mL.
-  //  deltaVolume_mL = 1000.0;
-  //} else if (deltaVolume_mL < 0.0) {
-  //  Error("Cannot specify volume accumulation less than 0 mL. Accumulated volume is now set at 0 mL.");
-  //  /// \error Cannot specify volume accumulation less than 0 mL. Accumulated volume is now set at 0 mL.
-  //  deltaVolume_mL = 0.0;
-  //}
-
-  ////Just throw this all on at once
-  ////Only do this for a single time-step!
-  //m_pGndToPericardium->GetNextFlowSource().SetValue(deltaVolume_mL / m_dT_s, VolumePerTimeUnit::mL_Per_s);
-}
-
-//--------------------------------------------------------------------------------------------------
-/// \brief
 /// Establishes the renal stenosis condition in one or both of the renal arteries.
 ///
 /// \details
@@ -1107,71 +1077,6 @@ void Cardiovascular::Hemorrhage()
 
 //--------------------------------------------------------------------------------------------------
 /// \brief
-/// The function initiates a flow source on the pericardium. It is used by both the action and condition.
-///
-/// \details
-/// The pericardial effusion action may be called during run time. It initiates a flow source on the pericardium
-/// which leads to increased pericardium volume. As the volume increases, a pressure source is applied to
-/// the left and right heart nodes, simulating the restriction of the swelling pericardium.
-//--------------------------------------------------------------------------------------------------
-void Cardiovascular::PericardialEffusion()
-{
-  ////We need to do this here because the circuit needs to be processed to modify the compliance pressure based on the volume change
-  //if (m_data.GetConditions().HasChronicPericardialEffusion() && !m_data.GetActions().GetPatientActions().HasPericardialEffusion()) {
-  //  PericardialEffusionPressureApplication();
-  //}
-
-  //if (!m_data.GetActions().GetPatientActions().HasPericardialEffusion())
-  //  return;
-
-  //double complianceSlopeParameter = 0.0;
-  //double complianceCurveParameter = 0.0;
-  //double flowToPericardium_mL_per_s = 0.0;
-  //double flowCubed_mL3_Per_s3 = 0.0;
-  //double compliance_mL_Per_mmHg = 0.0;
-  //double intrapericardialVolume_mL = m_Pericardium->GetVolume(VolumeUnit::mL);
-  //double intrapericardialPressure_mmHg = m_Pericardium->GetPressure(PressureUnit::mmHg);
-
-  //double effusionRate_mL_Per_s = m_data.GetActions().GetPatientActions().GetPericardialEffusion()->GetEffusionRate().GetValue(VolumePerTimeUnit::mL_Per_s);
-  //if (effusionRate_mL_Per_s <= 0.1 && effusionRate_mL_Per_s > 0.0) {
-  //  //Slow effusion
-  //  complianceSlopeParameter = 0.4;
-  //  complianceCurveParameter = 0.55;
-  //} else if (effusionRate_mL_Per_s > 0.1 && effusionRate_mL_Per_s < 1.0) {
-  //  complianceSlopeParameter = 50;
-  //  complianceCurveParameter = 0.1;
-  //} else if (effusionRate_mL_Per_s > 1.0) {
-  //  Error("Effusion rate is out of physiologic bounds. Effusion rate is reset to 1.0 milliliters per second.");
-  //  /// \error Effusion rate is out of physiologic bounds. Effusion rate is reset to 1.0 milliliters per second.
-  //  effusionRate_mL_Per_s = 1.0;
-  //  complianceSlopeParameter = 50;
-  //  complianceCurveParameter = 0.1;
-  //} else if (effusionRate_mL_Per_s < 0.0) {
-  //  Error("Cannot specify effusion rate less than zero. Effusion rate is now set to 0.0.");
-  //  /// \error Cannot specify effusion rate less than zero. Effusion rate is now set to 0.0.
-  //  effusionRate_mL_Per_s = 0.0;
-  //  complianceSlopeParameter = 0.4;
-  //  complianceCurveParameter = 0.55;
-  //}
-
-  //m_pGndToPericardium->GetNextFlowSource().SetValue(effusionRate_mL_Per_s, VolumePerTimeUnit::mL_Per_s);
-  //flowToPericardium_mL_per_s = m_pGndToPericardium->GetNextFlow(VolumePerTimeUnit::mL_Per_s);
-  //flowCubed_mL3_Per_s3 = flowToPericardium_mL_per_s * flowToPericardium_mL_per_s * flowToPericardium_mL_per_s;
-
-  ////Variable compliance calculation
-  //if (flowCubed_mL3_Per_s3 < 0.0001) {
-  //  compliance_mL_Per_mmHg = m_pPericardiumToGnd->GetNextCompliance().GetValue(FlowComplianceUnit::mL_Per_mmHg);
-  //} else {
-  //  compliance_mL_Per_mmHg = complianceSlopeParameter / flowCubed_mL3_Per_s3 - complianceCurveParameter * intrapericardialVolume_mL;
-  //}
-
-  //m_pPericardiumToGnd->GetNextCompliance().SetValue(compliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
-
-  //PericardialEffusionPressureApplication();
-}
-
-//--------------------------------------------------------------------------------------------------
-/// \brief
 /// The CPR function controls the force applied during a chest compression action.
 ///
 /// \details
@@ -1317,25 +1222,6 @@ void Cardiovascular::CardiacArrest()
   // This tells the CV system that a cardiac arrest has been initiated.
   // The cardiac arrest event will be triggered by CardiacCycleCalculations() at the end of the cardiac cycle.
   m_EnterCardiacArrest = true;
-}
-
-//--------------------------------------------------------------------------------------------------
-/// \brief
-/// The pericardial effusion pressure application function calculates the pressure applied to the heart due to a pericardial effusion.
-///
-/// \details
-/// The pressure applied to the left and right heart is dictated by the pericardium pressure. The response is tuned to 40% of this value
-/// to achieve the correct physiologic response.
-//--------------------------------------------------------------------------------------------------
-void Cardiovascular::PericardialEffusionPressureApplication()
-{
-  //double intrapericardialPressure_mmHg = m_Pericardium->GetPressure(PressureUnit::mmHg);
-
-  //double pressureResponseFraction = 0.4; //Tuning the pressure applied to the heart
-
-  ////Set the pressure on the right and left heart from the pericardium pressure
-  //m_pRightHeartToGnd->GetPressureSourceBaseline().SetValue(pressureResponseFraction * intrapericardialPressure_mmHg, PressureUnit::mmHg);
-  //m_pLeftHeartToGnd->GetPressureSourceBaseline().SetValue(pressureResponseFraction * intrapericardialPressure_mmHg, PressureUnit::mmHg);
 }
 
 //--------------------------------------------------------------------------------------------------

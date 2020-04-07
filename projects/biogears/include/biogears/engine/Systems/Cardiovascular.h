@@ -91,7 +91,6 @@ private:
   void ChronicRenalStenosis();
   void ChronicAnemia();
   void ChronicHeartFailure();
-  void ChronicPericardialEffusion();
 
   // PreProcess:
   void HeartDriver();
@@ -109,8 +108,6 @@ private:
   /**/ void CPR();
   /****/ void CalculateAndSetCPRcompressionForce();
   /**/ void Hemorrhage();
-  /**/ void PericardialEffusion();
-  /**/ void PericardialEffusionPressureApplication();
   /**/ void CardiacArrest();
   /**/ void TraumaticBrainInjury();
 

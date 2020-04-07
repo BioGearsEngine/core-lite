@@ -38,7 +38,6 @@ SEPatientActionCollection::SEPatientActionCollection(SESubstanceManager& substan
   m_MechanicalVentilation = nullptr;
   m_LeftNeedleDecompression = nullptr;
   m_RightNeedleDecompression = nullptr;
-  m_PericardialEffusion = nullptr;
   m_Sepsis = nullptr;
   m_LeftOpenTensionPneumothorax = nullptr;
   m_LeftClosedTensionPneumothorax = nullptr;
@@ -73,7 +72,6 @@ void SEPatientActionCollection::Clear()
   RemoveMechanicalVentilation();
   RemoveLeftNeedleDecompression();
   RemoveRightNeedleDecompression();
-  RemovePericardialEffusion();
   RemoveLeftOpenTensionPneumothorax();
   RemoveLeftClosedTensionPneumothorax();
   RemoveRightOpenTensionPneumothorax();
@@ -137,8 +135,6 @@ void SEPatientActionCollection::Unload(std::vector<CDM::ActionData*>& to)
     for (auto itr : GetPainStimuli())
       to.push_back(itr.second->Unload());
   }
-  if (HasPericardialEffusion())
-    to.push_back(GetPericardialEffusion()->Unload());
   if (HasLeftClosedTensionPneumothorax())
     to.push_back(GetLeftClosedTensionPneumothorax()->Unload());
   if (HasLeftOpenTensionPneumothorax())
@@ -460,18 +456,6 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
       return true;
     }
     return IsValid(*mypain);
-  }
-
-  const CDM::PericardialEffusionData* pericardialEff = dynamic_cast<const CDM::PericardialEffusionData*>(&action);
-  if (pericardialEff != nullptr) {
-    if (m_PericardialEffusion == nullptr)
-      m_PericardialEffusion = new SEPericardialEffusion();
-    m_PericardialEffusion->Load(*pericardialEff);
-    if (!m_PericardialEffusion->IsActive()) {
-      RemovePericardialEffusion();
-      return true;
-    }
-    return IsValid(*m_PericardialEffusion);
   }
 
   const CDM::SubstanceAdministrationData* admin = dynamic_cast<const CDM::SubstanceAdministrationData*>(&action);
@@ -908,21 +892,6 @@ void SEPatientActionCollection::RemovePainStimulus(const std::string& cmpt)
   SEPainStimulus* p = m_PainStimuli[cmpt];
   m_PainStimuli.erase(cmpt);
   SAFE_DELETE(p);
-}
-//-------------------------------------------------------------------------------
-bool SEPatientActionCollection::HasPericardialEffusion() const
-{
-  return m_PericardialEffusion == nullptr ? false : true;
-}
-//-------------------------------------------------------------------------------
-SEPericardialEffusion* SEPatientActionCollection::GetPericardialEffusion() const
-{
-  return m_PericardialEffusion;
-}
-//-------------------------------------------------------------------------------
-void SEPatientActionCollection::RemovePericardialEffusion()
-{
-  SAFE_DELETE(m_PericardialEffusion);
 }
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasSepsis() const

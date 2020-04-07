@@ -16,7 +16,6 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/patient/conditions/SEChronicAnemia.h>
 #include <biogears/cdm/patient/conditions/SEChronicHeartFailure.h>
 #include <biogears/cdm/patient/conditions/SEChronicObstructivePulmonaryDisease.h>
-#include <biogears/cdm/patient/conditions/SEChronicPericardialEffusion.h>
 #include <biogears/cdm/patient/conditions/SEChronicRenalStenosis.h>
 #include <biogears/cdm/patient/conditions/SEChronicVentricularSystolicDysfunction.h>
 #include <biogears/cdm/patient/conditions/SEDehydration.h>
@@ -41,7 +40,6 @@ SEConditionManager::SEConditionManager(SESubstanceManager& substances)
   m_DiabetesType2 = nullptr;
   m_Starvation = nullptr;
   m_LobarPneumonia = nullptr;
-  m_PericardialEffusion = nullptr;
   m_ImpairedAlveolarExchange = nullptr;
   m_InitialEnvironment = nullptr;
 }
@@ -62,7 +60,6 @@ void SEConditionManager::Clear()
   m_DiabetesType2 = nullptr;
   m_Starvation = nullptr;
   m_LobarPneumonia = nullptr;
-  m_PericardialEffusion = nullptr;
   m_ImpairedAlveolarExchange = nullptr;
   m_InitialEnvironment = nullptr;
   DELETE_VECTOR(m_Conditions);
@@ -125,18 +122,6 @@ bool SEConditionManager::ProcessCondition(const CDM::ConditionData& condition)
     }
     Error("Unknown Heart Failure condition");
     return false;
-  }
-
-  const CDM::ChronicPericardialEffusionData* peData = dynamic_cast<const CDM::ChronicPericardialEffusionData*>(&condition);
-  if (peData != nullptr) {
-    if (HasChronicPericardialEffusion()) {
-      Error("Cannot have multiple Pericardial Effusion conditions");
-      return false;
-    }
-    m_PericardialEffusion = new SEChronicPericardialEffusion();
-    m_PericardialEffusion->Load(*peData);
-    m_Conditions.push_back(m_PericardialEffusion);
-    return true;
   }
 
   const CDM::ChronicRenalStenosisData* renalStenosisData = dynamic_cast<const CDM::ChronicRenalStenosisData*>(&condition);
@@ -270,16 +255,6 @@ SEChronicVentricularSystolicDysfunction* SEConditionManager::GetChronicVentricul
 {
   return dynamic_cast<SEChronicVentricularSystolicDysfunction*>(m_HeartFailure);
 }
-
-bool SEConditionManager::HasChronicPericardialEffusion() const
-{
-  return m_PericardialEffusion != nullptr;
-}
-SEChronicPericardialEffusion* SEConditionManager::GetChronicPericardialEffusion() const
-{
-  return m_PericardialEffusion;
-}
-
 bool SEConditionManager::HasChronicRenalStenosis() const
 {
   return m_RenalStenosis != nullptr;

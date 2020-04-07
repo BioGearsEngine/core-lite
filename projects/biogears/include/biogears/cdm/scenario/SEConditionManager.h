@@ -21,7 +21,6 @@ class SECondition;
 class SEChronicAnemia;
 class SEChronicHeartFailure;
 class SEChronicObstructivePulmonaryDisease;
-class SEChronicPericardialEffusion;
 class SEChronicVentricularSystolicDysfunction;
 class SEChronicRenalStenosis;
 class SEStarvation;
@@ -61,9 +60,6 @@ public:
   bool HasChronicVentricularSystolicDysfunction() const;
   SEChronicVentricularSystolicDysfunction* GetChronicVentricularSystolicDysfunction() const;
 
-  bool HasChronicPericardialEffusion() const;
-  SEChronicPericardialEffusion* GetChronicPericardialEffusion() const;
-
   bool HasChronicRenalStenosis() const;
   SEChronicRenalStenosis* GetChronicRenalStenosis() const;
 
@@ -100,7 +96,6 @@ protected:
   SEDiabetesType2* m_DiabetesType2;
   SEChronicHeartFailure* m_HeartFailure;
   SEImpairedAlveolarExchange* m_ImpairedAlveolarExchange;
-  SEChronicPericardialEffusion* m_PericardialEffusion;
   SELobarPneumonia* m_LobarPneumonia;
   SEChronicRenalStenosis* m_RenalStenosis;
 
