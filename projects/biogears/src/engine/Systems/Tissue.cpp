@@ -2231,7 +2231,7 @@ void Tissue::CalculateOncoticPressure()
     interstitialOncoticPressure_mmHg = 2.1 * totalProteinInterstitial_g_Per_dL + 0.16 * std::pow(totalProteinInterstitial_g_Per_dL, 2) + 0.009 * std::pow(totalProteinInterstitial_g_Per_dL, 3);
 
 
-    if (vascular->GetName() == BGE::VascularLiteCompartment::Gut || vascular->GetName() == BGE::VascularLiteCompartment::Lungs) {
+    if (vascular->GetName() == BGE::VascularLiteCompartment::Lungs) {
       for (auto c : vascular->GetChildren()) {
         try {
         vascularCOP = m_VascularCopPaths.at(c);
