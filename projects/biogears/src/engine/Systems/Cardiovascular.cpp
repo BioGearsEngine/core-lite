@@ -108,8 +108,6 @@ void Cardiovascular::Clear()
   m_pAortaToSpleen = nullptr;
 
   m_pVenaCavaHemorrhage = nullptr;
-  /*m_pGndToPericardium = nullptr;
-  m_pPericardiumToGnd = nullptr;*/
   m_pRightHeartToGnd = nullptr;
   m_pRightHeart = nullptr;
   m_pLeftHeartToGnd = nullptr;

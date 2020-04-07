@@ -96,8 +96,6 @@ public:
         CO2_scaling_factor = 0.1;
 
       logTerm = std::log10(bicarb_mM / co2_mM);
-      //double x = bicarb_mM / co2_mM;
-      //pH = 6.6 + ((2. / 2.3) * (((x - 1.) / (x + 1.)) + std::pow(((x - 1.) / ((3. * x) + 3.)), 3.)));
       pH = 6.1 + logTerm;
       m_SatCalc.CalculateHemoglobinSaturations(O2PartialPressureGuess_mmHg, CO2PartialPressureGuess_mmHg, pH, m_SatCalc.m_temperature_C, m_SatCalc.m_hematocrit, OxygenSaturation, CarbonDioxideSaturation, CO2_scaling_factor);
     }
