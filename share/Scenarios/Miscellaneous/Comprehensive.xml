@@ -142,6 +142,78 @@
         <NozzleLoss value="0.04"/>
       </Configuration>
     </Action>  
+	<Action xsi:type="ConsciousRespirationData" AppendToPrevious="true">
+		<Command xsi:type="ForcedExhaleData">
+			<ExpiratoryReserveVolumeFraction value="1.0"/>
+			<Period value="3.0" unit="s"/>			
+		</Command>
+		<Command xsi:type="UseInhalerData"/>	
+		<Command xsi:type="ForcedInhaleData">
+			<InspiratoryCapacityFraction value="1.0"/>
+			<Period value="5.0" unit="s"/>          
+		</Command> 
+		<Command xsi:type="BreathHoldData">
+			<Period value="10.0" unit="s"/>          
+		</Command> 
+		<Command xsi:type="ForcedExhaleData">
+			<ExpiratoryReserveVolumeFraction value="0.0"/>
+			<Period value="3.0" unit="s"/>			
+		</Command>
+    </Action>  
+	<Action xsi:type="ConsciousRespirationData" AppendToPrevious="true">
+		<Command xsi:type="ForcedExhaleData">
+			<ExpiratoryReserveVolumeFraction value="1.0"/>
+			<Period value="3.0" unit="s"/>			
+		</Command>
+		<Command xsi:type="UseInhalerData"/>	
+		<Command xsi:type="ForcedInhaleData">
+			<InspiratoryCapacityFraction value="1.0"/>
+			<Period value="5.0" unit="s"/>          
+		</Command> 
+		<Command xsi:type="BreathHoldData">
+			<Period value="10.0" unit="s"/>          
+		</Command> 
+		<Command xsi:type="ForcedExhaleData">
+			<ExpiratoryReserveVolumeFraction value="0.0"/>
+			<Period value="3.0" unit="s"/>			
+		</Command>
+    </Action>  
+	<Action xsi:type="ConsciousRespirationData" AppendToPrevious="true">
+		<Command xsi:type="ForcedExhaleData">
+			<ExpiratoryReserveVolumeFraction value="1.0"/>
+			<Period value="3.0" unit="s"/>			
+		</Command>
+		<Command xsi:type="UseInhalerData"/>	
+		<Command xsi:type="ForcedInhaleData">
+			<InspiratoryCapacityFraction value="1.0"/>
+			<Period value="5.0" unit="s"/>          
+		</Command> 
+		<Command xsi:type="BreathHoldData">
+			<Period value="10.0" unit="s"/>          
+		</Command> 
+		<Command xsi:type="ForcedExhaleData">
+			<ExpiratoryReserveVolumeFraction value="0.0"/>
+			<Period value="3.0" unit="s"/>			
+		</Command>
+    </Action>  
+	<Action xsi:type="ConsciousRespirationData" AppendToPrevious="true">
+		<Command xsi:type="ForcedExhaleData">
+			<ExpiratoryReserveVolumeFraction value="1.0"/>
+			<Period value="3.0" unit="s"/>			
+		</Command>
+		<Command xsi:type="UseInhalerData"/>	
+		<Command xsi:type="ForcedInhaleData">
+			<InspiratoryCapacityFraction value="1.0"/>
+			<Period value="5.0" unit="s"/>          
+		</Command> 
+		<Command xsi:type="BreathHoldData">
+			<Period value="10.0" unit="s"/>          
+		</Command> 
+		<Command xsi:type="ForcedExhaleData">
+			<ExpiratoryReserveVolumeFraction value="0.0"/>
+			<Period value="3.0" unit="s"/>			
+		</Command>
+    </Action>  
 	<Action xsi:type="PatientAssessmentRequestData" Type="PulmonaryFunctionTest">
 	</Action>
     <Action xsi:type="AdvanceTimeData">
