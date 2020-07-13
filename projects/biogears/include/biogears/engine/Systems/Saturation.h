@@ -15,6 +15,7 @@ specific language governing permissions and limitations under the License.
 #include <biogears/exports.h>
 #include <biogears/cdm/system/physiology/SETissueSystem.h>
 #include <biogears/engine/Controller/BioGearsSystem.h>
+#include <biogears/chrono/stop_watch.tci.h>
 
 namespace biogears {
 struct error_functor;
@@ -35,6 +36,10 @@ protected:
   friend class BioGears;
   friend class BioGearsEngineTest;
 
+  biogears::StopWatch<std::chrono::nanoseconds> satWatch;
+  double solverTime;
+  double distributeTime;
+
   SaturationCalculator(BioGears& bg);
   BioGears& m_data;
 
@@ -46,6 +51,8 @@ public:
   void SetBodyState(const SEScalarMassPerVolume& AlbuminConcentration, const SEScalarFraction& Hematocrit, const SEScalarTemperature& Temperature, const SEScalarAmountPerVolume& StrongIonDifference, const SEScalarAmountPerVolume& Phosphate);
   void CalculateBloodGasDistribution(SELiquidCompartment& cmpt);
   void CalculateCarbonMonoxideSpeciesDistribution(SELiquidCompartment& cmpt);
+
+  void CalculateSimpleSaturation(SELiquidCompartment& cmpt);
 
 protected: // Stewart Model + Dash-Bassingthwaighte Model + Henderson-Hasselbach Model
   void CalculateHemoglobinSaturations(double O2PartialPressureGuess_mmHg, double CO2PartialPressureGuess_mmHg, double pH, double temperature_C, double hematocrit, double& OxygenSaturation, double& CarbonDioxideSaturation, double CO2_scaling_factor);

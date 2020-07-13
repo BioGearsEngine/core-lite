@@ -206,7 +206,6 @@ void BloodChemistry::SetUp()
   m_pulmonaryArteriesO2 = pulmonaryArteries->GetSubstanceQuantity(m_data.GetSubstances().GetO2());
   m_pulmonaryArteriesCO2 = pulmonaryArteries->GetSubstanceQuantity(m_data.GetSubstances().GetCO2());
 
-
   m_pulmonaryVeinsO2 = pulmonaryVeins->GetSubstanceQuantity(m_data.GetSubstances().GetO2());
   m_pulmonaryVeinsCO2 = pulmonaryVeins->GetSubstanceQuantity(m_data.GetSubstances().GetCO2());
 
@@ -339,10 +338,6 @@ void BloodChemistry::Process()
     sub->GetMassInBlood().SetValue(bloodMass_ug, MassUnit::ug);
     sub->GetMassInTissue().SetValue(tissueMass_ug, MassUnit::ug);
   }
-  //m_data.GetSubstances().ProbeBloodGases(*m_aorta, "");
-  //m_data.GetSubstances().ProbeBloodGases(*m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Gut), "");
-  //m_data.GetSubstances().ProbeBloodGases(*m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Kidneys), "");
-  //m_data.GetSubstances().ProbeBloodGases(*m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Lungs), "");
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -135,6 +135,8 @@ SaturationCalculator::SaturationCalculator(BioGears& bg)
   , m_data(bg)
 {
   Initialize(bg.GetSubstances());
+  solverTime = 0.0;
+  distributeTime = 0.0;
 }
 
 void SaturationCalculator::Initialize(SESubstanceManager& substances)
@@ -455,12 +457,20 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
   //// Initial Guess - just use the last values
   x(0) = HCO3_mM; //m_subHCO3Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
   x(1) = CO2_mM; //m_subCO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
-  x(2) = O2_mM;  //m_subO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
+  x(2) = O2_mM; //m_subO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
 
   error_functor functor(*this);
   Eigen::NumericalDiff<error_functor> numDiff(functor);
   Eigen::HybridNonLinearSolver<Eigen::NumericalDiff<error_functor>, double> solver(numDiff);
-  solver.parameters.maxfev = 250; // Maximum number of function evaluations - 250
+  //if (m_data.GetState() <= EngineState::AtSecondaryStableState) {
+    solver.parameters.maxfev = 250; // Maximum number of function evaluations - 250
+  //} else {
+   // if (cmpt.GetName() == "Aorta" || cmpt.GetName() == "VenaCava") {
+    //  solver.parameters.maxfev = 250; // Maximum number of function evaluations - 250
+    //} else {
+     // solver.parameters.maxfev = 1;
+   // }
+ // }
   solver.parameters.xtol = 1.0e-6; // Maximum 2-norm of the solution vector 1.0e-6
   solver.parameters.factor = 0.1; // Damping factor
 
@@ -469,10 +479,12 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
   errMsg << "GeneralMath::CalculateBloodGasDistribution: ";
 
   // Solve the acid base equations
+  satWatch.lap();
   int ret = solver.solveNumericalDiffInit(x);
   while (ret == Eigen::HybridNonLinearSolverSpace::Running) {
-  ret = solver.solveNumericalDiffOneStep(x);
+    ret = solver.solveNumericalDiffOneStep(x);
   }
+  solverTime += satWatch.lap();
 
   switch (ret) {
   case Eigen::HybridNonLinearSolverSpace::RelativeErrorTooSmall:
@@ -668,10 +680,12 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
     m_subHbO2CO2Q->Balance(BalanceLiquidBy::Molarity);
   } // End alternate solution
 
+  satWatch.lap();
   if (!DistributeHemoglobinBySaturation()) {
     errMsg << " Failed to update hemoglobin saturation.";
     Fatal(errMsg);
   }
+  distributeTime += satWatch.lap();
 
   resultantHb_mM = m_subHbQ->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
   resultantHbO2_mM = m_subHbO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
@@ -717,7 +731,7 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
       Error(errMsg);
     }
   }
- 
+
   // Calculate final results
   resultantBoundO2_mM = 4.0 * (resultantHbO2_mM + resultantHbO2CO2_mM);
   resultantBoundCO2_mM = 4.0 * (resultantHbCO2_mM + resultantHbO2CO2_mM);
@@ -843,6 +857,9 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
 
   m_subO2Q->GetSaturation().SetValue((resultantHbO2_mM + resultantHbO2CO2_mM) / (totalHb_mM));
   m_subCO2Q->GetSaturation().SetValue((resultantHbCO2_mM + resultantHbO2CO2_mM) / (totalHb_mM));
+
+  m_data.GetDataTrack().Probe("SolverTime(ms)", solverTime / 1e6);
+  m_data.GetDataTrack().Probe("DistributeTime(ms)", distributeTime / 1e6);
 
   return;
 }
@@ -1065,4 +1082,47 @@ bool SaturationCalculator::DistributeHemoglobinBySaturation()
 
   return true;
 }
+
+void SaturationCalculator::CalculateSimpleSaturation(SELiquidCompartment& cmpt)
+{
+  m_cmpt = &cmpt;
+  m_subO2Q = nullptr;
+  m_subCO2Q = nullptr;
+  m_subHbQ = nullptr;
+  m_subHbO2Q = nullptr;
+  m_subHbCO2Q = nullptr;
+  m_subHbO2CO2Q = nullptr;
+  m_subHCO3Q = nullptr;
+  m_subCOQ = nullptr;
+  m_subHbCOQ = nullptr;
+
+  m_subO2Q = cmpt.GetSubstanceQuantity(*m_O2);
+  m_subCO2Q = cmpt.GetSubstanceQuantity(*m_CO2);
+  m_subHbQ = cmpt.GetSubstanceQuantity(*m_Hb);
+  m_subHbO2Q = cmpt.GetSubstanceQuantity(*m_HbO2);
+  m_subHbCO2Q = cmpt.GetSubstanceQuantity(*m_HbCO2);
+  m_subHbO2CO2Q = cmpt.GetSubstanceQuantity(*m_HbO2CO2);
+  m_subHCO3Q = cmpt.GetSubstanceQuantity(*m_HCO3);
+
+  //Dissociation curve constants
+  double cMaxO2 = 9.0;
+  double cMaxCO2 = 86.11;
+  double h1 = 0.3836;
+  double h2 = 1.819;
+  double alpha1 = 0.03198;
+  double alpha2 = 0.05591;
+  double beta1 = 0.008275;
+  double beta2 = 0.03255;
+  double K1 = 14.99;
+  double K2 = 194.4;
+
+  //Calculate O2 and CO2 concentrations using Bohr-Haldane relationships
+  double pO2 = m_subO2Q->GetPartialPressure(PressureUnit::mmHg);
+  double pCO2 = m_subCO2Q->GetPartialPressure(PressureUnit::mmHg);
+  double xO2 = pO2 * (1.0 + beta1 * pCO2) / (K1 * (1.0 + alpha1 * pCO2));
+  double xCO2 = pCO2 * (1.0 + beta2 * pO2) / (K2 * (1.0 + alpha2 * pO2));
+  double cO2 = cMaxO2 * std::pow(xO2, 1.0 / h1) / (1.0 + std::pow(xO2, 1.0 / h1));
+  double cCO2 = cMaxCO2 * std::pow(xCO2, 1.0 / h2) / (1.0 + std::pow(xCO2, 1.0 / h2));
+}
+
 }
