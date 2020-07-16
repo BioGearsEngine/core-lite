@@ -39,6 +39,7 @@ protected:
   biogears::StopWatch<std::chrono::nanoseconds> satWatch;
   double solverTime;
   double distributeTime;
+  double setupTime;
 
   SaturationCalculator(BioGears& bg);
   BioGears& m_data;
@@ -55,7 +56,7 @@ public:
   void CalculateSimpleSaturation(SELiquidCompartment& cmpt);
 
 protected: // Stewart Model + Dash-Bassingthwaighte Model + Henderson-Hasselbach Model
-  void CalculateHemoglobinSaturations(double O2PartialPressureGuess_mmHg, double CO2PartialPressureGuess_mmHg, double pH, double temperature_C, double hematocrit, double& OxygenSaturation, double& CarbonDioxideSaturation, double CO2_scaling_factor);
+  void CalculateHemoglobinSaturations(double O2PartialPressureGuess_mmHg, double CO2PartialPressureGuess_mmHg, double pH, double temperature_C, double hematocrit, double& OxygenSaturation, double& CarbonDioxideSaturation);
   bool DistributeHemoglobinBySaturation();
 
   // All properties are stateless and are set by either the Initialize method or SetBodyState method

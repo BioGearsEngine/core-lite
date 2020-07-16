@@ -452,8 +452,6 @@ void Cardiovascular::SetUp()
 //--------------------------------------------------------------------------------------------------
 void Cardiovascular::AtSteadyState()
 {
-  circuitTime = 0.0;
-  graphTime = 0.0;
 
   m_patient->GetHeartRateBaseline().Set(GetHeartRate());
   m_patient->GetDiastolicArterialPressureBaseline().Set(GetDiastolicArterialPressure());

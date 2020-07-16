@@ -390,7 +390,6 @@ void Tissue::SetUp()
 //#define logMeal
 void Tissue::AtSteadyState()
 {
-  satTime = 0.0;
   if (m_data.GetState() == EngineState::AtInitialStableState) {
     // Apply our conditions
     if (m_data.GetConditions().HasStarvation())
@@ -518,9 +517,7 @@ void Tissue::Process()
   m_data.GetDiffusionCalculator().CalculateInstantAndSimpleDiffusion();
   OtherDiffusion();
   //////
-  tisWatch.lap();
   ManageSubstancesAndSaturation();
-  satTime += tisWatch.lap();
   CalculateVitals();
 
   m_data.GetDataTrack().Probe("CV_SaturationTime(ms)", satTime / 1e6);
@@ -1599,23 +1596,20 @@ void Tissue::ManageSubstancesAndSaturation()
       m_data.GetSaturationCalculator().CalculateBloodGasDistribution(*cmpt);
     }
   }
-
+  satTime += tisWatch.lap();
   //for (SELiquidCompartment* cmpt : m_data.GetCompartments().GetVascularLeafCompartments()) {
-  //  if (cmpt->HasVolume() && cmpt->GetName() != BGE::VascularLiteCompartment::Aorta && cmpt->GetName() != BGE::VascularLiteCompartment::VenaCava) {
-  //    o2SubQ = cmpt->GetSubstanceQuantity(*m_O2);
-  //    co2SubQ = cmpt->GetSubstanceQuantity(*m_CO2);
-  //    o2SubQ->Balance(BalanceLiquidBy::PartialPressure);
-  //    co2SubQ->Balance(BalanceLiquidBy::PartialPressure);
+  //  if (cmpt->HasVolume()) {
+  //    m_data.GetSubstances().ProbeBloodGases(*cmpt, "");
   //  }
   //}
-
-  satTime += tisWatch.lap();
-  for (SELiquidCompartment* cmpt : m_data.GetCompartments().GetVascularLeafCompartments()) {
-    if (cmpt->HasVolume()) {
-      m_data.GetSubstances().ProbeBloodGases(*cmpt, "");
-    }
-  }
   m_data.GetDataTrack().Probe("TotalSaturationTime(ms)", satTime / 1e6);
+  m_data.GetSaturationCalculator().CalculateSimpleSaturation(*m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava));
+
+  int steps = static_cast<int>(m_data.GetSimulationTime().GetValue(TimeUnit::s) / m_Dt_s);
+  if (steps % (50 * 60 * 5) == 0 && m_data.GetState()>=EngineState::AtSecondaryStableState) {
+    m_data.GetSubstances().WriteBloodGases();
+    m_data.GetSubstances().WritePulmonaryGases();
+  }
 }
 
 //--------------------------------------------------------------------------------------------------

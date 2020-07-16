@@ -215,6 +215,9 @@ void BloodChemistry::SetUp()
 
 void BloodChemistry::AtSteadyState()
 {
+  if (m_data.GetState() == EngineState::AtSecondaryStableState) {
+    m_data.GetSubstances().WriteBloodGases();
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
