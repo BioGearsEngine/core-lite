@@ -99,9 +99,9 @@ public:
     double HbO2CO2_mM = m_SatCalc.m_subHbO2CO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
     double HCO3_mM = m_SatCalc.m_subHCO3Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
 
-    double totalHemoglobin_mM = Hb_mM + HbO2_mM + HbCO2_mM + HbO2CO2_mM;
-    double totalCO2_mM = CO2_mM + HCO3_mM + 4.0 * HbCO2_mM + 4.0 * HbO2CO2_mM;
-    double totalO2_mM = O2_mM + 4.0 * HbO2_mM + 4.0 * HbO2CO2_mM;
+    double totalHemoglobin_mM = Hb_mM; //+ HbO2_mM + HbCO2_mM + HbO2CO2_mM;
+    double totalCO2_mM = CO2_mM + HCO3_mM + HbCO2_mM;
+    double totalO2_mM = O2_mM + HbO2_mM;
 
     double f0 = m_SatCalc.m_StrongIonDifference_mmol_Per_L - bicarb_mM - m_SatCalc.m_albumin_g_per_L * (0.123 * pH - 0.631) - m_SatCalc.m_Phosphate_mmol_Per_L * (0.309 * pH - 0.469);
     double f1 = totalCO2_mM - co2_mM - bicarb_mM - 4.0 * CarbonDioxideSaturation * totalHemoglobin_mM;
@@ -363,20 +363,21 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
     m_subHbCOQ = cmpt.GetSubstanceQuantity(*m_HbCO);
   }
 
-  double HbO2_mM = m_subHbO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Oxygen bound to 4 sites
-  double HbCO2_mM = m_subHbCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Carbon Dioxide bound to 4 sites
-  double HbO2CO2_mM = m_subHbO2CO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Oxygen and Carbon Dioxide bound to 4 sites
+  double HbO2_mM = m_subHbO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Amount of bound O2 (not hemoglobin with O2 bound)
+  double HbCO2_mM = m_subHbCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Amount of bound CO2 (not hemoglobin with CO2 bound)
   double Hb_mM = m_subHbQ->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with nothing bound
   double O2_mM = m_subO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Dissolved Oxygen
   double CO2_mM = m_subCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Dissolved Carbon Dioxide
   double HCO3_mM = m_subHCO3Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Bicarbonate
   // Current amounts
-  double InputAmountTotalHb_mM = HbO2_mM + HbCO2_mM + HbO2CO2_mM + Hb_mM;
-  double InputAmountTotalO2_mM = O2_mM + 4.0 * (HbO2_mM + HbO2CO2_mM);
-  double InputAmountTotalCO2_mM = CO2_mM + HCO3_mM + 4.0 * (HbCO2_mM + HbO2CO2_mM);
+  double InputAmountTotalHb_mM = Hb_mM;
+  double InputAmountTotalO2_mM = O2_mM + HbO2_mM;
+  double InputAmountTotalCO2_mM = CO2_mM + HCO3_mM + HbCO2_mM;
   double HbCO_mM = 0.0;
   double newHbCO_mM = 0.0;
   double oldTotalHb_mM = InputAmountTotalHb_mM;
+  double o2Saturation = m_subO2Q->GetSaturation().GetValue();
+  double co2Saturation = m_subCO2Q->GetSaturation().GetValue();
 
   if (m_subCOQ != nullptr && m_subHbCOQ != nullptr) {
     HbCO_mM = m_subHbCOQ->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
@@ -398,18 +399,17 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
       Warning(debugSS.str());
     }
 
-    HbO2_mM = newHbO2_mM; //m_subHbO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Oxygen bound to 4 sites
-    HbCO2_mM = newHbCO2_mM; //m_subHbCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Carbon Dioxide bound to 4 sites
-    HbO2CO2_mM = newHbO2CO2_mM; //m_subHbO2CO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Oxygen and Carbon Dioxide bound to 4 sites
-    Hb_mM = newHb_mM; //m_subHbQ->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with nothing bound
+    HbO2_mM = newHbO2_mM; // Amount of bound O2 (not hemoglobin with O2 bound)
+    HbCO2_mM = newHbCO2_mM; // Amount of bound CO2 (not hemoglobin with CO2 bound)
+    Hb_mM = newHb_mM;
     O2_mM = m_subO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Dissolved Oxygen
     CO2_mM = m_subCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Dissolved Carbon Dioxide
     HCO3_mM = m_subHCO3Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Bicarbonate
 
     // Current amounts
-    InputAmountTotalHb_mM = HbO2_mM + HbCO2_mM + HbO2CO2_mM + Hb_mM;
-    InputAmountTotalO2_mM = O2_mM + 4.0 * (HbO2_mM + HbO2CO2_mM);
-    InputAmountTotalCO2_mM = CO2_mM + HCO3_mM + 4.0 * (HbCO2_mM + HbO2CO2_mM);
+    InputAmountTotalHb_mM = HbO2_mM;
+    InputAmountTotalO2_mM = O2_mM + HbO2_mM;
+    InputAmountTotalCO2_mM = CO2_mM + HCO3_mM + HbCO2_mM;
   }
 
   // We do not compute the distribution if there is very little or no hemoglobin.
@@ -430,7 +430,6 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
   double resultantHb_mM = 0.0;
   double resultantHbO2_mM = 0.0;
   double resultantHbCO2_mM = 0.0;
-  double resultantHbO2CO2_mM = 0.0;
   double resultantTotalO2_mM = 0.0;
   double resultantTotalCO2_mM = 0.0;
   double resultantTotalHgb_mM = 0.0;
@@ -548,285 +547,16 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
     resultantDissolvedCO2_mM = x(1);
     resultantDissolvedO2_mM = x(2);
     m_cmpt->GetPH().SetValue(6.1 + std::log10(resultantHCO3_mM / resultantDissolvedCO2_mM));
-  } else {
-#ifdef VERBOSE
-    Info("Secondary binding solution");
-#endif // VERBOSE
-
-    // Take whatever the distribution was and attempt to move it closer to what the
-    // distribution is below. If that doesn't work, change nothing because if the heart is
-    // beating then transport will provide a perturbation.
-
-    // The blood gases are driven toward the following distribution based on
-    // "Medical Physiology" by Boron and Boulpaep, chapter 29, "Transport of
-    // Oxygen and Carbon Dioxide in the Blood"
-    // 5% of total CO2 goes to dissolved
-    // 5% of total CO2 goes to hemoglobin
-    // 90% of total CO2 goes to bicarbonate
-    // 99% of total O2 goes to hemoglobin
-    // 1% of total O2 is dissolved
-
-    // Get current percents
-    double currentDissolvedO2Percent = O2_mM / InputAmountTotalO2_mM;
-    double currentBoundO2Percent = ((HbO2_mM + HbO2CO2_mM) * 4.0) / InputAmountTotalO2_mM;
-    double currentDissolvedCO2Percent = CO2_mM / InputAmountTotalCO2_mM;
-    double currentBicarbCO2Percent = HCO3_mM / InputAmountTotalCO2_mM;
-    double currentBoundCO2Percent = ((HbCO2_mM + HbO2CO2_mM) * 4.0) / InputAmountTotalCO2_mM;
-    // Move towards the above listed percents
-    double dampingFactor = solver.parameters.factor;
-    double targetDissolvedO2Percent = std::max(currentDissolvedO2Percent + dampingFactor * (0.01 - currentDissolvedO2Percent), 0.0);
-    double targetBoundO2Percent = std::max(currentBoundO2Percent + dampingFactor * (0.99 - currentBoundO2Percent), 0.0);
-    double targetDissolvedCO2Percent = std::max(currentDissolvedCO2Percent + dampingFactor * (0.05 - currentDissolvedCO2Percent), 0.0);
-    double targetBicarbCO2Percent = std::max(currentBicarbCO2Percent + dampingFactor * (0.9 - currentBicarbCO2Percent), 0.0);
-    double targetBoundCO2Percent = std::max(currentBoundCO2Percent + dampingFactor * (0.05 - currentBoundCO2Percent), 0.0);
-
-    // Distribute the total amount of gas
-    resultantDissolvedO2_mM = targetDissolvedO2Percent * InputAmountTotalO2_mM;
-    double HbReq4O2_mM = (targetBoundO2Percent * InputAmountTotalO2_mM) / 4.0;
-    resultantDissolvedCO2_mM = targetDissolvedCO2Percent * InputAmountTotalCO2_mM;
-    resultantHCO3_mM = targetBicarbCO2Percent * InputAmountTotalCO2_mM;
-    double HbReq4CO2_mM = (targetBoundCO2Percent * InputAmountTotalCO2_mM) / 4.0;
-
-    if (std::max(HbReq4O2_mM, HbReq4CO2_mM) > InputAmountTotalHb_mM) {
-      double dif_mM;
-      if (HbReq4O2_mM > InputAmountTotalHb_mM) {
-        // Bound all the hemoglobin and the rest will be dissolved. Error to tell the user that there is way too much O2 in the blood.
-        dif_mM = HbReq4O2_mM - InputAmountTotalHb_mM;
-        HbReq4O2_mM = InputAmountTotalHb_mM;
-        resultantDissolvedO2_mM += dif_mM * 4.0; // Remember 4 per site
-      }
-      if (HbReq4CO2_mM > InputAmountTotalHb_mM) {
-        // This is just madness, but we can make it happen. Bind all CO2, then make 70% of what's left bicarb and the other 30% dissolved
-        dif_mM = HbReq4CO2_mM - InputAmountTotalHb_mM;
-        HbReq4CO2_mM = InputAmountTotalHb_mM;
-        resultantDissolvedCO2_mM += 0.3 * dif_mM * 4.0;
-        resultantHCO3_mM += 0.7 * dif_mM * 4.0;
-      }
-    }
-    // Try half
-    double knob = 0.5;
-    HbO2CO2_mM = knob * std::min(HbReq4O2_mM, HbReq4CO2_mM);
-    HbCO2_mM = HbReq4CO2_mM - HbO2CO2_mM;
-    HbO2_mM = HbReq4O2_mM - HbO2CO2_mM;
-    Hb_mM = InputAmountTotalHb_mM - (HbO2CO2_mM + HbCO2_mM + HbO2_mM);
-    // If that didn't work, walk it in until it does work
-    if (Hb_mM < 0. || HbCO2_mM < 0. || HbO2_mM < 0. || HbO2CO2_mM < 0.) {
-      unsigned int itr = 0;
-      while (knob <= 1.0 && itr < 20) {
-        itr++;
-        knob += 0.2 * (1.0 - knob);
-        if (itr == 20)
-          knob = 1.0; //Last time through make sure knob is exactly 1.0
-        HbO2CO2_mM = knob * std::min(HbReq4O2_mM, HbReq4CO2_mM);
-        HbCO2_mM = HbReq4CO2_mM - HbO2CO2_mM;
-        HbO2_mM = HbReq4O2_mM - HbO2CO2_mM;
-        Hb_mM = InputAmountTotalHb_mM - (HbO2CO2_mM + HbCO2_mM + HbO2_mM);
-        if (Hb_mM > 0. && HbCO2_mM > 0. && HbO2_mM > 0. && HbO2CO2_mM > 0.)
-          itr = 20;
-      }
-    }
-
-    if (Hb_mM < 0. && Hb_mM > -ZERO_APPROX) {
-      //Numerical error
-      Hb_mM = 0.0;
-    }
-
-    // This should absolutely never happen, but the error is here just in case
-    if (Hb_mM < 0. || HbCO2_mM < 0. || HbO2_mM < 0. || HbO2CO2_mM < 0.)
-      Fatal("SaturationCalculator::CalculateBloodGasDistribution: Negative hemoglobin species detected. Math doesn't work. The world is broken. Stockpile rations.");
-
-    // Compute the saturation
-    double resultantO2Sat = 0.0;
-    double resultantCO2Sat = 0.0;
-    if (InputAmountTotalHb_mM > 0.0) {
-      resultantO2Sat = (HbO2_mM + HbO2CO2_mM) / InputAmountTotalHb_mM;
-      resultantCO2Sat = (HbCO2_mM + HbO2CO2_mM) / InputAmountTotalHb_mM;
-    }
-
-    // This should absolutely never happen, but the error is here just in case
-    if (resultantO2Sat > (1.0 + ZERO_APPROX) || resultantO2Sat < -ZERO_APPROX || resultantCO2Sat > (1.0 + ZERO_APPROX) || resultantCO2Sat < -ZERO_APPROX)
-      Fatal("SaturationCalculator::CalculateBloodGasDistribution: Resultant saturation out of range. High probability of cows raining from the sky.");
-
-    //Numerical error checks
-    if (resultantO2Sat > 1.0) {
-      resultantO2Sat = 1.0;
-    }
-    if (resultantO2Sat < 0.0) {
-      resultantO2Sat = 0.0;
-    }
-    if (resultantCO2Sat > 1.0) {
-      resultantCO2Sat = 1.0;
-    }
-    if (resultantCO2Sat < 0.0) {
-      resultantCO2Sat = 0.0;
-    }
-
-    m_subO2Q->GetSaturation().SetValue(resultantO2Sat);
-    m_subCO2Q->GetSaturation().SetValue(resultantCO2Sat);
-
-    m_subHbQ->GetMolarity().SetValue(Hb_mM, AmountPerVolumeUnit::mmol_Per_L);
-    m_subHbQ->Balance(BalanceLiquidBy::Molarity);
-    m_subHbO2Q->GetMolarity().SetValue(HbO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-    m_subHbO2Q->Balance(BalanceLiquidBy::Molarity);
-    m_subHbCO2Q->GetMolarity().SetValue(HbCO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-    m_subHbCO2Q->Balance(BalanceLiquidBy::Molarity);
-    m_subHbO2CO2Q->GetMolarity().SetValue(HbO2CO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-    m_subHbO2CO2Q->Balance(BalanceLiquidBy::Molarity);
-  } // End alternate solution
-
-  satWatch.lap();
-  if (!DistributeHemoglobinBySaturation()) {
-    errMsg << " Failed to update hemoglobin saturation.";
-    Fatal(errMsg);
-  }
-  distributeTime += satWatch.lap();
-
-  resultantHb_mM = m_subHbQ->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
-  resultantHbO2_mM = m_subHbO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
-  resultantHbCO2_mM = m_subHbCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
-  resultantHbO2CO2_mM = m_subHbO2CO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
-  resultantTotalHgb_mM = resultantHb_mM + resultantHbO2_mM + resultantHbCO2_mM + resultantHbO2CO2_mM;
-
-  // The acid-base equations use some approximation (see documentation) and the
-  // solution to the acid-base equations may not conserve mass. The following code detects
-  // and corrects mass imbalances. Any imbalance is distributed in the same proportions as
-  // described in Chapter 29 (Transport of Oxygen and Carbon Dioxide in the Blood) of \cite boron2012medical
-
-  resultantBoundO2_mM = 4.0 * (resultantHbO2_mM + resultantHbO2CO2_mM);
-  resultantBoundCO2_mM = 4.0 * (resultantHbCO2_mM + resultantHbO2CO2_mM);
-  resultantTotalO2_mM = resultantDissolvedO2_mM + resultantBoundO2_mM;
-  resultantTotalCO2_mM = resultantDissolvedCO2_mM + resultantHCO3_mM + resultantBoundCO2_mM;
-  totalCO2Diff_mM = resultantTotalCO2_mM - InputAmountTotalCO2_mM;
-  totalO2Diff_mM = resultantTotalO2_mM - InputAmountTotalO2_mM;
-
-  if (resultantDissolvedCO2_mM - 0.05 * totalCO2Diff_mM > 0.0 && resultantHbCO2_mM - 0.05 * totalCO2Diff_mM / 4.0 > 0.0) { // If possible, spread the error
-    resultantDissolvedCO2_mM = resultantDissolvedCO2_mM - 0.05 * totalCO2Diff_mM;
-    resultantHCO3_mM = resultantHCO3_mM - 0.9 * totalCO2Diff_mM;
-    resultantHbCO2_mM = resultantHbCO2_mM - 0.05 * totalCO2Diff_mM / 4.0;
-  } else { // Otherwise, give it all to bicarbonate
-    resultantHCO3_mM = resultantHCO3_mM - totalCO2Diff_mM;
   }
 
-  if (resultantDissolvedO2_mM - 0.1 * totalO2Diff_mM > 0.0) { // If possible, spread the error
-    resultantDissolvedO2_mM = resultantDissolvedO2_mM - 0.1 * totalO2Diff_mM;
-    resultantHbO2_mM = resultantHbO2_mM - 0.9 * totalO2Diff_mM / 4.0;
-  } else { // Otherwise, give it all to hemoglobin
-    resultantHbO2_mM = resultantHbO2_mM - totalO2Diff_mM / 4.0;
-  }
+  // Update concentrations -- saturations were already set in solver functor
 
-  // Now balance the total hemoglobin
-  totalHbDiff_mM = resultantTotalHgb_mM - InputAmountTotalHb_mM;
-  if (std::abs(totalHbDiff_mM) > 1.0e-9) {
-    if (resultantHb_mM - totalHbDiff_mM > 0.0) {
-      resultantHb_mM = resultantHb_mM - totalHbDiff_mM;
-    } else {
-      resultantHb_mM = 0;
-      errMsg << " Hemoglobin error more than available unbound hemoglobin. Check hemoglobin conservation.";
-      Error(errMsg);
-    }
-  }
+  resultantHb_mM = InputAmountTotalHb_mM;
+  resultantHbO2_mM = 4.0 * m_subO2Q->GetSaturation().GetValue() * resultantHb_mM;
+  resultantHbCO2_mM = 4.0 * m_subCO2Q->GetSaturation().GetValue() * resultantHb_mM;
 
-  // Calculate final results
-  resultantBoundO2_mM = 4.0 * (resultantHbO2_mM + resultantHbO2CO2_mM);
-  resultantBoundCO2_mM = 4.0 * (resultantHbCO2_mM + resultantHbO2CO2_mM);
-  resultantTotalO2_mM = resultantDissolvedO2_mM + resultantBoundO2_mM;
-  resultantTotalCO2_mM = resultantDissolvedCO2_mM + resultantHCO3_mM + resultantBoundCO2_mM;
-
-  // Last ditch effort to correct any negatives
-  if (resultantDissolvedO2_mM < 0.0 || resultantDissolvedCO2_mM < 0.0 || resultantHb_mM < 0.0 || resultantHbO2_mM < 0.0 || resultantHbCO2_mM < 0.0 || resultantHbO2CO2_mM < 0.0 || resultantHCO3_mM < 0.0) {
-    // Try to force it
-    if (resultantHbO2_mM < 0.0) {
-      resultantHbO2CO2_mM = resultantHbO2CO2_mM + resultantHbO2_mM;
-      resultantHbO2_mM = 0.0;
-    }
-
-    if (resultantHbCO2_mM < 0.0) {
-      resultantHbO2CO2_mM = resultantHbO2CO2_mM + resultantHbCO2_mM;
-      resultantHbCO2_mM = 0.0;
-    }
-
-    //put all bicarbonate into dissolved co2
-    if (resultantHCO3_mM < 0.0) {
-      resultantDissolvedCO2_mM = resultantDissolvedCO2_mM + resultantHCO3_mM;
-      resultantHCO3_mM = 0.0;
-      if (std::abs(resultantDissolvedCO2_mM) < ZERO_APPROX)
-        resultantDissolvedCO2_mM = 0.0;
-    }
-
-    // Correct near zeros
-    if (std::abs(resultantDissolvedO2_mM) < approxZero) {
-      resultantDissolvedO2_mM = 0.0;
-    }
-    if (std::abs(resultantDissolvedCO2_mM) < approxZero) {
-      resultantDissolvedCO2_mM = 0.0;
-    }
-    if (std::abs(resultantHb_mM) < approxZero) {
-      resultantHb_mM = 0.0;
-    }
-    if (std::abs(resultantHbO2_mM) < approxZero) {
-      resultantHbO2_mM = 0.0;
-    }
-    if (std::abs(resultantHbCO2_mM) < approxZero) {
-      resultantHbCO2_mM = 0.0;
-    }
-    if (std::abs(resultantHbO2CO2_mM) < approxZero) {
-      resultantHbO2CO2_mM = 0.0;
-    }
-    if (std::abs(resultantHCO3_mM) < approxZero) {
-      resultantHCO3_mM = 0.0;
-    }
-
-    if (resultantDissolvedO2_mM < 0.0 || resultantDissolvedCO2_mM < 0.0 || resultantHb_mM < 0.0 || resultantHbO2_mM < 0.0 || resultantHbCO2_mM < 0.0 || resultantHbO2CO2_mM < 0.0 || resultantHCO3_mM < 0.0) {
-      resultantDissolvedO2_mM = std::max<double>(resultantDissolvedO2_mM, 0.0);
-      resultantDissolvedCO2_mM = std::max<double>(resultantDissolvedCO2_mM, 0.0);
-      resultantHb_mM = std::max<double>(resultantHb_mM, 0.0);
-      resultantHbO2_mM = std::max<double>(resultantHbO2_mM, 0.0);
-      resultantHbCO2_mM = std::max<double>(resultantHbCO2_mM, 0.0);
-      resultantHbO2CO2_mM = std::max<double>(resultantHbO2CO2_mM, 0.0);
-      resultantHCO3_mM = std::max<double>(resultantHCO3_mM, 0.0);
-
-      errMsg << "Attempt to correct blood gas substance error resulted in negative hemoglobin molarity.";
-      errMsg << " Setting it to zero.";
-      Error(errMsg);
-    }
-  }
-
-  // Calculate final results and error
-  resultantBoundO2_mM = 4.0 * (resultantHbO2_mM + resultantHbO2CO2_mM);
-  resultantBoundCO2_mM = 4.0 * (resultantHbCO2_mM + resultantHbO2CO2_mM);
-  resultantTotalO2_mM = resultantDissolvedO2_mM + resultantBoundO2_mM;
-  resultantTotalCO2_mM = resultantDissolvedCO2_mM + resultantHCO3_mM + resultantBoundCO2_mM;
-  totalO2RelativeError = (resultantTotalO2_mM - InputAmountTotalO2_mM) / InputAmountTotalO2_mM;
-  totalCO2RelativeError = (resultantTotalCO2_mM - InputAmountTotalCO2_mM) / InputAmountTotalCO2_mM;
-  totalHbRelativeError = (resultantTotalHgb_mM - InputAmountTotalHb_mM) / InputAmountTotalHb_mM;
-
-  //These shouldn't really happen unless we're at crazy extremes
-  if (std::abs(totalCO2RelativeError) > tolerance && InputAmountTotalCO2_mM > approxZero) {
-    resultantDissolvedCO2_mM += (InputAmountTotalCO2_mM - resultantTotalCO2_mM);
-    errMsg << "Failure to conserve CO2 amount (GeneralMath:CalculateBloodGasDistribution);"
-           << " node: " << m_cmpt->GetName() << "; error: " << totalCO2RelativeError;
-    errMsg << ". Rectifying it by incrementing that amount dissolved.";
-    Error(errMsg);
-  }
-  if (std::abs(totalO2RelativeError) > tolerance && InputAmountTotalO2_mM > approxZero) {
-    resultantDissolvedO2_mM += (InputAmountTotalO2_mM - resultantTotalO2_mM);
-    errMsg << "Failure to conserve O2 amount (GeneralMath:CalculateBloodGasDistribution);"
-           << " node: " << m_cmpt->GetName() << "; error: " << totalO2RelativeError;
-    errMsg << ". Rectifying it by incrementing that amount dissolved.";
-    Error(errMsg);
-  }
-  if (std::abs(totalHbRelativeError) > tolerance && InputAmountTotalHb_mM > approxZero) {
-    resultantHb_mM += (InputAmountTotalHb_mM - resultantTotalHgb_mM);
-    errMsg << "Failure to conserve Hb amount (GeneralMath:CalculateBloodGasDistribution);"
-           << " node: " << m_cmpt->GetName() << "; error: " << totalHbRelativeError;
-    errMsg << ". Rectifying it by incrementing that amount unbound.";
-    Error(errMsg);
-  }
-
-  // Update concentrations
   m_subHbO2Q->GetMolarity().SetValue(resultantHbO2_mM, AmountPerVolumeUnit::mmol_Per_L);
   m_subHbCO2Q->GetMolarity().SetValue(resultantHbCO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-  m_subHbO2CO2Q->GetMolarity().SetValue(resultantHbO2CO2_mM, AmountPerVolumeUnit::mmol_Per_L);
   m_subHbQ->GetMolarity().SetValue(resultantHb_mM, AmountPerVolumeUnit::mmol_Per_L);
   m_subO2Q->GetMolarity().SetValue(resultantDissolvedO2_mM, AmountPerVolumeUnit::mmol_Per_L);
   m_subCO2Q->GetMolarity().SetValue(resultantDissolvedCO2_mM, AmountPerVolumeUnit::mmol_Per_L);
@@ -840,17 +570,6 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
   m_subO2Q->Balance(BalanceLiquidBy::Molarity);
   m_subCO2Q->Balance(BalanceLiquidBy::Molarity);
   m_subHCO3Q->Balance(BalanceLiquidBy::Molarity);
-
-  // Now set the final saturations
-  double totalHb_mM = resultantHb_mM + resultantHbO2CO2_mM + resultantHbO2_mM + resultantHbCO2_mM;
-
-  if (m_subCOQ != nullptr) {
-    totalHb_mM += newHbCO_mM;
-    m_subCOQ->GetSaturation().SetValue(HbCO_mM / totalHb_mM);
-  }
-
-  m_subO2Q->GetSaturation().SetValue((resultantHbO2_mM + resultantHbO2CO2_mM) / (totalHb_mM));
-  m_subCO2Q->GetSaturation().SetValue((resultantHbCO2_mM + resultantHbO2CO2_mM) / (totalHb_mM));
 
   m_data.GetDataTrack().Probe("SolverTime(ms)", solverTime / 1e6);
   m_data.GetDataTrack().Probe("DistributeTime(ms)", distributeTime / 1e6);
@@ -951,102 +670,13 @@ void SaturationCalculator::CalculateHemoglobinSaturations(double O2PartialPressu
   //Calculate O2 and CO2 saturation coefficients
   double KHbO2 = (K4p * (K3p * alphaCO2 * CO2PartialPressureGuess_mmHg * psi2 + psi4)) / (K2p * alphaCO2 * CO2PartialPressureGuess_mmHg * psi1 + psi3);
   double KHbCO2 = (K2p * psi1 + K3p * K4p * alphaO2 * O2PartialPressureGuess_mmHg * psi2) / (psi3 + K4p * alphaO2 * O2PartialPressureGuess_mmHg * psi4);
-  
+
+  double hco3Guess = ((1.0 - 0.45) * Wpl + 0.45 * Wrbc * Rrbc) * (K1 * alphaCO2 * CO2PartialPressureGuess_mmHg / Hp);
+
   // Now set the saturations
   OxygenSaturation = KHbO2 * O2 / (1 + KHbO2 * O2);
   CarbonDioxideSaturation = KHbCO2 * CO2 / (1 + KHbCO2 * CO2);
-}
-
-//--------------------------------------------------------------------------------------------------
-/// \brief
-/// Distributes hemoglobin species for a given pair of oxygen and carbon dioxide saturation fractions.
-///
-///
-/// \details
-/// Because oxycarbaminohemoglobin includes both oxygen and carbon dioxide, the species distribution of
-/// hemoglobins at a given fraction of O2 and CO2 saturation is an under-constrained problem.
-/// The method first attempts an assumed solution. If the assumed solution requires more hemoglobin
-/// than is available, the method steps towards a solution that minimizes total hemoglobin use.
-//--------------------------------------------------------------------------------------------------
-bool SaturationCalculator::DistributeHemoglobinBySaturation()
-{
-  double O2_sat = m_subO2Q->GetSaturation().GetValue();
-  double CO2_sat = m_subCO2Q->GetSaturation().GetValue();
-
-  if (O2_sat > 1.0) {
-    Warning("SaturationCalculator::DistributeHemoglobinBySaturation: O2 Saturation greater than 1.0. Bounded to 1.0");
-    O2_sat = 1.0;
-  }
-  if (O2_sat < 0.0) {
-    Warning("SaturationCalculator::DistributeHemoglobinBySaturation: O2 Saturation less than 0.0. Bounded to 0.0");
-    O2_sat = 0.0;
-  }
-  if (CO2_sat > 1.0) {
-    Warning("SaturationCalculator::DistributeHemoglobinBySaturation: CO2 Saturation greater than 1.0. Bounded to 1.0");
-    CO2_sat = 1.0;
-  }
-  if (O2_sat < 0.0) {
-    Warning("SaturationCalculator::DistributeHemoglobinBySaturation: CO2 Saturation greater than 0.0. Bounded to 0.0");
-    CO2_sat = 0.0;
-  }
-
-  //Grab the current values of Hb substances to get total Hb
-  double Hb_mM = m_subHbQ->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with nothing bound
-  double HbO2_mM = m_subHbO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Oxygen bound to 4 sites
-  double HbCO2_mM = m_subHbCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Carbon Dioxide bound to 4 sites
-  double HbO2CO2_mM = m_subHbO2CO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Hemoglobin with Oxygen and Carbon Dioxide bound to 4 sites
-  double Hb_total_mM = HbO2_mM + HbCO2_mM + HbO2CO2_mM + Hb_mM;
-
-  double HbReq4CO2_mM = CO2_sat * Hb_total_mM;
-  double HbReq4O2_mM = O2_sat * Hb_total_mM;
-  // Start with the assumption that half of the smaller bound Hb is HbO2CO2
-  double knob = 0.5;
-  HbO2CO2_mM = knob * std::min(HbReq4O2_mM, HbReq4CO2_mM);
-  HbCO2_mM = HbReq4CO2_mM - HbO2CO2_mM;
-  HbO2_mM = HbReq4O2_mM - HbO2CO2_mM;
-  Hb_mM = Hb_total_mM - (HbO2CO2_mM + HbCO2_mM + HbO2_mM);
-  // If that doesn't work, walk HBO2CO2 up until it is maximized, thus minimizing total Hb use
-  if (Hb_mM < 0. || HbCO2_mM < 0. || HbO2_mM < 0. || HbO2CO2_mM < 0.) {
-    unsigned int itr = 0;
-    while (knob <= 1.0 && itr < 50) {
-      itr++;
-      knob += 0.2 * (1.0 - knob);
-      if (itr == 50)
-        knob = 1.0; //Last time through make sure knob is exactly 1.0
-      HbO2CO2_mM = knob * std::min(HbReq4O2_mM, HbReq4CO2_mM);
-      HbCO2_mM = HbReq4CO2_mM - HbO2CO2_mM;
-      HbO2_mM = HbReq4O2_mM - HbO2CO2_mM;
-      Hb_mM = Hb_total_mM - (HbO2CO2_mM + HbCO2_mM + HbO2_mM);
-      if (Hb_mM > 0. && HbCO2_mM > 0. && HbO2_mM > 0. && HbO2CO2_mM > 0.)
-        itr = 50;
-    }
-  }
-
-  if (std::abs(HbO2CO2_mM) <= ZERO_APPROX)
-    HbO2CO2_mM = 0;
-  if (std::abs(HbO2_mM) <= ZERO_APPROX)
-    HbO2_mM = 0;
-  if (std::abs(HbCO2_mM) <= ZERO_APPROX)
-    HbCO2_mM = 0;
-  if (std::abs(Hb_mM) <= ZERO_APPROX)
-    Hb_mM = 0;
-  if (std::abs(Hb_total_mM - Hb_mM - HbO2_mM - HbCO2_mM - HbO2CO2_mM) > ZERO_APPROX)
-    Fatal("SaturationCalculator::DistributeHemoglobinBySaturation: Hemoglobin not conserved. Should never hit this error.");
-
-  if (HbO2CO2_mM < 0.0 || HbO2_mM < 0.0 || HbCO2_mM < 0.0 || Hb_mM < 0.0) {
-    return false;
-  }
-
-  m_subHbQ->GetMolarity().SetValue(Hb_mM, AmountPerVolumeUnit::mmol_Per_L);
-  m_subHbQ->Balance(BalanceLiquidBy::Molarity);
-  m_subHbO2Q->GetMolarity().SetValue(HbO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-  m_subHbO2Q->Balance(BalanceLiquidBy::Molarity);
-  m_subHbCO2Q->GetMolarity().SetValue(HbCO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-  m_subHbCO2Q->Balance(BalanceLiquidBy::Molarity);
-  m_subHbO2CO2Q->GetMolarity().SetValue(HbO2CO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-  m_subHbO2CO2Q->Balance(BalanceLiquidBy::Molarity);
-
-  return true;
+  m_data.GetDataTrack().Probe("Sat_BicarbonateGuess", hco3Guess);
 }
 
 void SaturationCalculator::CalculateSimpleSaturation(SELiquidCompartment& cmpt)
@@ -1105,17 +735,6 @@ void SaturationCalculator::CalculateSimpleSaturation(SELiquidCompartment& cmpt)
   double co2Saturation = (cCO2 - m_subHCO3Q->GetMolarity(AmountPerVolumeUnit::mol_Per_L) - pCO2 * co2Solubility_M_Per_mmHg) / (hbO2Capacity_mol_Per_g * cHb_g_Per_L);
 
   double nextPO2 = 26.8 * std::pow(o2Saturation / (1.0 - o2Saturation), (1.0 / 2.7));
-
-  m_data.GetDataTrack().Probe("Test_O2Saturation", o2Saturation);
-  m_data.GetDataTrack().Probe("Test_CO2Saturation", co2Saturation);
-  m_data.GetDataTrack().Probe("Test_TotalO2", cO2);
-  m_data.GetDataTrack().Probe("Test_TotalCO2", cCO2);
-  m_data.GetDataTrack().Probe("Test_HCO3", m_subHCO3Q->GetMolarity(AmountPerVolumeUnit::mol_Per_L));
-  m_data.GetDataTrack().Probe("Test_PO2", pO2);
-  m_data.GetDataTrack().Probe("Test_NextPO2", nextPO2);
-  m_data.GetDataTrack().Probe("Test_BgTotalO2", totalO2_M);
-  m_data.GetDataTrack().Probe("Test_BgTotalCO2", totalCO2_M);
-  m_data.GetDataTrack().Probe("Test_HbConcentration", cHb_g_Per_L);
 }
 
 }

@@ -315,7 +315,7 @@ void BioGearsConfiguration::Initialize()
   GetMeanCorpuscularVolume().SetValue(9.e-8, VolumeUnit::uL); // Guyton p419
   GetMeanCorpuscularHemoglobin().SetValue(29, MassPerAmountUnit::pg_Per_ct);
   GetStandardDiffusionDistance().SetValue(0.0006, LengthUnit::mm);
-  GetStandardOxygenDiffusionCoefficient().SetValue(0.000000004, AreaPerTimePressureUnit::cm2_Per_min_mmHg);
+  GetStandardOxygenDiffusionCoefficient().SetValue(0.0000000045, AreaPerTimePressureUnit::cm2_Per_min_mmHg);
   //0.00000000246
 
   // Cardiovascular

@@ -258,7 +258,7 @@ void BioGearsSubstances::InitializeBloodGases(SELiquidCompartment& cmpt, double 
   SELiquidSubstanceQuantity* HbCO2 = cmpt.GetSubstanceQuantity(*m_HbCO2);
   SELiquidSubstanceQuantity* HbO2CO2 = cmpt.GetSubstanceQuantity(*m_HbO2CO2);
   SELiquidSubstanceQuantity* HCO3 = cmpt.GetSubstanceQuantity(*m_HCO3);
-
+  /*
   //Assume no HbO2CO2 at first (O2sat + CO2sat < 100%)
   double HbUnbound_mM = Hb_total_mM * (1 - O2_sat - CO2_sat);
   if (std::abs(HbUnbound_mM) <= ZERO_APPROX)
@@ -311,6 +311,15 @@ void BioGearsSubstances::InitializeBloodGases(SELiquidCompartment& cmpt, double 
     HbCO2->GetMolarity().SetValue(HbCO2_mM, AmountPerVolumeUnit::mmol_Per_L);
     HbCO2->Balance(BalanceLiquidBy::Molarity);
   }
+  */
+  Hb->GetMolarity().SetValue(Hb_total_mM, AmountPerVolumeUnit::mmol_Per_L);
+  Hb->Balance(BalanceLiquidBy::Molarity);
+  HbO2CO2->GetMolarity().SetValue(0.0, AmountPerVolumeUnit::mmol_Per_L);
+  HbO2CO2->Balance(BalanceLiquidBy::Molarity);
+  HbO2->GetMolarity().SetValue(4.0 * Hb_total_mM * O2_sat, AmountPerVolumeUnit::mmol_Per_L);
+  HbO2->Balance(BalanceLiquidBy::Molarity);
+  HbCO2->GetMolarity().SetValue(4.0 * Hb_total_mM * CO2_sat, AmountPerVolumeUnit::mmol_Per_L);
+  HbCO2->Balance(BalanceLiquidBy::Molarity);
 
   CO2->GetMolarity().SetValue(CO2_mmol_Per_L, AmountPerVolumeUnit::mmol_Per_L);
   CO2->Balance(BalanceLiquidBy::Molarity);
