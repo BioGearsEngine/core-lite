@@ -706,17 +706,17 @@ bool BioGears::SetupPatient()
   //\ToDo:  Could probably optimze further by taking gender into account
   //Stabilization goes faster if we start the driver with a good amplitude that pushes blood gas levels to setpoint.
   //Based off testing, this relationship holds up well between RR = 12 and RR = 16 for Standard Male.
-  double baselineDriverPressure_cmH2O = -5.8 + 0.25 * (respirationRate_bpm - 12.0);
+  double baselineDriverPressure_cmH2O = -6.8 + 0.25 * (respirationRate_bpm - 12.0);
   //Adjust driver pressure relationship for respiration rates > 16 (slope of driver - RR line decreases)
   if (respirationRate_bpm > 16.0) {
-    //-4.8 = driver pressure at 16 bpm.
-    baselineDriverPressure_cmH2O = -5.5 + 0.125 * (respirationRate_bpm - 16);
+    //-5.8 = driver pressure at 16 bpm.
+    baselineDriverPressure_cmH2O = - + 0.125 * (respirationRate_bpm - 16);
   }
   //Scale target pressure as ratio of calculated FRC to Standard Male FRC
   double standardFRC_L = 2.31332;
   baselineDriverPressure_cmH2O *= functionalResidualCapacity_L / standardFRC_L;
 
-  BLIM(baselineDriverPressure_cmH2O, -5.8, -3.5);
+  BLIM(baselineDriverPressure_cmH2O, -7.0, -3.5);
   m_Patient->GetRespiratoryDriverAmplitudeBaseline().SetValue(baselineDriverPressure_cmH2O, PressureUnit::cmH2O);
 
   double vitalCapacity = totalLungCapacity_L - residualVolume_L;
@@ -941,7 +941,6 @@ void BioGears::AtSteadyState(EngineState state)
 void BioGears::PreProcess()
 {
   m_Environment->PreProcess();
-  m_NervousSystem->PreProcess();
   m_CardiovascularSystem->PreProcess();
   m_Inhaler->PreProcess();
   m_RespiratorySystem->PreProcess();
@@ -954,12 +953,12 @@ void BioGears::PreProcess()
   m_DrugSystem->PreProcess();
   m_TissueSystem->PreProcess();
   m_BloodChemistrySystem->PreProcess();
+  m_NervousSystem->PreProcess();
   m_ECG->PreProcess();
 }
 void BioGears::Process()
 {
   m_Environment->Process();
-  m_NervousSystem->Process();
   m_CardiovascularSystem->Process();
   m_Inhaler->Process();
   m_RespiratorySystem->Process();
@@ -972,12 +971,12 @@ void BioGears::Process()
   m_DrugSystem->Process();
   m_TissueSystem->Process();
   m_BloodChemistrySystem->Process();
+  m_NervousSystem->Process();
   m_ECG->Process();
 }
 void BioGears::PostProcess()
 {
   m_Environment->PostProcess();
-  m_NervousSystem->PostProcess();
   m_CardiovascularSystem->PostProcess();
   m_Inhaler->PostProcess();
   m_RespiratorySystem->PostProcess();
@@ -990,6 +989,7 @@ void BioGears::PostProcess()
   m_DrugSystem->PostProcess();
   m_TissueSystem->PostProcess();
   m_BloodChemistrySystem->PostProcess();
+  m_NervousSystem->PostProcess();
   m_ECG->PostProcess();
 }
 

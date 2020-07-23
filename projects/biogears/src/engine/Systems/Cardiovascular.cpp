@@ -1615,7 +1615,7 @@ void Cardiovascular::TuneCircuit()
       if (m_CirculatoryGraph->GetCompartment(c->GetName()) == nullptr)
         Info(std::string{"Cardiovascular Graph does not have cmpt "} + c->GetName());
       if (c->HasSubstanceQuantity(m_data.GetSubstances().GetHb())) // Unit testing does not have any Hb
-        m_data.GetSaturationCalculator().CalculateBloodGasDistribution(*c); //so don't do this if we don't have Hb
+        m_data.GetSaturationCalculator().CalculateSimpleSaturation(*c); //so don't do this if we don't have Hb
     }
     //We need to reset the blood volume baseline because it might have changed during circuit stabilization
     m_data.GetPatient().GetBloodVolumeBaseline().SetValue(bloodVolumeBaseline_mL, VolumeUnit::mL);

@@ -119,14 +119,14 @@ public:
     double HPr0 = 39.8;
     double KaCO = std::pow(10.0, -6.1) * 1000.0;
     double KaPr = std::pow(10.0, -7.3) * 1000.0;
-    double a0 = KaCO * KaPr * (NaOH - HPr0 - co2_mM - BicarbonateConcentration);
-    double a1 = KaCO * (NaOH - co2_mM - BicarbonateConcentration) + KaPr * (KaCO + NaOH - HPr0);
+    double a0 = KaCO * KaPr * (NaOH - HPr0 - co2_mM - m_SatCalc.m_bicarbonate_plasma_mmol_Per_L);
+    double a1 = KaCO * (NaOH - co2_mM - m_SatCalc.m_bicarbonate_plasma_mmol_Per_L) + KaPr * (KaCO + NaOH - HPr0);
     double a2 = KaPr + NaOH + KaCO;
     double Hplus = 1000.0 * std::pow(10.0, -pH);
 
     //double f0 = (Hplus * Hplus * Hplus) + a2 * (Hplus * Hplus) + a1 * Hplus + a0;
     //double f0 = m_SatCalc.m_StrongIonDifference_mmol_Per_L - BicarbonateConcentration - m_SatCalc.m_albumin_g_per_L * (0.123 * pH - 0.631) - m_SatCalc.m_Phosphate_mmol_Per_L * (0.309 * pH - 0.469);
-    double f0 = m_SatCalc.m_StrongIonDifference_mmol_Per_L - m_SatCalc.m_bicarbonate_plasma_mmol_Per_L- m_SatCalc.m_albumin_g_per_L * (0.123 * pH - 0.631) - m_SatCalc.m_Phosphate_mmol_Per_L * (0.309 * pH - 0.469);
+    double f0 = m_SatCalc.m_StrongIonDifference_mmol_Per_L - m_SatCalc.m_bicarbonate_plasma_mmol_Per_L - m_SatCalc.m_albumin_g_per_L * (0.123 * pH - 0.631) - m_SatCalc.m_Phosphate_mmol_Per_L * (0.309 * pH - 0.469);
     double f1 = totalCO2_mM - wbl * co2_mM - BicarbonateConcentration - 4.0 * CarbonDioxideSaturation * totalHemoglobin_mM;
     double f2 = totalO2_mM - wbl * o2_mM - 4.0 * OxygenSaturation * totalHemoglobin_mM;
 
@@ -392,8 +392,6 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
   double rbc = 0.69;
   double wbl = (1.0 - hct) * wpl + hct * wrbc;
 
-
-
   double pH = cmpt.GetPH().GetValue();
   double HbO2_mM = m_subHbO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Amount of bound O2 (not hemoglobin with O2 bound)
   double HbCO2_mM = m_subHbCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); // Amount of bound CO2 (not hemoglobin with CO2 bound)
@@ -482,7 +480,6 @@ void SaturationCalculator::CalculateBloodGasDistribution(SELiquidCompartment& cm
   x(0) = pH; //m_subHCO3Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
   x(1) = CO2_mM; //m_subCO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
   x(2) = O2_mM; //m_subO2Q->GetMolarity().GetValue(AmountPerVolumeUnit::mmol_Per_L);
-
 
   satWatch.lap();
   error_functor functor(*this);
@@ -636,7 +633,7 @@ void SaturationCalculator::CalculateHemoglobinSaturations(double O2PartialPressu
   // Fixed parameters
   double Wpl = 0.94; // fractional water space in plasma; unitless
   double Wrbc = 0.65; // fractional water space in RBCs; unitless
-  double Rrbc = std::pow(10.0, -(0.205 * pH - 1.357));  //0.69; // Gibbs - Donnan ratio across RBC membrane; unitless
+  double Rrbc = std::pow(10.0, -(0.205 * pH - 1.357)); //0.69; // Gibbs - Donnan ratio across RBC membrane; unitless
   double Hbrbc = 5.18e-3; // hemoglobin concentration in RBCs; M
   double K1dp = 5.5e-4;
   double K1p = 1.4e-3;
@@ -714,60 +711,149 @@ void SaturationCalculator::CalculateHemoglobinSaturations(double O2PartialPressu
 
 void SaturationCalculator::CalculateSimpleSaturation(SELiquidCompartment& cmpt)
 {
-  m_cmpt = &cmpt;
+  //Set up substance quantity variables
   m_subO2Q = nullptr;
   m_subCO2Q = nullptr;
   m_subHbQ = nullptr;
-  m_subHbO2Q = nullptr;
-  m_subHbCO2Q = nullptr;
-  m_subHbO2CO2Q = nullptr;
+  m_subHbO2Q = nullptr; //Amount of O2 that is bound to hemoglobin  (i.e. 4 * amount of hemoglobin with O2 bound)
+  m_subHbCO2Q = nullptr; //Amount of CO2 that is bound to hemoglobin (i.e. 4 * amount of hemoglobin with CO2 bound)
   m_subHCO3Q = nullptr;
-  m_subCOQ = nullptr;
-  m_subHbCOQ = nullptr;
 
   m_subO2Q = cmpt.GetSubstanceQuantity(*m_O2);
   m_subCO2Q = cmpt.GetSubstanceQuantity(*m_CO2);
   m_subHbQ = cmpt.GetSubstanceQuantity(*m_Hb);
   m_subHbO2Q = cmpt.GetSubstanceQuantity(*m_HbO2);
   m_subHbCO2Q = cmpt.GetSubstanceQuantity(*m_HbCO2);
-  m_subHbO2CO2Q = cmpt.GetSubstanceQuantity(*m_HbO2CO2);
   m_subHCO3Q = cmpt.GetSubstanceQuantity(*m_HCO3);
 
-  double Hb_mol = m_subHbQ->GetMass(MassUnit::g) / (m_Hb->GetMolarMass(MassPerAmountUnit::g_Per_mol)) + m_subHbO2Q->GetMass(MassUnit::g) / (m_HbO2->GetMolarMass(MassPerAmountUnit::g_Per_mol)) + m_subHbCO2Q->GetMass(MassUnit::g) / (m_HbCO2->GetMolarMass(MassPerAmountUnit::g_Per_mol)) + m_subHbO2CO2Q->GetMass(MassUnit::g) / (m_HbO2CO2->GetMolarMass(MassPerAmountUnit::g_Per_mol));
-  double cHb_M = Hb_mol / cmpt.GetVolume(VolumeUnit::L);
-  double cHb_g_Per_L = cHb_M * m_Hb->GetMolarMass(MassPerAmountUnit::g_Per_mol);
-  double o2Solubility_M_Per_mmHg = 1.46e-6;
-  double co2Solubility_M_Per_mmHg = 3.27e-5;
-  double hbO2Capacity_mol_Per_g = (1.34 / 1000.0) / 22.4;
+  //Parameters relating whole blood to plasma concentrations
+  double hct = m_data.GetBloodChemistry().HasHematocrit() ? m_data.GetBloodChemistry().GetHematocrit().GetValue() : 0.45; //hematocrit
+  double wpl = 0.94; //water content of plasma
+  double wrbc = 0.65; //water content of red blood cells
+  double wbl = (1.0 - hct) * wpl + hct * wrbc; //weighted water content of whole blood
+  double rbc = 0.69; //Gibbs-Donan ratio of HCO3 across red blood cell membrane (function of pH, but assumed standard value)
 
-  //After Diffusion, our *known* quantities are total O2 and total CO2
-  double totalO2_M = (m_subO2Q->GetMass(MassUnit::g) / (m_O2->GetMolarMass(MassPerAmountUnit::g_Per_mol)) + 4.0 * m_subO2Q->GetSaturation().GetValue() * Hb_mol) / cmpt.GetVolume(VolumeUnit::L);
-  double totalCO2_M = (m_subCO2Q->GetMass(MassUnit::g) / (m_CO2->GetMolarMass(MassPerAmountUnit::g_Per_mol)) + m_subHCO3Q->GetMass(MassUnit::g) / (m_HCO3->GetMolarMass(MassPerAmountUnit::g_Per_mol)) + 4.0 * m_subCO2Q->GetSaturation().GetValue() * Hb_mol) / cmpt.GetVolume(VolumeUnit::L);
+  //Get O2 and CO2 species and determine total amount of each gas
+  double HbTotal_mM = m_subHbQ->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
+  if (HbTotal_mM < ZERO_APPROX) {
+    return;
+  }
 
-  // Dissociation curve constants
-  double cMaxO2 = hbO2Capacity_mol_Per_g * cHb_g_Per_L; //9.0 / 1000.0;
-  double cMaxCO2 = 86.11 / 1000.0;
-  double h1 = 0.3836;
-  double h2 = 1.819;
-  double alpha1 = 0.03198;
-  double alpha2 = 0.05591;
-  double beta1 = 0.008275;
-  double beta2 = 0.03255;
-  double K1 = 14.99;
-  double K2 = 194.4;
+  if (cmpt.GetName() == "Aorta") {
+    int test = 0;
+  }
+  double O2Dissolved_mM = m_subO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
+  double O2Bound_mM = m_subHbO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
+  double CO2Dissolved_mM = m_subCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
+  double CO2Bound_mM = m_subHbCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
+  double HCO3_Plasma_mM = m_subHCO3Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); //Needs to be put on whole blood basis
 
-  //Calculate O2 and CO2 concentrations using Bohr-Haldane relationships
-  double pO2 = m_subO2Q->GetPartialPressure(PressureUnit::mmHg);
-  double pCO2 = m_subCO2Q->GetPartialPressure(PressureUnit::mmHg);
-  double xO2 = pO2 * (1.0 + beta1 * pCO2) / (K1 * (1.0 + alpha1 * pCO2));
-  double xCO2 = pCO2 * (1.0 + beta2 * pO2) / (K2 * (1.0 + alpha2 * pO2));
-  double cO2 = cMaxO2 * std::pow(xO2, 1.0 / h1) / (1.0 + std::pow(xO2, 1.0 / h1));
-  double cCO2 = cMaxCO2 * std::pow(xCO2, 1.0 / h2) / (1.0 + std::pow(xCO2, 1.0 / h2));
+  double O2Total_mM = wbl * O2Dissolved_mM + O2Bound_mM;
+  double O2Total_mmol = O2Total_mM * cmpt.GetVolume(VolumeUnit::L);
+  //double CO2Total_mM = wbl * CO2Dissolved_mM + HCO3_Plasma_mM * ((1.0 - hct) * wpl + hct * rbc * wrbc) + CO2Bound_mM;
+  double CO2Total_mM = CO2Dissolved_mM + HCO3_Plasma_mM;
+  double CO2Total_mmol = CO2Total_mM * cmpt.GetVolume(VolumeUnit::L);
 
-  double o2Saturation = (cO2 - pO2 * o2Solubility_M_Per_mmHg) / (hbO2Capacity_mol_Per_g * cHb_g_Per_L);
-  double co2Saturation = (cCO2 - m_subHCO3Q->GetMolarity(AmountPerVolumeUnit::mol_Per_L) - pCO2 * co2Solubility_M_Per_mmHg) / (hbO2Capacity_mol_Per_g * cHb_g_Per_L);
+  //------------Calculate carbon dioxide species distribution
+  //--Step 1: Assume that 5% of total CO2 is bound to hemoblobin @cite Boron Medical Physiology
+  double CO2Bound_mM_next = 0.05 * CO2Total_mM;
+  double CO2Unbound_mM_next = CO2Total_mM - CO2Bound_mM_next; //Includes free CO2 and bicarbonate
+  //--Step 2: Estimate pH using Chiari, 1994
+  double NaOH_mM = 46.2; //total sodium concentration, constant
+  double HPr0_mM = 39.8; //total protein concentration, constant
+  double KaCO_mM = std::pow(10.0, -6.1) * 1000.0 * ((1.0 - hct) * wpl + hct * rbc * wrbc); //HCO3 / CO2 equilibrium constant
+  double KaPr_mM = std::pow(10.0, -7.3) * 1000.0; //Hpr / Pr equilibrium constant
+  double alphaCO2 = 3.27e-5;
 
-  double nextPO2 = 26.8 * std::pow(o2Saturation / (1.0 - o2Saturation), (1.0 / 2.7));
+  //CO2Unbound_mM_next = 25.0;
+  //Constants for pH model
+  double a0 = KaCO_mM * KaPr_mM * (NaOH_mM - HPr0_mM - CO2Total_mM);
+  double a1 = KaCO_mM * (NaOH_mM - CO2Total_mM) + KaPr_mM * (KaCO_mM + NaOH_mM - HPr0_mM);
+  double a2 = KaPr_mM + NaOH_mM + KaCO_mM;
+
+  double HpLast_mM = std::pow(10.0, -cmpt.GetPH().GetValue()) * 1000.0;
+  double HpNext_mM = 0.0;
+  double f0 = 0.0;
+  double fp0 = 0.0;
+  int its = 0;
+  while (its < 20) {
+    f0 = HpLast_mM * HpLast_mM * HpLast_mM + a2 * HpLast_mM * HpLast_mM + a1 * HpLast_mM + a0;
+    fp0 = 3.0 * HpLast_mM * HpLast_mM + 2.0 * a2 * HpLast_mM + a1;
+    HpNext_mM = HpLast_mM - f0 / fp0;
+    ++its;
+    if (std::abs(HpNext_mM - HpLast_mM) / HpLast_mM <= 1e-4) {
+      break;
+    }
+    HpLast_mM = HpNext_mM;
+  }
+  double pHPlasma = -std::log10(HpNext_mM / 1000.0);
+  double pHRBC = 0.795 * pHPlasma + 1.357;
+  double CO2Dissolved_mM_next = CO2Total_mM / (1.0 + std::pow(10.0, pHPlasma - 6.1));
+  double HCO3Plasma_mM_next = CO2Total_mM - CO2Dissolved_mM_next;
+  double CO2Total_mmol_next = (CO2Dissolved_mM_next + HCO3Plasma_mM_next) * cmpt.GetVolume(VolumeUnit::L);
+  double pCO2_mmHg = (CO2Dissolved_mM_next / 1000.0) / alphaCO2;
+
+  //--Step 3: Calculate effect of PCO2 and [H+] on O2 saturation midpoint
+  double p50_s = 26.8; //Standard p50
+  double pCO2_s = 40.0; // standard CO2 partial pressure in blood; mmHg
+  double pH_s = 7.24; // standard pH in RBCs; unitless
+  double temp_s = 37.0; // standard temperature in blood; degC
+
+  double pHdiff = pHRBC - pH_s;
+  double pCO2diff = pCO2_mmHg - pCO2_s;
+  double coreTemp = m_data.GetEnergy().HasCoreTemperature() ? m_data.GetEnergy().GetCoreTemperature(TemperatureUnit::C) : 37.0;
+  double tempDiff = coreTemp - temp_s;
+
+  double p50Delta_pH = p50_s - 25.535 * pHdiff + 10.646 * pHdiff * pHdiff - 1.764 * pHdiff * pHdiff * pHdiff;
+  double p50Delta_CO2 = p50_s + 1.273e-1 * pCO2diff + 1.083e-4 * pCO2diff * pCO2diff;
+  double p50Delta_T = p50_s + 1.435 * tempDiff + 4.163e-2 * tempDiff * tempDiff + 6.86e-4 * tempDiff * tempDiff * tempDiff;
+
+  double P50 = p50_s * (p50Delta_pH / p50_s) * (p50Delta_CO2 / p50_s) * (p50Delta_T / p50_s);
+
+  //--Step 4 : Solve for O2 saturation and dissolved concentration
+  double alphaO2 = 1.46e-6;
+  double beta = 1.0 / 2.7;
+  double O2Sat = m_subO2Q->GetSaturation().GetValue();
+  double O2Sat_next = 0.0;
+  int satIts = 0;
+  double fS = 0.0;
+  double fSp = 0.0;
+  while (satIts < 20) {
+    fS = wbl * (alphaO2 * 1000.0) * P50 * std::pow(O2Sat / (1.0 - O2Sat), beta) + 4.0 * HbTotal_mM * O2Sat - O2Total_mM;
+    fSp = beta * wbl * (alphaO2 * 1000.0) * P50 * std::pow(O2Sat / (1.0 - O2Sat), beta - 1) * (1.0 / ((1.0 - O2Sat) * (1.0 - O2Sat))) + 4.0 * HbTotal_mM;
+    O2Sat_next = O2Sat - fS / fSp;
+    ++satIts;
+    if (std::abs(O2Sat_next - O2Sat) / O2Sat <= 1.0e-4) {
+      break;
+    }
+    O2Sat = O2Sat_next;
+  }
+
+  double O2Bound_mM_next = 4.0 * HbTotal_mM * O2Sat;
+  double O2Dissolved_mM_next = (O2Total_mM - O2Bound_mM_next) / wbl;
+  double O2Total_mmol_next = (wbl * O2Dissolved_mM + O2Bound_mM_next) * cmpt.GetVolume(VolumeUnit::L);
+
+  //Update and balance concentrations
+  m_subCO2Q->GetMolarity().SetValue(CO2Dissolved_mM_next, AmountPerVolumeUnit::mmol_Per_L);
+  m_subCO2Q->Balance(BalanceLiquidBy::Molarity);
+  m_subO2Q->GetMolarity().SetValue(O2Dissolved_mM_next, AmountPerVolumeUnit::mmol_Per_L);
+  m_subO2Q->Balance(BalanceLiquidBy::Molarity);
+  m_subO2Q->GetSaturation().SetValue(O2Sat);
+  m_subHCO3Q->GetMolarity().SetValue(HCO3Plasma_mM_next, AmountPerVolumeUnit::mmol_Per_L);
+  m_subHCO3Q->Balance(BalanceLiquidBy::Molarity);
+  m_subHbO2Q->GetMolarity().SetValue(O2Bound_mM_next, AmountPerVolumeUnit::mmol_Per_L);
+  m_subHbO2Q->Balance(BalanceLiquidBy::Molarity);
+
+  if (cmpt.GetName() == "Aorta") {
+    m_data.GetDataTrack().Probe("Test_NextPH", pHPlasma);
+    m_data.GetDataTrack().Probe("Test_Iterations", its);
+    m_data.GetDataTrack().Probe("Test_CO2_mM", CO2Dissolved_mM_next);
+    m_data.GetDataTrack().Probe("Test_HCO3_mM", HCO3Plasma_mM_next);
+    m_data.GetDataTrack().Probe("Test_CO2Conservation", CO2Total_mmol - CO2Total_mmol_next);
+    m_data.GetDataTrack().Probe("Test_O2_mM", O2Dissolved_mM_next);
+    m_data.GetDataTrack().Probe("Test_O2Sat", O2Sat);
+    m_data.GetDataTrack().Probe("Test_O2Conservation", O2Total_mmol - O2Total_mmol_next);
+  }
 }
 
 }

@@ -1590,26 +1590,18 @@ void Tissue::ManageSubstancesAndSaturation()
                                                 m_data.GetEnergy().GetCoreTemperature(),
                                                 m_data.GetBloodChemistry().GetStrongIonDifference(),
                                                 m_data.GetBloodChemistry().GetPhosphate());
-  tisWatch.lap();
+
   for (SELiquidCompartment* cmpt : m_data.GetCompartments().GetVascularLeafCompartments()) {
     if (cmpt->HasVolume()) {
-      m_data.GetSaturationCalculator().CalculateBloodGasDistribution(*cmpt);
+      m_data.GetSaturationCalculator().CalculateSimpleSaturation(*cmpt);
     }
   }
-  satTime += tisWatch.lap();
-  //for (SELiquidCompartment* cmpt : m_data.GetCompartments().GetVascularLeafCompartments()) {
-  //  if (cmpt->HasVolume()) {
-  //    m_data.GetSubstances().ProbeBloodGases(*cmpt, "");
-  //  }
-  //}
-  m_data.GetDataTrack().Probe("TotalSaturationTime(ms)", satTime / 1e6);
-  m_data.GetSaturationCalculator().CalculateSimpleSaturation(*m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava));
 
-  int steps = static_cast<int>(m_data.GetSimulationTime().GetValue(TimeUnit::s) / m_Dt_s);
+ /* int steps = static_cast<int>(m_data.GetSimulationTime().GetValue(TimeUnit::s) / m_Dt_s);
   if (steps % (50 * 60 * 5) == 0 && m_data.GetState()>=EngineState::AtSecondaryStableState) {
     m_data.GetSubstances().WriteBloodGases();
     m_data.GetSubstances().WritePulmonaryGases();
-  }
+  }*/
 }
 
 //--------------------------------------------------------------------------------------------------
