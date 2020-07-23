@@ -47,7 +47,6 @@ specific language governing permissions and limitations under the License.
 #include <biogears/engine/BioGearsPhysiologyEngine.h>
 #include <biogears/engine/Controller/BioGears.h>
 
-
 namespace BGE = mil::tatrc::physiology::biogears;
 
 #ifdef _MSC_VER
@@ -131,7 +130,7 @@ void Respiratory::Initialize()
 
   //The peak driver pressure is the pressure above the default pressure
   m_PeakRespiratoryDrivePressure_cmH2O = m_Patient->GetRespiratoryDriverAmplitudeBaseline(PressureUnit::cmH2O);
- 
+
   m_ArterialO2PartialPressure_mmHg = m_AortaO2->GetPartialPressure(PressureUnit::mmHg);
   m_ArterialCO2PartialPressure_mmHg = m_AortaCO2->GetPartialPressure(PressureUnit::mmHg);
   m_AverageLocalTissueBronchodilationEffects = 0.0;
@@ -312,9 +311,6 @@ void Respiratory::SetUp()
   //Common to both full and lite circuits
   m_Environment = m_data.GetCompartments().GetGasCompartment(BGE::EnvironmentCompartment::Ambient);
   SELiquidCompartment* Aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta);
-  if (m_data.GetConfiguration().IsBioGearsLiteEnabled()) {
-    Aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta);
-  }
   m_AortaO2 = Aorta->GetSubstanceQuantity(m_data.GetSubstances().GetO2());
   m_AortaCO2 = Aorta->GetSubstanceQuantity(m_data.GetSubstances().GetCO2());
 
@@ -332,8 +328,6 @@ void Respiratory::SetUp()
   m_AerosolEffects.push_back(m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Bronchi));
   m_AerosolEffects.push_back(m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Alveoli));
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -404,13 +398,14 @@ void Respiratory::AtSteadyState()
 //--------------------------------------------------------------------------------------------------
 void Respiratory::PreProcess()
 {
-    AirwayObstruction();
-    BronchoConstriction();
-    Pneumothorax();
-    RespiratoryDriverLite();
-    //ProcessAerosolSubstances();
-    //ConsciousRespiration();
-    //MechanicalVentilation();
+  AirwayObstruction();
+  UpdateObstructiveResistance();
+  BronchoConstriction();
+  Pneumothorax();
+  RespiratoryDriverLite();
+  //ProcessAerosolSubstances();
+  //ConsciousRespiration();
+  //MechanicalVentilation();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -442,7 +437,6 @@ void Respiratory::Process()
     m_AerosolTransporter.Transport(AerosolGraph, m_dt_s);
   }
   CalculateVitalSignsLite();
-  
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -479,13 +473,13 @@ void Respiratory::PostProcess()
 void Respiratory::ProcessAerosolSubstances()
 {
   //Leaving this here because we might re-introduce albuterol to Respiratory Lite.  Leave everything as "left" for now and account for single alveoli in lite setup later.
-  SELiquidCompartment* AerosolMouth = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Mouth);  
+  SELiquidCompartment* AerosolMouth = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Mouth);
   size_t numAerosols = AerosolMouth->GetSubstanceQuantities().size();
   if (numAerosols == 0)
     return;
 
   m_AverageLocalTissueBronchodilationEffects = 0.0; //No effect
-  
+
   SELiquidCompartment* AerosolTrachea = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Trachea);
   SELiquidCompartment* AerosolBronchi = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Bronchi);
   SELiquidCompartment* AerosolAlveoli = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Alveoli);
@@ -573,7 +567,7 @@ void Respiratory::ProcessAerosolSubstances()
     subQ->Balance(BalanceLiquidBy::Mass);
     leftAlveoliTotalDepositied_ug = subQ->GetMassDeposited().IncrementValue(leftAlveoliDepositied_ug, MassUnit::ug).GetValue(MassUnit::ug);
     leftAlveoliResistanceModifier += leftAlveoliTotalDepositied_ug * inflammationCoefficient;
-    
+
     // Apply the BronchioleModifier dilation effect
     // This is all just tuned to Albuterol - it'll work for other substances, and can be tuned using the other parameters (especially BronchioleModifier)
     if (subQ->GetSubstance().GetState() == CDM::enumSubstanceState::Liquid) {
@@ -720,7 +714,7 @@ void Respiratory::RespiratoryDriverLite()
     m_VentilationFrequency_Per_min = GetRespirationDriverFrequency(FrequencyUnit::Per_min);
     //Don't need a separate "ProcessDriverActions"--just do whatever we support (e.g. drugs) here
 
-    // Process Cardiac Arrest action 
+    // Process Cardiac Arrest action
     double cardiacArrestEffect = 1.0;
     if (m_Patient->IsEventActive(CDM::enumPatientEvent::CardiacArrest)) {
       cardiacArrestEffect = 0.0;
@@ -763,7 +757,7 @@ void Respiratory::RespiratoryDriverLite()
     //m_TargetTidalVolume_L *= cardiacArrestEffect;
     //m_TargetTidalVolume_L *= NMBModifier;
     //m_TargetTidalVolume_L += DrugsTVChange_L;
-    
+
     //
     m_VentilationFrequency_Per_min += sepsisModifier;
     m_VentilationFrequency_Per_min *= painModifier;
@@ -821,7 +815,6 @@ void Respiratory::AirwayObstruction()
   dClosedResistance = AirwayResistance;
   AirwayResistance = GeneralMath::ResistanceFunction(20.0, m_dRespOpenResistance_cmH2O_s_Per_L, dClosedResistance, Severity);
   mouthToTrachea->GetNextResistance().SetValue(AirwayResistance, FlowResistanceUnit::cmH2O_s_Per_L);
-
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -940,7 +933,7 @@ void Respiratory::Pneumothorax()
         m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::PleuralToEnvironment)->GetNextResistance().SetValue(dFlowResistanceLeftNeedle, FlowResistanceUnit::cmH2O_s_Per_L);
       }
     }
-    
+
   } else {
     // Check for cases where the needle decompression or occlusive dressing actions are called without having
     // initiated a pneumothorax action
@@ -1123,7 +1116,7 @@ void Respiratory::CalculateVitalSignsLite()
   GetPulmonaryResistance().SetValue((dEnvironmentPressure - dAlveolarPressure) / tracheaFlow_L_Per_s, FlowResistanceUnit::cmH2O_s_Per_L);
 
   double dPleuralPressure_cmH2O = nPleural->GetNextPressure(PressureUnit::cmH2O);
- 
+
   GetTranspulmonaryPressure().SetValue(dAlveolarPressure - dPleuralPressure_cmH2O, PressureUnit::cmH2O);
 
   GetRespirationDriverPressure().SetValue(nRespiratoryMuscle->GetNextPressure(PressureUnit::cmH2O) - m_Ambient->GetPressure(PressureUnit::cmH2O), PressureUnit::cmH2O);
@@ -1337,6 +1330,27 @@ void Respiratory::CalculateVitalSignsLite()
   m_PreviousTotalLungVolume_L = GetTotalLungVolume(VolumeUnit::L);
 }
 
+void Respiratory::UpdateObstructiveResistance()
+{
+  if (!m_PatientActions->HasAsthmaAttack() || GetExpiratoryFlow(VolumePerTimeUnit::L_Per_s) < 0.0) { // Only on exhalation
+    return;
+  }
+  double resistanceScalingFactor = 1.0;
+  //Asthma attack on
+  if (m_PatientActions->HasAsthmaAttack()) {
+    double dSeverity = m_PatientActions->GetAsthmaAttack()->GetSeverity().GetValue();
+    // Resistance function: Base = 10, Min = 10, Max = 1750 (increasing with severity)
+    double dResistanceScalingFactor = GeneralMath::ResistanceFunction(10.0, 1000.0, 40.0, dSeverity);
+    resistanceScalingFactor = dResistanceScalingFactor;
+  }
+  // Get the path resistances
+  SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::TracheaToBronchi);
+  double bronchiResistance = tracheaToBronchi->GetNextResistance().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
+  
+  bronchiResistance *= resistanceScalingFactor;
+  tracheaToBronchi->GetNextResistance().SetValue(bronchiResistance, FlowResistanceUnit::cmH2O_s_Per_L);
+}
+
 //--------------------------------------------------------------------------------------------------
 /// \brief
 /// Update the inspiratory-expiratory ratio
@@ -1475,7 +1489,6 @@ void Respiratory::TuneCircuit()
     }
     time_s += m_dt_s;
   }
-
 
   //Make sure the new volumes are accounted for with all the substance stuff
   //Keep the same volume fraction originally initialized

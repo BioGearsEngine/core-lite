@@ -843,6 +843,7 @@ void SaturationCalculator::CalculateSimpleSaturation(SELiquidCompartment& cmpt)
   m_subHCO3Q->Balance(BalanceLiquidBy::Molarity);
   m_subHbO2Q->GetMolarity().SetValue(O2Bound_mM_next, AmountPerVolumeUnit::mmol_Per_L);
   m_subHbO2Q->Balance(BalanceLiquidBy::Molarity);
+  cmpt.GetPH().SetValue(pHPlasma);
 
   if (cmpt.GetName() == "Aorta") {
     m_data.GetDataTrack().Probe("Test_NextPH", pHPlasma);

@@ -96,6 +96,7 @@ private:
   //Actions
   void AirwayObstruction();
   void BronchoConstriction();
+  void UpdateObstructiveResistance();
   void BronchoDilation();
   void Pneumothorax();
   void ConsciousRespiration();
@@ -103,9 +104,7 @@ private:
   void MechanicalVentilation();
   void Apnea();
   // Driver
-  void RespiratoryDriver();
   void RespiratoryDriverLite();
-  void ProcessDriverActions();
 
   // Shared Utility Methods for Actions/Driver
   /**/ void UpdateIERatio();
