@@ -5,7 +5,7 @@
   <MolarMass readOnly="false" unit="g/mol" value="32"/>
   <State>Gas</State>
   <RelativeDiffusionCoefficient readOnly="false" value="1"/>
-  <SolubilityCoefficient readOnly="false" unit="1/atm" value="0.024"/>
+  <SolubilityCoefficient readOnly="false" unit="1/atm" value="0.02485"/>
   <Clearance>
     <RenalDynamics>
       <Clearance readOnly="false" unit="mL/min kg" value="0"/>
