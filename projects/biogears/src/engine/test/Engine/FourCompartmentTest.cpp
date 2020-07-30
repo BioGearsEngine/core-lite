@@ -26,26 +26,23 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/utils/GeneralMath.h>
 
 namespace biogears {
-double TotalHbMols(SELiquidCompartmentGraph& Graph, SESubstance& Hb, SESubstance& HbO2, SESubstance& HbO2CO2, SESubstance& HbCO2)
+double TotalHbMols(SELiquidCompartmentGraph& Graph, SESubstance& Hb, SESubstance& HbO2, SESubstance& HbCO2)
 {
   double Hb_g_Per_mol = Hb.GetMolarMass(MassPerAmountUnit::g_Per_mol);
   double HbO2_g_Per_mol = HbO2.GetMolarMass(MassPerAmountUnit::g_Per_mol);
   double HbCO2_g_Per_mol = HbCO2.GetMolarMass(MassPerAmountUnit::g_Per_mol);
-  double HbO2CO2_g_Per_mol = HbO2CO2.GetMolarMass(MassPerAmountUnit::g_Per_mol);
 
   double totalHb_g = 0.0;
   double totalHbO2_g = 0.0;
   double totalHbCO2_g = 0.0;
-  double totalHBO2CO2_g = 0.0;
 
   for (SELiquidCompartment* cmpt : Graph.GetCompartments()) {
     totalHb_g += cmpt->GetSubstanceQuantity(Hb)->GetMass(MassUnit::g);
     totalHbO2_g += cmpt->GetSubstanceQuantity(HbO2)->GetMass(MassUnit::g);
     totalHbCO2_g += cmpt->GetSubstanceQuantity(HbCO2)->GetMass(MassUnit::g);
-    totalHBO2CO2_g += cmpt->GetSubstanceQuantity(HbO2CO2)->GetMass(MassUnit::g);
   }
 
-  return totalHb_g / Hb_g_Per_mol + totalHbO2_g / HbO2_g_Per_mol + totalHbCO2_g / HbCO2_g_Per_mol + totalHBO2CO2_g / HbO2CO2_g_Per_mol;
+  return totalHb_g / Hb_g_Per_mol + totalHbO2_g / HbO2_g_Per_mol + totalHbCO2_g / HbCO2_g_Per_mol;
 }
 
 void BioGearsEngineTest::FourCompartmentTest(bool usingAcidBase, bool usingProductionConsumption, bool usingDiffusion, bool activeDiffusion, const std::string& rptDirectory)
@@ -170,7 +167,6 @@ void BioGearsEngineTest::FourCompartmentTest(bool usingAcidBase, bool usingProdu
   SESubstance& O2 = bg.GetSubstances().GetO2();
   SESubstance& Hb = bg.GetSubstances().GetHb();
   SESubstance& HbO2 = bg.GetSubstances().GetHbO2();
-  SESubstance& HbO2CO2 = bg.GetSubstances().GetHbO2CO2();
   SESubstance& CO2 = bg.GetSubstances().GetCO2();
   SESubstance& HCO3 = bg.GetSubstances().GetHCO3();
   SESubstance& HbCO2 = bg.GetSubstances().GetHbCO2();
@@ -186,7 +182,6 @@ void BioGearsEngineTest::FourCompartmentTest(bool usingAcidBase, bool usingProdu
   bg.GetSubstances().AddActiveSubstance(O2);
   bg.GetSubstances().AddActiveSubstance(Hb);
   bg.GetSubstances().AddActiveSubstance(HbO2);
-  bg.GetSubstances().AddActiveSubstance(HbO2CO2);
   bg.GetSubstances().AddActiveSubstance(CO2);
   bg.GetSubstances().AddActiveSubstance(HCO3);
   bg.GetSubstances().AddActiveSubstance(HbCO2);
@@ -262,7 +257,6 @@ void BioGearsEngineTest::FourCompartmentTest(bool usingAcidBase, bool usingProdu
       cTissue.GetSubstanceQuantity(O2)->GetMass().SetValue(tissueO2Mass_g, MassUnit::g);
       cTissue.GetSubstanceQuantity(Hb)->GetMass().SetValue(0, MassUnit::g);
       cTissue.GetSubstanceQuantity(HbO2)->GetMass().SetValue(0, MassUnit::g);
-      cTissue.GetSubstanceQuantity(HbO2CO2)->GetMass().SetValue(0, MassUnit::g);
       cTissue.GetSubstanceQuantity(CO2)->GetMass().SetValue(tissueCO2Mass_g, MassUnit::g);
       cTissue.GetSubstanceQuantity(HCO3)->GetMass().SetValue(0, MassUnit::g);
       cTissue.GetSubstanceQuantity(HbCO2)->GetMass().SetValue(0, MassUnit::g);
@@ -397,20 +391,19 @@ void BioGearsEngineTest::FourCompartmentTest(bool usingAcidBase, bool usingProdu
     }
 
     //Total Hb
-    double Hb_Mols = TotalHbMols(Graph, Hb, HbO2, HbO2CO2, HbCO2);
+    double Hb_Mols = TotalHbMols(Graph, Hb, HbO2, HbCO2);
     trk.Track("HbTotal_mols", time, Hb_Mols);
 
     //Total molarity of blood gases
     for (SELiquidCompartment* cmpt : Graph.GetCompartments()) {
       SELiquidSubstanceQuantity* sqO2 = cmpt->GetSubstanceQuantity(O2);
       SELiquidSubstanceQuantity* sqHbO2 = cmpt->GetSubstanceQuantity(HbO2);
-      SELiquidSubstanceQuantity* sqHbO2CO2 = cmpt->GetSubstanceQuantity(HbO2CO2);
 
       SELiquidSubstanceQuantity* sqCO2 = cmpt->GetSubstanceQuantity(CO2);
       SELiquidSubstanceQuantity* sqHbCO2 = cmpt->GetSubstanceQuantity(HbCO2);
       SELiquidSubstanceQuantity* sqHCO3 = cmpt->GetSubstanceQuantity(HCO3);
-      trk.Track(std::string{ cmpt->GetName() } +"_TotalOxygenMolarConcentration_mmol_per_L", time, sqO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + sqHbO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + sqHbO2CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
-      trk.Track(std::string{ cmpt->GetName() } +"_TotalCarbonDioxideMolarConcentration_mmol_per_L", time, sqCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + sqHCO3->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + sqHbCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + sqHbO2CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+      trk.Track(std::string{ cmpt->GetName() } +"_TotalOxygenMolarConcentration_mmol_per_L", time, sqO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + sqHbO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+      trk.Track(std::string{ cmpt->GetName() } +"_TotalCarbonDioxideMolarConcentration_mmol_per_L", time, sqCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + sqHCO3->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + sqHbCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
     }
 
     if (usingDiffusion) {

@@ -52,7 +52,7 @@ public:
   void CalculateSaturation(SELiquidCompartment& cmpt);
 
 protected:
-  double CalculateStrongIonDifference();
+  double CalculateStrongIonDifference(SELiquidCompartment& cmpt);
   double NewtonRaphsonSolver(std::function<double(double)> f, std::function<double(double)> fPrime, double x0, double tol, int maxIts);
 
   // All properties are stateless and are set by either the Initialize method or SetBodyState method
@@ -72,7 +72,6 @@ protected:
   double m_HbO2_g_Per_mol;
   double m_HbCO2_g_Per_mol;
   // This is the current compartment and the quantities we are balancing
-  SELiquidCompartment* m_cmpt;
   SELiquidSubstanceQuantity* m_subO2Q;
   SELiquidSubstanceQuantity* m_subCO2Q;
   SELiquidSubstanceQuantity* m_subCOQ;
@@ -81,8 +80,5 @@ protected:
   SELiquidSubstanceQuantity* m_subHbQ;
   SELiquidSubstanceQuantity* m_subHbO2Q;
   SELiquidSubstanceQuantity* m_subHbCO2Q;
-
-  // Here is the stuff that will need to go into the CDM
-  double m_StrongIonDifference_mmol_Per_L; // BloodChemistrySystemData mmol/L
 };
 }

@@ -208,7 +208,6 @@ void BioGearsEngineTest::CardiovascularCircuitAndTransportTest(CardiovascularDri
     subs2Track.push_back(&bg.GetSubstances().GetHb());
     subs2Track.push_back(&bg.GetSubstances().GetHbO2());
     subs2Track.push_back(&bg.GetSubstances().GetHbCO2());
-    subs2Track.push_back(&bg.GetSubstances().GetHbO2CO2());
     subs2Track.push_back(&bg.GetSubstances().GetHCO3());
   } else {
     subs2Track.push_back(&bg.GetSubstances().GetN2());
@@ -364,13 +363,12 @@ void BioGearsEngineTest::CardiovascularCircuitAndTransportTest(CardiovascularDri
         for (SELiquidCompartment* cmpt : bg.GetCompartments().GetVascularLeafCompartments()) {
           SELiquidSubstanceQuantity* O2 = cmpt->GetSubstanceQuantity(bg.GetSubstances().GetO2());
           SELiquidSubstanceQuantity* HbO2 = cmpt->GetSubstanceQuantity(bg.GetSubstances().GetHbO2());
-          SELiquidSubstanceQuantity* HbO2CO2 = cmpt->GetSubstanceQuantity(bg.GetSubstances().GetHbO2CO2());
 
           SELiquidSubstanceQuantity* CO2 = cmpt->GetSubstanceQuantity(bg.GetSubstances().GetCO2());
           SELiquidSubstanceQuantity* HbCO2 = cmpt->GetSubstanceQuantity(bg.GetSubstances().GetHbCO2());
           SELiquidSubstanceQuantity* HCO3 = cmpt->GetSubstanceQuantity(bg.GetSubstances().GetHCO3());
-          cvGraphTrk.Track(std::string{ cmpt->GetName() }+"_TotalOxygenMolarConcentration_mmol_per_L", time_s, O2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
-          cvGraphTrk.Track(std::string{ cmpt->GetName() } +"_TotalCarbonDioxideMolarConcentration_mmol_per_L", time_s, CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HCO3->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+          cvGraphTrk.Track(std::string{ cmpt->GetName() }+"_TotalOxygenMolarConcentration_mmol_per_L", time_s, O2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+          cvGraphTrk.Track(std::string{ cmpt->GetName() } +"_TotalCarbonDioxideMolarConcentration_mmol_per_L", time_s, CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HCO3->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
         }
       } else {
         /*double N2_ug = venaCavaN2->GetMass(MassUnit::ug);

@@ -512,7 +512,6 @@ void Cardiovascular::ChronicAnemia()
   hemoglobinSubs.push_back(&m_data.GetSubstances().GetHb());
   hemoglobinSubs.push_back(&m_data.GetSubstances().GetHbO2());
   hemoglobinSubs.push_back(&m_data.GetSubstances().GetHbCO2());
-  hemoglobinSubs.push_back(&m_data.GetSubstances().GetHbO2CO2());
 
   double newMass_g;
   SELiquidSubstanceQuantity* subQ;

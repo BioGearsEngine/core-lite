@@ -71,7 +71,6 @@ public:
   inline SESubstance& GetHbO2() { return *m_HbO2; }
   inline SESubstance& GetHbCO2() { return *m_HbCO2; }
   inline SESubstance& GetHbCO() { return *m_HbCO; }
-  inline SESubstance& GetHbO2CO2() { return *m_HbO2CO2; }
   inline SESubstance& GetHCO3() { return *m_HCO3; }
   inline SESubstance& GetEpi() { return *m_epi; }
 
@@ -133,7 +132,6 @@ protected:
   SESubstance* m_HbO2;
   SESubstance* m_HbCO2;
   SESubstance* m_HbCO;
-  SESubstance* m_HbO2CO2;
   SESubstance* m_HCO3;
   SESubstance* m_epi;
 

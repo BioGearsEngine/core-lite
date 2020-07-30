@@ -48,7 +48,6 @@ void BioGearsSubstances::Clear()
   m_HbO2 = nullptr;
   m_HbCO2 = nullptr;
   m_HbCO = nullptr;
-  m_HbO2CO2 = nullptr;
   m_HCO3 = nullptr;
   m_epi = nullptr;
 
@@ -90,7 +89,6 @@ void BioGearsSubstances::InitializeSubstances()
   AddActiveSubstance(*m_Hb);
   AddActiveSubstance(*m_HbO2);
   AddActiveSubstance(*m_HbCO2);
-  AddActiveSubstance(*m_HbO2CO2);
   AddActiveSubstance(*m_HCO3);
   AddActiveSubstance(*m_epi);
 
@@ -99,7 +97,6 @@ void BioGearsSubstances::InitializeSubstances()
   AddActiveSubstance(*m_calcium);
   AddActiveSubstance(*m_chloride);
   AddActiveSubstance(*m_creatinine);
-  //AddActiveSubstance(*m_globulin);//We don't transport this
   AddActiveSubstance(*m_glucagon);
   AddActiveSubstance(*m_glucose);
   AddActiveSubstance(*m_insulin);
@@ -170,12 +167,8 @@ void BioGearsSubstances::InitializeLiquidCompartmentGases()
 {
   BioGearsCompartments& cmpts = m_data.GetCompartments();
 
-  SEScalarMassPerVolume albuminConcentration;
   SEScalarFraction hematocrit;
-  SEScalarTemperature bodyTemp;
-  SEScalarAmountPerVolume strongIonDifference;
-  SEScalarAmountPerVolume phosphate;
-
+  hematocrit.SetValue(m_data.GetPatient().GetSex() == CDM::enumSex::Male ? 0.45 : 0.40);
   SELiquidCompartment* VenaCava = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava);
   double volume = VenaCava->GetVolume().GetValue(VolumeUnit::mL);
   double Hb_total_g_Per_dL = hematocrit.GetValue() * 34.0;
@@ -239,7 +232,6 @@ void BioGearsSubstances::InitializeBloodGases(SELiquidCompartment& cmpt, double 
   SELiquidSubstanceQuantity* Hb = cmpt.GetSubstanceQuantity(*m_Hb);
   SELiquidSubstanceQuantity* HbO2 = cmpt.GetSubstanceQuantity(*m_HbO2);
   SELiquidSubstanceQuantity* HbCO2 = cmpt.GetSubstanceQuantity(*m_HbCO2);
-  SELiquidSubstanceQuantity* HbO2CO2 = cmpt.GetSubstanceQuantity(*m_HbO2CO2);
   SELiquidSubstanceQuantity* HCO3 = cmpt.GetSubstanceQuantity(*m_HCO3);
 
   Hb->GetMolarity().SetValue(Hb_total_mM, AmountPerVolumeUnit::mmol_Per_L);     //Interpretting Hb_total as all hemoglobin, regardless of state
@@ -288,7 +280,6 @@ void BioGearsSubstances::WriteBloodGases()
       SELiquidSubstanceQuantity* Hb = cmpt->GetSubstanceQuantity(*m_Hb);
       SELiquidSubstanceQuantity* HbO2 = cmpt->GetSubstanceQuantity(*m_HbO2);
       SELiquidSubstanceQuantity* HbCO2 = cmpt->GetSubstanceQuantity(*m_HbCO2);
-      SELiquidSubstanceQuantity* HbO2CO2 = cmpt->GetSubstanceQuantity(*m_HbO2CO2);
       SELiquidSubstanceQuantity* HCO3 = cmpt->GetSubstanceQuantity(*m_HCO3);
 
       ss << "InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::" << cmpt->GetName() << "), Hb_total_mM, " << O2->GetSaturation() << ", " << O2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) << ", " << CO2->GetSaturation() << ", " << CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) << ", " << HCO3->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) << ", " << cmpt->GetPH().GetValue() << ");";
@@ -757,7 +748,6 @@ bool BioGearsSubstances::LoadSubstanceDirectory()
   m_HbO2 = GetSubstance("Oxyhemoglobin");
   m_HbCO2 = GetSubstance("Carbaminohemoglobin");
   m_HbCO = GetSubstance("Carboxyhemoglobin");
-  m_HbO2CO2 = GetSubstance("OxyCarbaminohemoglobin");
   m_HCO3 = GetSubstance("Bicarbonate");
   m_epi = GetSubstance("Epinephrine");
 
@@ -777,14 +767,12 @@ bool BioGearsSubstances::LoadSubstanceDirectory()
     Error("Carbaminohemoglobin Definition not found");
   if (m_HbCO == nullptr)
     Error("Carboxyhemoglobin Definition not found");
-  if (m_HbO2CO2 == nullptr)
-    Error("OxyCarbaminohemoglobin Definition not found");
   if (m_HCO3 == nullptr)
     Error("Bicarbonate Definition not found");
   if (m_epi == nullptr)
     Error("Epinephrine Definition not found");
 
-  if (m_O2 == nullptr || m_CO == nullptr || m_CO2 == nullptr || m_N2 == nullptr || m_Hb == nullptr || m_HbO2 == nullptr || m_HbCO2 == nullptr || m_HbCO == nullptr || m_HbO2CO2 == nullptr || m_epi == nullptr || m_HCO3 == nullptr)
+  if (m_O2 == nullptr || m_CO == nullptr || m_CO2 == nullptr || m_N2 == nullptr || m_Hb == nullptr || m_HbO2 == nullptr || m_HbCO2 == nullptr || m_HbCO == nullptr || m_epi == nullptr || m_HCO3 == nullptr)
     return false;
 
   m_albumin = GetSubstance("Albumin");
@@ -994,7 +982,6 @@ void BioGearsSubstances::ProbeBloodGases(SELiquidCompartment& cmpt, const std::s
   SELiquidSubstanceQuantity* O2 = cmpt.GetSubstanceQuantity(*m_O2);
   SELiquidSubstanceQuantity* Hb = cmpt.GetSubstanceQuantity(*m_Hb);
   SELiquidSubstanceQuantity* HbO2 = cmpt.GetSubstanceQuantity(*m_HbO2);
-  SELiquidSubstanceQuantity* HbO2CO2 = cmpt.GetSubstanceQuantity(*m_HbO2CO2);
   SELiquidSubstanceQuantity* CO2 = cmpt.GetSubstanceQuantity(*m_CO2);
   SELiquidSubstanceQuantity* HbCO2 = cmpt.GetSubstanceQuantity(*m_HbCO2);
   SELiquidSubstanceQuantity* HCO3 = cmpt.GetSubstanceQuantity(*m_HCO3);
@@ -1014,14 +1001,12 @@ void BioGearsSubstances::ProbeBloodGases(SELiquidCompartment& cmpt, const std::s
   m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_HbO2_mmol_Per_L", HbO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
   m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_HbCO2_ug", HbCO2->GetMass(MassUnit::ug));
   m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_HbCO2_mmol_Per_L", HbCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
-  m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_HbO2CO2_ug", HbO2CO2->GetMass(MassUnit::ug));
-  m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_HbO2CO2_mmol_Per_L", HbO2CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
   m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_HCO3_ug", HCO3->GetMass(MassUnit::ug));
   m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_HCO3_mmol_Per_L", HCO3->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
-  m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_TotalO2_mmol_per_L", O2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
-  m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_TotalCO2_mmol_per_L", CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HCO3->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + +HbCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
-  m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_TotalHb_mmol_per_L", Hb->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
-  m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_TotalMass_mmol_per_L", O2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HCO3->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + Hb->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+  m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_TotalO2_mmol_per_L", O2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+  m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_TotalCO2_mmol_per_L", CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HCO3->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+  m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_TotalHb_mmol_per_L", Hb->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+  m_data.GetDataTrack().Probe(cmpt.GetName() + prefix + "_TotalMass_mmol_per_L", O2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + CO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HCO3->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + Hb->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + HbCO2->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
 }
 
 double BioGearsSubstances::GetSubstanceMass(SESubstance& sub, const std::vector<SELiquidCompartment*>& cmpts, const MassUnit& unit)
