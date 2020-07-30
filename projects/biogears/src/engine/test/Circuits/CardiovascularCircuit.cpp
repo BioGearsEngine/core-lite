@@ -357,7 +357,7 @@ void BioGearsEngineTest::CardiovascularCircuitAndTransportTest(CardiovascularDri
         for (SELiquidCompartment* cmpt : bg.GetCompartments().GetVascularLeafCompartments()) {
           if (!cmpt->HasVolume())
             continue;
-          bg.GetSaturationCalculator().CalculateBloodGasDistribution(*cmpt);
+          bg.GetSaturationCalculator().CalculateSaturation(*cmpt);
         }
         binding_s += tmr.GetElapsedTime_s("Binding");
 

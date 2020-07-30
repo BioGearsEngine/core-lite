@@ -212,8 +212,6 @@ void BioGearsEngineTest::FourCompartmentTest(bool usingAcidBase, bool usingProdu
   double Hb_total_g_Per_dL = hematocrit.GetValue() * 34.0;
   double Hb_total_mM = Hb_total_g_Per_dL / Hb.GetMolarMass(MassPerAmountUnit::g_Per_mmol) * 10.0;
 
-  bg.GetSaturationCalculator().SetBodyState(albuminConcentration, hematocrit, bodyTemp, strongIonDifference, phosphate);
-
   // Highly Oxygenated (Aorta/PulmCaps) (90.5/40 O2/CO2 PP)
   double High_CO2_sat = 0.0282123;
   double High_O2_sat = 0.974759;
@@ -236,10 +234,10 @@ void BioGearsEngineTest::FourCompartmentTest(bool usingAcidBase, bool usingProdu
   bg.GetSubstances().InitializeBloodGases(cVeins, Hb_total_mM, Low_O2_sat, Low_O2_mmol_Per_L, Low_CO2_sat, Low_CO2_mmol_Per_L, Low_HCO3_mmol_Per_L, Low_pH, false);
 
   if (usingAcidBase) {
-    bg.GetSaturationCalculator().CalculateBloodGasDistribution(cPulmonary);
-    bg.GetSaturationCalculator().CalculateBloodGasDistribution(cArteries);
-    bg.GetSaturationCalculator().CalculateBloodGasDistribution(cCapillaries);
-    bg.GetSaturationCalculator().CalculateBloodGasDistribution(cVeins);
+    bg.GetSaturationCalculator().CalculateSaturation(cPulmonary);
+    bg.GetSaturationCalculator().CalculateSaturation(cArteries);
+    bg.GetSaturationCalculator().CalculateSaturation(cCapillaries);
+    bg.GetSaturationCalculator().CalculateSaturation(cVeins);
   }
 
   //Tissue diffusion values for simple diffusion test
@@ -370,7 +368,7 @@ void BioGearsEngineTest::FourCompartmentTest(bool usingAcidBase, bool usingProdu
 
     if (usingAcidBase) {
       for (SELiquidCompartment* cmpt : Graph.GetCompartments()) {
-        bg.GetSaturationCalculator().CalculateBloodGasDistribution(*cmpt);
+        bg.GetSaturationCalculator().CalculateSaturation(*cmpt);
       }
     }
 

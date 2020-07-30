@@ -196,17 +196,6 @@ void BioGearsEngineTest::FillFunctionMap()
   bgeMap.insert(
     std::make_pair("SolverSpeedTest", &BioGearsEngineTest::SolverSpeedTest));
 
-  bgeMap.insert(std::make_pair("AcidBaseMathTest",
-    &BioGearsEngineTest::AcidBaseMathTest));
-  bgeMap.insert(std::make_pair("AcidBaseFeedbackTest",
-    &BioGearsEngineTest::AcidBaseFeedbackTest));
-  bgeMap.insert(std::make_pair("AcidBaseLimitsTest",
-    &BioGearsEngineTest::AcidBaseLimitsTest));
-  bgeMap.insert(std::make_pair("AcidBaseExtremeTest",
-    &BioGearsEngineTest::AcidBaseExtremeTest));
-  bgeMap.insert(std::make_pair("AcidBaseBloodGasTests",
-    &BioGearsEngineTest::AcidBaseBloodGasTests));
-
   bgeMap.insert(
     std::make_pair("AerosolTest", &BioGearsEngineTest::AerosolTest));
 
