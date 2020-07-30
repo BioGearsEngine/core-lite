@@ -11,6 +11,9 @@ specific language governing permissions and limitations under the License.
 **************************************************************************************/
 
 #pragma once
+
+#include <functional>
+
 #include <biogears/cdm/CommonDataModel.h>
 #include <biogears/exports.h>
 #include <biogears/cdm/system/physiology/SETissueSystem.h>
@@ -18,7 +21,6 @@ specific language governing permissions and limitations under the License.
 #include <biogears/chrono/stop_watch.tci.h>
 
 namespace biogears {
-struct error_functor;
 class SESubstance;
 class SELiquidCompartment;
 class SELiquidSubstanceQuantity;
@@ -32,7 +34,6 @@ class SEScalarTemperature;
 */
 class BIOGEARS_API SaturationCalculator : public Loggable {
 protected:
-  friend struct error_functor;
   friend class BioGears;
   friend class BioGearsEngineTest;
 
@@ -48,23 +49,18 @@ public:
   virtual ~SaturationCalculator();
 
   void Initialize(SESubstanceManager& substances);
+  void CalculateSaturation(SELiquidCompartment& cmpt);
 
-  void SetBodyState(const SEScalarMassPerVolume& AlbuminConcentration, const SEScalarFraction& Hematocrit, const SEScalarTemperature& Temperature, const SEScalarAmountPerVolume& StrongIonDifference, const SEScalarAmountPerVolume& Phosphate);
-  void CalculateBloodGasDistribution(SELiquidCompartment& cmpt);
-  void CalculateCarbonMonoxideSpeciesDistribution(SELiquidCompartment& cmpt);
-
-  void CalculateSimpleSaturation(SELiquidCompartment& cmpt);
-
-protected: // Stewart Model + Dash-Bassingthwaighte Model + Henderson-Hasselbach Model
-  void CalculateHemoglobinSaturations(double O2PartialPressureGuess_mmHg, double CO2PartialPressureGuess_mmHg, double pH, double temperature_C, double hematocrit, double& OxygenSaturation, double& CarbonDioxideSaturation, double& BicarbonateConcentration);
+protected:
+  double CalculateStrongIonDifference();
+  double NewtonRaphsonSolver(std::function<double(double)> f, std::function<double(double)> fPrime, double x0, double tol, int maxIts);
 
   // All properties are stateless and are set by either the Initialize method or SetBodyState method
   SESubstance* m_O2;
   SESubstance* m_Hb;
   SESubstance* m_HbO2;
-  SESubstance* m_HbO2CO2;
   SESubstance* m_CO2;
-  SESubstance* m_CO; //Remember to tell amb I added these CO members
+  SESubstance* m_CO;
   SESubstance* m_HbCO;
   SESubstance* m_HCO3;
   SESubstance* m_HbCO2;
@@ -75,25 +71,18 @@ protected: // Stewart Model + Dash-Bassingthwaighte Model + Henderson-Hasselbach
   double m_Hb_g_Per_mol;
   double m_HbO2_g_Per_mol;
   double m_HbCO2_g_Per_mol;
-  double m_HbO2CO2_g_Per_mol;
   // This is the current compartment and the quantities we are balancing
   SELiquidCompartment* m_cmpt;
   SELiquidSubstanceQuantity* m_subO2Q;
   SELiquidSubstanceQuantity* m_subCO2Q;
-  SELiquidSubstanceQuantity* m_subCOQ; //Remember to tell amb I added these CO members
+  SELiquidSubstanceQuantity* m_subCOQ;
   SELiquidSubstanceQuantity* m_subHbCOQ;
   SELiquidSubstanceQuantity* m_subHCO3Q;
   SELiquidSubstanceQuantity* m_subHbQ;
   SELiquidSubstanceQuantity* m_subHbO2Q;
   SELiquidSubstanceQuantity* m_subHbCO2Q;
-  SELiquidSubstanceQuantity* m_subHbO2CO2Q;
-  // The current state of the body to balance to
-  double m_albumin_g_per_L;
-  double m_hematocrit;
-  double m_temperature_C;
-  double m_bicarbonate_plasma_mmol_Per_L;
+
   // Here is the stuff that will need to go into the CDM
   double m_StrongIonDifference_mmol_Per_L; // BloodChemistrySystemData mmol/L
-  double m_Phosphate_mmol_Per_L; //BloodChemistryData mmol/L
 };
 }

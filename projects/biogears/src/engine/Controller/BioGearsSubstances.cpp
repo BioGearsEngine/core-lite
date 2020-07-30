@@ -178,25 +178,8 @@ void BioGearsSubstances::InitializeLiquidCompartmentGases()
 
   SELiquidCompartment* VenaCava = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava);
   double volume = VenaCava->GetVolume().GetValue(VolumeUnit::mL);
-
-  albuminConcentration.SetValue(45.0, MassPerVolumeUnit::g_Per_L);
-  hematocrit.SetValue(m_data.GetPatient().GetSex() == CDM::enumSex::Male ? 0.45 : 0.40);
-  bodyTemp.SetValue(37.0, TemperatureUnit::C);
-  strongIonDifference.SetValue(40.5, AmountPerVolumeUnit::mmol_Per_L);
-  phosphate.SetValue(1.1, AmountPerVolumeUnit::mmol_Per_L);
-
-  m_data.GetSaturationCalculator().SetBodyState(albuminConcentration, hematocrit, bodyTemp, strongIonDifference, phosphate);
-
   double Hb_total_g_Per_dL = hematocrit.GetValue() * 34.0;
-
-  // Convert to mmol/L
-  // Note that we would need to use 1/4 of the molecular weight of the hemoglobin tetramer
-  // to compute a site-based concentration in accordance with lab custom.
-  // However, we should account with the actual molarity not the "lab" molarity.
-  // So we need to note that our hemoglobin molarity is 1/4 times the reference values
-  // because we are using the tetramer concentration not the site concentration.
-  // For details please see @cite lodemann2010wrong
-  double Hb_total_mM = 2.33; //Hb_total_g_Per_dL / m_Hb->GetMolarMass(MassPerAmountUnit::g_Per_mmol) * 10.0;
+  double Hb_total_mM = 2.33;
 
   InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta), Hb_total_mM, 0.975, 0.14, 0.114398, 1.3, 25.4222, 7.48757);
   InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Myocardium), Hb_total_mM, 0.791234, 0.0568373, 0.134444, 1.45595, 26.2001, 7.35516);
@@ -258,69 +241,13 @@ void BioGearsSubstances::InitializeBloodGases(SELiquidCompartment& cmpt, double 
   SELiquidSubstanceQuantity* HbCO2 = cmpt.GetSubstanceQuantity(*m_HbCO2);
   SELiquidSubstanceQuantity* HbO2CO2 = cmpt.GetSubstanceQuantity(*m_HbO2CO2);
   SELiquidSubstanceQuantity* HCO3 = cmpt.GetSubstanceQuantity(*m_HCO3);
-  /*
-  //Assume no HbO2CO2 at first (O2sat + CO2sat < 100%)
-  double HbUnbound_mM = Hb_total_mM * (1 - O2_sat - CO2_sat);
-  if (std::abs(HbUnbound_mM) <= ZERO_APPROX)
-    HbUnbound_mM = 0;
 
-  //If our assumption was wrong, that means there was HbO2CO2 contributing to sat values
-  //Any negative is due to HbO2CO2
-  if (HbUnbound_mM < 0) {
-    double HbO2CO2_mM = -HbUnbound_mM;
-    HbO2CO2->GetMolarity().SetValue(HbO2CO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-    HbO2CO2->Balance(BalanceLiquidBy::Molarity);
-
-    HbUnbound_mM = 0;
-    Hb->GetMolarity().SetValue(HbUnbound_mM, AmountPerVolumeUnit::mmol_Per_L);
-    Hb->Balance(BalanceLiquidBy::Molarity);
-
-    //Now we know HbUnbound and HbO2CO2, and we can solve HbO2 and HbCO2 using saturation values
-    double HbO2_mM = O2_sat * Hb_total_mM - HbO2CO2_mM;
-    double HbCO2_mM = CO2_sat * Hb_total_mM - HbO2CO2_mM;
-
-    if (std::abs(HbCO2_mM) <= ZERO_APPROX)
-      HbCO2_mM = 0;
-    if (std::abs(HbO2_mM) <= ZERO_APPROX)
-      HbO2_mM = 0;
-
-    HbO2->GetMolarity().SetValue(HbO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-    HbO2->Balance(BalanceLiquidBy::Molarity);
-    HbCO2->GetMolarity().SetValue(HbCO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-    HbCO2->Balance(BalanceLiquidBy::Molarity);
-  }
-  //If our assumption was right, we have excess Hb, and need to use the total Hb to solve
-  else {
-    double HbO2CO2_mM = (O2_sat * Hb_total_mM) - Hb_total_mM + HbUnbound_mM + (CO2_sat * Hb_total_mM);
-    double HbO2_mM = O2_sat * Hb_total_mM - HbO2CO2_mM;
-    double HbCO2_mM = CO2_sat * Hb_total_mM - HbO2CO2_mM;
-
-    if (std::abs(HbO2CO2_mM) <= ZERO_APPROX)
-      HbO2CO2_mM = 0;
-    if (std::abs(HbCO2_mM) <= ZERO_APPROX)
-      HbCO2_mM = 0;
-    if (std::abs(HbO2_mM) <= ZERO_APPROX)
-      HbO2_mM = 0;
-
-    Hb->GetMolarity().SetValue(HbUnbound_mM, AmountPerVolumeUnit::mmol_Per_L);
-    Hb->Balance(BalanceLiquidBy::Molarity);
-    HbO2CO2->GetMolarity().SetValue(HbO2CO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-    HbO2CO2->Balance(BalanceLiquidBy::Molarity);
-    HbO2->GetMolarity().SetValue(HbO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-    HbO2->Balance(BalanceLiquidBy::Molarity);
-    HbCO2->GetMolarity().SetValue(HbCO2_mM, AmountPerVolumeUnit::mmol_Per_L);
-    HbCO2->Balance(BalanceLiquidBy::Molarity);
-  }
-  */
-  Hb->GetMolarity().SetValue(Hb_total_mM, AmountPerVolumeUnit::mmol_Per_L);
+  Hb->GetMolarity().SetValue(Hb_total_mM, AmountPerVolumeUnit::mmol_Per_L);     //Interpretting Hb_total as all hemoglobin, regardless of state
   Hb->Balance(BalanceLiquidBy::Molarity);
-  HbO2CO2->GetMolarity().SetValue(0.0, AmountPerVolumeUnit::mmol_Per_L);
-  HbO2CO2->Balance(BalanceLiquidBy::Molarity);
-  HbO2->GetMolarity().SetValue(4.0 * Hb_total_mM * O2_sat, AmountPerVolumeUnit::mmol_Per_L);
+  HbO2->GetMolarity().SetValue(4.0 * Hb_total_mM * O2_sat, AmountPerVolumeUnit::mmol_Per_L);    //Interpretting HbO2 as concentration of bound O2 (not of Hb with bound O2)
   HbO2->Balance(BalanceLiquidBy::Molarity);
-  HbCO2->GetMolarity().SetValue(4.0 * Hb_total_mM * CO2_sat, AmountPerVolumeUnit::mmol_Per_L);
+  HbCO2->GetMolarity().SetValue(4.0 * Hb_total_mM * CO2_sat, AmountPerVolumeUnit::mmol_Per_L);   //Interpretting HbCO2 as concentration of bound CO2 (not of Hb with CO2 bound)
   HbCO2->Balance(BalanceLiquidBy::Molarity);
-
   CO2->GetMolarity().SetValue(CO2_mmol_Per_L, AmountPerVolumeUnit::mmol_Per_L);
   CO2->Balance(BalanceLiquidBy::Molarity);
   CO2->GetSaturation().SetValue(CO2_sat);
@@ -333,15 +260,8 @@ void BioGearsSubstances::InitializeBloodGases(SELiquidCompartment& cmpt, double 
   cmpt.GetPH().SetValue(pH);
 
   if (distribute) {
-    m_data.GetSaturationCalculator().CalculateSimpleSaturation(cmpt);
+    m_data.GetSaturationCalculator().CalculateSaturation(cmpt);
   }
-
-  /*std::cout << cmpt.GetName() << " O2 Partial Pressure " << O2->GetPartialPressure() << std::endl;
-  std::cout << cmpt.GetName() << " CO2 Partial Pressure  " << CO2->GetPartialPressure() << std::endl;
-  std::cout << cmpt.GetName() << " O2 Concentration " << O2->GetConcentration() << std::endl;
-  std::cout << cmpt.GetName() << " CO2 Concentration " << CO2->GetConcentration() << std::endl;
-  std::cout << cmpt.GetName() << " HCO3 Molarity " << HCO3->GetMolarity() << std::endl;
-  std::cout << " " << std::endl;*/
 }
 void BioGearsSubstances::InitializeBloodGases(SETissueCompartment& tissue, SELiquidCompartment& vascular)
 {
