@@ -59,9 +59,6 @@ Cardiovascular::Cardiovascular(BioGears& bg)
 {
   Clear();
   m_TuningFile = "CVLiteCircuit.csv";
-  cvWatch.reset();
-  circuitTime = 0.0;
-  graphTime = 0.0;
 }
 
 Cardiovascular::~Cardiovascular()
@@ -625,16 +622,9 @@ void Cardiovascular::PreProcess()
 //--------------------------------------------------------------------------------------------------
 void Cardiovascular::Process()
 {
-  cvWatch.lap();
   m_circuitCalculator.Process(*m_CirculatoryCircuit, m_dT_s);
-  circuitTime += cvWatch.lap();
   m_transporter.Transport(*m_CirculatoryGraph, m_dT_s);
-  graphTime += cvWatch.lap();
   CalculateVitalSigns();
-
-  m_data.GetDataTrack().Probe("CV_CircuitProcess(ms)", circuitTime / 1e6);
-  m_data.GetDataTrack().Probe("CV_GraphProcess(ms)", graphTime / 1e6);
-
 }
 
 

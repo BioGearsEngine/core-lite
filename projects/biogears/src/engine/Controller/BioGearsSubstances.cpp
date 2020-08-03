@@ -278,6 +278,7 @@ void BioGearsSubstances::InitializeBloodGases(SELiquidCompartment& cmpt, double 
   O2->GetSaturation().SetValue(O2_sat);
 
   cmpt.GetPH().SetValue(pH);
+  cmpt.GetStrongIonDifferenceBaseline().SetValue(42.0, AmountPerVolumeUnit::mmol_Per_L);    //Sat solver updates this for each compartment after initial stabilization
 
   if (distribute) {
     m_data.GetSaturationCalculator().CalculateSaturation(cmpt);

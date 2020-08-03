@@ -396,6 +396,13 @@ void Tissue::AtSteadyState()
       SetStarvationState();
     if (m_data.GetConditions().HasDehydration())
       Dehydrate();
+
+    // Set SID baselines on compartments for saturation (done here since Tissue handles saturation)
+    for (auto cmpt : m_data.GetCompartments().GetVascularLeafCompartments()) {
+      if (cmpt->HasVolume()) {
+        cmpt->GetStrongIonDifferenceBaseline().SetValue(m_data.GetSaturationCalculator().CalculateStrongIonDifference(*cmpt), AmountPerVolumeUnit::mmol_Per_L);
+      }
+    }
   }
 
   if (m_data.GetState() == EngineState::AtSecondaryStableState && !m_data.GetConditions().HasStarvation()) {
@@ -519,8 +526,6 @@ void Tissue::Process()
   //////
   ManageSubstancesAndSaturation();
   CalculateVitals();
-
-  m_data.GetDataTrack().Probe("CV_SaturationTime(ms)", satTime / 1e6);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -599,7 +604,7 @@ void Tissue::CalculateMetabolicConsumptionAndProduction(double time_s)
   double exerciseEnergyRequested_kcal = (TMR_kcal_Per_s - BMR_kcal_Per_s) * time_s;
   double brainNeededEnergy_kcal = .2 * baseEnergyRequested_kcal; //brain requires a roughly constant 20% of basal energy regardless of exercise \cite raichle2002appraising
   double nonbrainNeededEnergy_kcal = baseEnergyRequested_kcal - brainNeededEnergy_kcal;
-  const double totalEnergyRequested_kcal = baseEnergyRequested_kcal + exerciseEnergyRequested_kcal;
+  double totalEnergyRequested_kcal = baseEnergyRequested_kcal + exerciseEnergyRequested_kcal;
   double totalEnergyRequested_kcal_check = 0.0;
   double brainEnergyDeficit_kcal = 0;
   double nonbrainEnergyDeficit_kcal = 0;
@@ -614,6 +619,8 @@ void Tissue::CalculateMetabolicConsumptionAndProduction(double time_s)
   double achievedExerciseLevel = 0;
   double fatigueLevel = 0;
   static double totalFatConsumed_g = 0;
+
+  double energyDeficit_kcal = 0.0;
 
   //Data
   double energyPerMolATP_kcal = m_data.GetConfiguration().GetEnergyPerATP(EnergyPerAmountUnit::kcal_Per_mol);
@@ -659,6 +666,22 @@ void Tissue::CalculateMetabolicConsumptionAndProduction(double time_s)
       mandatoryMuscleAnaerobicFraction *= 1.5;
     }
   }
+
+  if (m_PatientActions->HasHemorrhage()) {
+    double basalTissueEnergyDemand_kcal = nonbrainNeededEnergy_kcal; //We say in tissue that say brain takes up 20%, and we just care about the other tissues for this process
+    double volFraction = m_data.GetCardiovascular().GetBloodVolume(VolumeUnit::mL) / m_Patient->GetBloodVolumeBaseline(VolumeUnit::mL);
+    ULIM(volFraction, 1.0);
+    double minVolFraction = 0.5; //i.e. half of blood volume lost
+    double maxDeficitMultiplier = 2.0;
+    double energyDeficit_kcal = basalTissueEnergyDemand_kcal * GeneralMath::LinearInterpolator(1.0, minVolFraction, 0.0, maxDeficitMultiplier, volFraction);
+
+    double maxBleedingRate_mL_Per_min = 200.0;
+    double bleedingRate_mL_Per_min = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Ground)->GetInFlow(VolumePerTimeUnit::mL_Per_min);
+    mandatoryMuscleAnaerobicFraction = 0.75 * bleedingRate_mL_Per_min / maxBleedingRate_mL_Per_min;
+  }
+  m_data.GetDataTrack().Probe("EnergyDeficit_kcal", energyDeficit_kcal);
+  totalEnergyRequested_kcal += energyDeficit_kcal;
+
   //Reusable values for looping
   SELiquidCompartment* vascular;
   SELiquidSubstanceQuantity* TissueO2;

@@ -19,7 +19,7 @@ specific language governing permissions and limitations under the License.
 
 namespace biogears {
 SELiquidCompartment::SELiquidCompartment(const char* name, Logger* logger)
-  : SELiquidCompartment(std::string{ name }, logger)
+  : SELiquidCompartment(std::string { name }, logger)
 {
 }
 //-----------------------------------------------------------------------------
@@ -28,6 +28,7 @@ SELiquidCompartment::SELiquidCompartment(const std::string& name, Logger* logger
 {
   m_pH = nullptr;
   m_WaterVolumeFraction = nullptr;
+  m_StrongIonDifferenceBaseline = nullptr;
 }
 //-----------------------------------------------------------------------------
 SELiquidCompartment::~SELiquidCompartment()
@@ -40,6 +41,7 @@ void SELiquidCompartment::Clear()
   SEFluidCompartment::Clear();
   SAFE_DELETE(m_pH);
   SAFE_DELETE(m_WaterVolumeFraction);
+  SAFE_DELETE(m_StrongIonDifferenceBaseline);
   m_Children.clear();
 }
 //-----------------------------------------------------------------------------
@@ -51,14 +53,15 @@ bool SELiquidCompartment::Load(const CDM::LiquidCompartmentData& in, SESubstance
     for (const CDM::LiquidSubstanceQuantityData& d : in.SubstanceQuantity()) {
       SESubstance* sub = subMgr.GetSubstance(d.Substance());
       if (sub == nullptr) {
-        Error("Could not find a substance for " + std::string{ d.Substance() });
+        Error("Could not find a substance for " + std::string { d.Substance() });
         return false;
       }
       CreateSubstanceQuantity(*sub).Load(d);
-      ;
     }
     if (in.pH().present())
       GetPH().Load(in.pH().get());
+    if (in.StrongIonDifferenceBaseline().present())
+      GetStrongIonDifferenceBaseline().Load(in.StrongIonDifferenceBaseline().get());
     if (in.WaterVolumeFraction().present())
       GetWaterVolumeFraction().Load(in.WaterVolumeFraction().get());
   }
@@ -79,13 +82,15 @@ void SELiquidCompartment::Unload(CDM::LiquidCompartmentData& data)
     data.SubstanceQuantity().push_back(std::unique_ptr<CDM::LiquidSubstanceQuantityData>(subQ->Unload()));
   if (HasPH())
     data.pH(std::unique_ptr<CDM::ScalarData>(GetPH().Unload()));
-  if (HasWaterVolumeFraction())
-    data.WaterVolumeFraction(std::unique_ptr<CDM::ScalarFractionData>(GetWaterVolumeFraction().Unload()));
+  if (HasStrongIonDifferenceBaseline())
+    data.StrongIonDifferenceBaseline(std::unique_ptr<CDM::ScalarAmountPerVolumeData>(GetStrongIonDifferenceBaseline().Unload()));
+   if (HasWaterVolumeFraction())
+      data.WaterVolumeFraction(std::unique_ptr<CDM::ScalarFractionData>(GetWaterVolumeFraction().Unload()));
 }
 //-----------------------------------------------------------------------------
 const SEScalar* SELiquidCompartment::GetScalar(const char* name)
 {
-  return GetScalar(std::string{ name });
+  return GetScalar(std::string { name });
 }
 //-----------------------------------------------------------------------------
 const SEScalar* SELiquidCompartment::GetScalar(const std::string& name)
@@ -95,6 +100,8 @@ const SEScalar* SELiquidCompartment::GetScalar(const std::string& name)
     return s;
   if (name.compare("PH") == 0)
     return &GetPH();
+  if (name.compare("StrongIonDifferenceBaseline") == 0)
+    return &GetStrongIonDifferenceBaseline();
   if (name.compare("WaterVolumeFraction") == 0)
     return &GetWaterVolumeFraction();
   return nullptr;
@@ -148,6 +155,37 @@ double SELiquidCompartment::GetPH() const
   if (m_pH == nullptr)
     return SEScalar::dNaN();
   return m_pH->GetValue();
+}
+//-----------------------------------------------------------------------------
+bool SELiquidCompartment::HasStrongIonDifferenceBaseline() const
+{
+  return m_StrongIonDifferenceBaseline == nullptr ? false : m_StrongIonDifferenceBaseline->IsValid();
+}
+//-----------------------------------------------------------------------------
+SEScalarAmountPerVolume& SELiquidCompartment::GetStrongIonDifferenceBaseline()
+{
+  if (m_StrongIonDifferenceBaseline == nullptr)
+    m_StrongIonDifferenceBaseline = new SEScalarAmountPerVolume();
+  if (!m_FluidChildren.empty()) {
+    m_StrongIonDifferenceBaseline->SetReadOnly(false);
+    m_StrongIonDifferenceBaseline->SetValue(const_cast<const SELiquidCompartment*>(this)->GetStrongIonDifferenceBaseline(AmountPerVolumeUnit::mmol_Per_L), AmountPerVolumeUnit::mmol_Per_L);
+    m_StrongIonDifferenceBaseline->SetReadOnly(true);
+  }
+  return *m_StrongIonDifferenceBaseline;
+}
+//-----------------------------------------------------------------------------
+double SELiquidCompartment::GetStrongIonDifferenceBaseline(const AmountPerVolumeUnit& unit) const
+{
+  if (!m_Children.empty()) {
+    double StrongIonDifferenceBaseline = 0;
+    for (SELiquidCompartment* child : m_Children)
+      StrongIonDifferenceBaseline += std::pow(10, -child->GetStrongIonDifferenceBaseline().GetValue(unit)) * child->GetVolume(VolumeUnit::mL);
+    StrongIonDifferenceBaseline = -log10(StrongIonDifferenceBaseline / GetVolume(VolumeUnit::mL));
+    return StrongIonDifferenceBaseline;
+  }
+  if (m_StrongIonDifferenceBaseline == nullptr)
+    return SEScalar::dNaN();
+  return m_StrongIonDifferenceBaseline->GetValue(unit);
 }
 //-----------------------------------------------------------------------------
 bool SELiquidCompartment::HasWaterVolumeFraction() const

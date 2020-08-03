@@ -18,7 +18,6 @@ specific language governing permissions and limitations under the License.
 #include <biogears/exports.h>
 #include <biogears/cdm/system/physiology/SETissueSystem.h>
 #include <biogears/engine/Controller/BioGearsSystem.h>
-#include <biogears/chrono/stop_watch.tci.h>
 
 namespace biogears {
 class SESubstance;
@@ -37,22 +36,18 @@ protected:
   friend class BioGears;
   friend class BioGearsEngineTest;
 
-  biogears::StopWatch<std::chrono::nanoseconds> satWatch;
-  double solverTime;
-  double distributeTime;
-  double setupTime;
-
   SaturationCalculator(BioGears& bg);
   BioGears& m_data;
 
 public:
   virtual ~SaturationCalculator();
 
+
   void Initialize(SESubstanceManager& substances);
   void CalculateSaturation(SELiquidCompartment& cmpt);
+  double CalculateStrongIonDifference(SELiquidCompartment& cmpt);
 
 protected:
-  double CalculateStrongIonDifference(SELiquidCompartment& cmpt);
   double NewtonRaphsonSolver(std::function<double(double)> f, std::function<double(double)> fPrime, double x0, double tol, int maxIts);
 
   // All properties are stateless and are set by either the Initialize method or SetBodyState method

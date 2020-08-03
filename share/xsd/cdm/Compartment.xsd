@@ -120,6 +120,7 @@ specific language governing permissions and limitations under the License.
 				<xs:sequence>                   
 					<xs:element name="pH" type="ScalarData" minOccurs="0"  maxOccurs="1"/>
 					<xs:element name="WaterVolumeFraction" type="ScalarFractionData" minOccurs="0"  maxOccurs="1"/> 
+					<xs:element name="StrongIonDifferenceBaseline" type="ScalarAmountPerVolumeData" minOccurs="0" maxOccurs="1"/>
 					
 					<xs:element name="SubstanceQuantity" type="LiquidSubstanceQuantityData" minOccurs="0"  maxOccurs="unbounded"/>
 				</xs:sequence>

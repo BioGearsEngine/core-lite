@@ -30,9 +30,6 @@ SaturationCalculator::SaturationCalculator(BioGears& bg)
   , m_data(bg)
 {
   Initialize(bg.GetSubstances());
-  solverTime = 0.0;
-  distributeTime = 0.0;
-  setupTime = 0.0;
 }
 
 void SaturationCalculator::Initialize(SESubstanceManager& substances)
@@ -104,42 +101,43 @@ void SaturationCalculator::CalculateSaturation(SELiquidCompartment& cmpt)
   double pH_s = 7.24; // standard pH in RBCs; unitless
   double temp_s = 37.0; // standard temperature in blood; degC
 
-  //Get O2 and CO2 species and determine total amount of each gas
+  //Only process compartments with hemoglobin
   double HbTotal_mM = m_subHbQ->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
   if (HbTotal_mM < ZERO_APPROX) {
     return;
   }
 
+  //Get O2 and CO2 species and determine total amount of each gas
   double O2Dissolved_mM = m_subO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
   double O2Bound_mM = m_subHbO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
   double CO2Dissolved_mM = m_subCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
   double CO2Bound_mM = m_subHbCO2Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
   double HCO3_Plasma_mM = m_subHCO3Q->GetMolarity(AmountPerVolumeUnit::mmol_Per_L); //Needs to be put on whole blood basis
-  double O2Total_mM = O2Dissolved_mM + O2Bound_mM;      //Assuming that O2 concentrations are whole blood
+  double O2Total_mM = O2Dissolved_mM + O2Bound_mM; //Assuming that O2 concentrations are whole blood
   double CO2Total_mM = CO2Dissolved_mM + HCO3_Plasma_mM; //Assuming that this is plasma value of total CO2 (if it were whole blood, we'd need to make more assumptions about distribution of HCO3 in RBCs)
 
   //--Step 1: Estimate pH using Chiari, 1994
   double NormalBB_mM = 46.2; //normal buffer base concentration
   double HPr0_mM = 39.8; //39.8; //total protein concentration, constant
-  double KaCO_mM = std::pow(10.0, -6.1) * 1000.0; //HCO3 / CO2 equilibrium constant
+  double KaCO2_mM = std::pow(10.0, -6.1) * 1000.0; //HCO3 / CO2 equilibrium constant
   double KaPr_mM = std::pow(10.0, -7.3) * 1000.0; //Hpr / Pr equilibrium constant
-  
+
   //Adjust buffer base from normal--assume it is equivalent to change in SID from normal
-  double strongIonDifference_mM = m_data.GetState() > EngineState::InitialStabilization ? CalculateStrongIonDifference(cmpt) : 41.7;
-  double normalSID_mM = 41.7;
+  double strongIonDifference_mM = m_data.GetState() > EngineState::InitialStabilization ? CalculateStrongIonDifference(cmpt) : 42.0;
+  double normalSID_mM = cmpt.GetStrongIonDifferenceBaseline().GetValue(AmountPerVolumeUnit::mmol_Per_L);
   double deltaBufferBase_mM = strongIonDifference_mM - normalSID_mM;
   double bufferBase_mM = NormalBB_mM + deltaBufferBase_mM;
 
   //Constants for pH model
   double b2 = bufferBase_mM;
-  double b1 = bufferBase_mM * (KaCO_mM + KaPr_mM) - KaCO_mM * CO2Total_mM - KaPr_mM * HPr0_mM;
-  double b0 = KaCO_mM * KaPr_mM * (bufferBase_mM - CO2Total_mM - HPr0_mM);
+  double b1 = bufferBase_mM * (KaCO2_mM + KaPr_mM) - KaCO2_mM * CO2Total_mM - KaPr_mM * HPr0_mM;
+  double b0 = KaCO2_mM * KaPr_mM * (bufferBase_mM - CO2Total_mM - HPr0_mM);
 
   //Use last [H+] as initial guess for Newton-Raphson solver and set up function and derivative required by solver
   double HpPlasma_mM = std::pow(10.0, -cmpt.GetPH().GetValue()) * 1000.0;
   auto hp_function = [&](double Hp_mM) { return b2 * Hp_mM * Hp_mM + b1 * Hp_mM + b0; };
-  auto hp_derivative= [&](double Hp_mM) { return 2.0 * b2 * Hp_mM + b1; };
-  HpPlasma_mM = NewtonRaphsonSolver(hp_function, hp_derivative, HpPlasma_mM, 1.0e-6, 20);
+  auto hp_derivative = [&](double Hp_mM) { return 2.0 * b2 * Hp_mM + b1; };
+  HpPlasma_mM = NewtonRaphsonSolver(hp_function, hp_derivative, HpPlasma_mM, 1.0e-6, 50);
 
   //--Step 2:  Now that [H+] is known, find pH and use it to determine distribution of carbon species between dissolved CO2 and bicarbonate
   double pHPlasma = -std::log10(HpPlasma_mM / 1000.0);
@@ -165,7 +163,7 @@ void SaturationCalculator::CalculateSaturation(SELiquidCompartment& cmpt)
   double O2Sat = m_subO2Q->GetSaturation().GetValue();
   auto sat_function = [&](double sat) { return (alphaO2_M_Per_mmHg * 1000.0) * P50 * std::pow(sat / (1.0 - sat), beta) + 4.0 * HbTotal_mM * sat - O2Total_mM; };
   auto sat_derivative = [&](double sat) { return beta * (alphaO2_M_Per_mmHg * 1000.0) * P50 * std::pow(sat / (1.0 - sat), beta - 1) * (1.0 / ((1.0 - sat) * (1.0 - sat))) + 4.0 * HbTotal_mM; };
-  O2Sat = NewtonRaphsonSolver(sat_function, sat_derivative, O2Sat, 1.0e-6, 20);
+  O2Sat = NewtonRaphsonSolver(sat_function, sat_derivative, O2Sat, 1.0e-6, 50);
 
   //Calculate next O2 bound / dissolved plasma concentrations
   double O2Bound_mM_next = 4.0 * HbTotal_mM * O2Sat;
@@ -209,7 +207,10 @@ double SaturationCalculator::NewtonRaphsonSolver(std::function<double(double)> f
     }
     x_n = x_n_1;
   }
-
+  if (its == maxIts) {
+    Info("Saturation::NewtonRaphsonSolver: Maximum iterations exceeded.  Setting to previous value.");
+    x_n_1 = x0;
+  }
   return x_n_1;
 }
 
