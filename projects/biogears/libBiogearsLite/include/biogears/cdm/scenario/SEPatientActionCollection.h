@@ -97,12 +97,8 @@ public:
   SEChestCompressionForceScale* GetChestCompressionForceScale() const;
 
   bool HasChestOcclusiveDressing() const;
-  bool HasLeftChestOcclusiveDressing() const;
-  SEChestOcclusiveDressing* GetLeftChestOcclusiveDressing() const;
-  void RemoveLeftChestOcclusiveDressing();
-  bool HasRightChestOcclusiveDressing() const;
-  SEChestOcclusiveDressing* GetRightChestOcclusiveDressing() const;
-  void RemoveRightChestOcclusiveDressing();
+  SEChestOcclusiveDressing* GetChestOcclusiveDressing() const;
+  void RemoveChestOcclusiveDressing();
 
   bool HasConsciousRespiration() const;
   SEConsciousRespiration* GetConsciousRespiration() const;
@@ -130,14 +126,8 @@ public:
   void RemoveMechanicalVentilation();
 
   bool HasNeedleDecompression() const;
-
-  bool HasLeftNeedleDecompression() const;
-  SENeedleDecompression* GetLeftNeedleDecompression() const;
-  void RemoveLeftNeedleDecompression();
-
-  bool HasRightNeedleDecompression() const;
-  SENeedleDecompression* GetRightNeedleDecompression() const;
-  void RemoveRightNeedleDecompression();
+  SENeedleDecompression* GetNeedleDecompression() const;
+  void RemoveNeedleDecompression();
 
   bool HasPainStimulus() const;
   const std::map<std::string, SEPainStimulus*>& GetPainStimuli() const;
@@ -145,22 +135,13 @@ public:
   void RemovePainStimulus(const std::string& loc);
 
   bool HasTensionPneumothorax() const;
+  bool HasClosedTensionPneumothorax() const;
+  SETensionPneumothorax* GetClosedTensionPneumothorax() const;
+  void RemoveClosedTensionPneumothorax();
 
-  bool HasLeftClosedTensionPneumothorax() const;
-  SETensionPneumothorax* GetLeftClosedTensionPneumothorax() const;
-  void RemoveLeftClosedTensionPneumothorax();
-
-  bool HasLeftOpenTensionPneumothorax() const;
-  SETensionPneumothorax* GetLeftOpenTensionPneumothorax() const;
-  void RemoveLeftOpenTensionPneumothorax();
-
-  bool HasRightClosedTensionPneumothorax() const;
-  SETensionPneumothorax* GetRightClosedTensionPneumothorax() const;
-  void RemoveRightClosedTensionPneumothorax();
-
-  bool HasRightOpenTensionPneumothorax() const;
-  SETensionPneumothorax* GetRightOpenTensionPneumothorax() const;
-  void RemoveRightOpenTensionPneumothorax();
+  bool HasOpenTensionPneumothorax() const;
+  SETensionPneumothorax* GetOpenTensionPneumothorax() const;
+  void RemoveOpenTensionPneumothorax();
 
   bool HasSepsis() const;
   SESepsis* GetSepsis() const;
@@ -195,20 +176,16 @@ protected:
   SEBurnWound* m_BurnWound;
   SECardiacArrest* m_CardiacArrest;
   SEChestCompression* m_ChestCompression;
-  SEChestOcclusiveDressing* m_LeftChestOcclusiveDressing;
-  SEChestOcclusiveDressing* m_RightChestOcclusiveDressing;
+  SEChestOcclusiveDressing* m_ChestOcclusiveDressing;
   SEConsciousRespiration* m_ConsciousRespiration;
   SEConsumeNutrients* m_ConsumeNutrients;
   SEExercise* m_Exercise;
   SEIntubation* m_Intubation;
   SEMechanicalVentilation* m_MechanicalVentilation;
-  SENeedleDecompression* m_LeftNeedleDecompression;
-  SENeedleDecompression* m_RightNeedleDecompression;
+  SENeedleDecompression* m_NeedleDecompression;
   SESepsis* m_Sepsis;
-  SETensionPneumothorax* m_LeftClosedTensionPneumothorax;
-  SETensionPneumothorax* m_LeftOpenTensionPneumothorax;
-  SETensionPneumothorax* m_RightClosedTensionPneumothorax;
-  SETensionPneumothorax* m_RightOpenTensionPneumothorax;
+  SETensionPneumothorax* m_ClosedTensionPneumothorax;
+  SETensionPneumothorax* m_OpenTensionPneumothorax;
   SEUrinate* m_Urinate;
   SEOverride* m_OverrideAction;
 

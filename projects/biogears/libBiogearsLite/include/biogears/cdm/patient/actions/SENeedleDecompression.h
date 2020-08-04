@@ -36,15 +36,9 @@ protected:
   virtual void Unload(CDM::NeedleDecompressionData& data) const;
 
 public:
-  virtual CDM::enumSide::value GetSide() const;
-  virtual void SetSide(CDM::enumSide::value LeftOrRight);
-  virtual bool HasSide() const;
-  virtual void InvalidateSide();
-
   virtual void ToString(std::ostream& str) const override;
 
 protected:
-  CDM::enumSide::value m_Side;
   CDM::enumOnOff::value m_State;
 };
 }

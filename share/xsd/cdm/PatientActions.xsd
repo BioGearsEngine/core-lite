@@ -170,7 +170,6 @@ specific language governing permissions and limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="PatientActionData">
 				<xs:attribute name="State" type="enumOnOff" use="required"/><!--<< @brief -->
-				<xs:attribute name="Side" type="enumSide" use="required"/><!--<< @brief -->
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -321,7 +320,6 @@ specific language governing permissions and limitations under the License.
 		<xs:complexContent>
 			<xs:extension base="PatientActionData">
 				<xs:attribute name="State" type="enumOnOff" use="required"/><!--<< @brief -->
-				<xs:attribute name="Side" type="enumSide" use="required"/><!--<< @brief -->
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -364,7 +362,6 @@ specific language governing permissions and limitations under the License.
 					<xs:element name="Severity" type="Scalar0To1Data" minOccurs="1" maxOccurs="1"/><!--<< @brief -->
 				</xs:sequence>         
 				<xs:attribute name="Type"  type="enumPneumothoraxType" use="required"/><!--<< @brief -->
-				<xs:attribute name="Side"  type="enumSide" use="required"/><!--<< @brief -->
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>		

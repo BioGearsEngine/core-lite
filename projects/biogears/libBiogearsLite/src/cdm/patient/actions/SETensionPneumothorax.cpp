@@ -19,7 +19,6 @@ SETensionPneumothorax::SETensionPneumothorax()
   : SEPatientAction()
 {
   m_Type = (CDM::enumPneumothoraxType::value)-1;
-  m_Side = (CDM::enumSide::value)-1;
   m_Severity = nullptr;
 }
 
@@ -32,7 +31,6 @@ void SETensionPneumothorax::Clear()
 {
   SEPatientAction::Clear();
   m_Type = (CDM::enumPneumothoraxType::value)-1;
-  m_Side = (CDM::enumSide::value)-1;
   SAFE_DELETE(m_Severity);
 }
 
@@ -41,7 +39,6 @@ bool SETensionPneumothorax::Load(const CDM::TensionPneumothoraxData& in)
   SEPatientAction::Load(in);
   GetSeverity().Load(in.Severity());
   m_Type = in.Type();
-  m_Side = in.Side();
   return true;
 }
 
@@ -59,13 +56,11 @@ void SETensionPneumothorax::Unload(CDM::TensionPneumothoraxData& data) const
     data.Severity(std::unique_ptr<CDM::Scalar0To1Data>(m_Severity->Unload()));
   if (HasType())
     data.Type(m_Type);
-  if (HasSide())
-    data.Side(m_Side);
 }
 
 bool SETensionPneumothorax::IsValid() const
 {
-  return SEPatientAction::IsValid() && HasType() && HasSide() && HasSeverity();
+  return SEPatientAction::IsValid() && HasType() && HasSeverity();
 }
 
 bool SETensionPneumothorax::IsActive() const
@@ -89,24 +84,6 @@ void SETensionPneumothorax::InvalidateType()
 {
   m_Type = (CDM::enumPneumothoraxType::value)-1;
 }
-
-CDM::enumSide::value SETensionPneumothorax::GetSide() const
-{
-  return m_Side;
-}
-void SETensionPneumothorax::SetSide(CDM::enumSide::value Side)
-{
-  m_Side = Side;
-}
-bool SETensionPneumothorax::HasSide() const
-{
-  return m_Side == ((CDM::enumSide::value)-1) ? false : true;
-}
-void SETensionPneumothorax::InvalidateSide()
-{
-  m_Side = (CDM::enumSide::value)-1;
-}
-
 bool SETensionPneumothorax::HasSeverity() const
 {
   return m_Severity == nullptr ? false : m_Severity->IsValid();
@@ -127,8 +104,6 @@ void SETensionPneumothorax::ToString(std::ostream& str) const
   HasSeverity() ? str << *m_Severity : str << "NaN";
   str << "\n\tType: ";
   HasType() ? str << GetType() : str << "Not Set";
-  str << "\n\tSide: ";
-  HasSide() ? str << GetSide() : str << "Not Set";
   str << std::flush;
 }
 }

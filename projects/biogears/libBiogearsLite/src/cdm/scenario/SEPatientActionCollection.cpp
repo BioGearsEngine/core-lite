@@ -31,18 +31,14 @@ SEPatientActionCollection::SEPatientActionCollection(SESubstanceManager& substan
   m_ChestCompression = nullptr;
   m_ConsciousRespiration = nullptr;
   m_ConsumeNutrients = nullptr;
-  m_LeftChestOcclusiveDressing = nullptr;
-  m_RightChestOcclusiveDressing = nullptr;
+  m_ChestOcclusiveDressing = nullptr;
   m_Exercise = nullptr;
   m_Intubation = nullptr;
   m_MechanicalVentilation = nullptr;
-  m_LeftNeedleDecompression = nullptr;
-  m_RightNeedleDecompression = nullptr;
+  m_NeedleDecompression = nullptr;
   m_Sepsis = nullptr;
-  m_LeftOpenTensionPneumothorax = nullptr;
-  m_LeftClosedTensionPneumothorax = nullptr;
-  m_RightOpenTensionPneumothorax = nullptr;
-  m_RightClosedTensionPneumothorax = nullptr;
+  m_OpenTensionPneumothorax = nullptr;
+  m_ClosedTensionPneumothorax = nullptr;
   m_Urinate = nullptr;
   m_OverrideAction = nullptr;
 }
@@ -65,17 +61,13 @@ void SEPatientActionCollection::Clear()
   RemoveCardiacArrest();
   RemoveConsciousRespiration();
   RemoveConsumeNutrients();
-  RemoveLeftChestOcclusiveDressing();
-  RemoveRightChestOcclusiveDressing();
+  RemoveChestOcclusiveDressing();
   RemoveExercise();
   RemoveIntubation();
   RemoveMechanicalVentilation();
-  RemoveLeftNeedleDecompression();
-  RemoveRightNeedleDecompression();
-  RemoveLeftOpenTensionPneumothorax();
-  RemoveLeftClosedTensionPneumothorax();
-  RemoveRightOpenTensionPneumothorax();
-  RemoveRightClosedTensionPneumothorax();
+  RemoveNeedleDecompression();
+  RemoveOpenTensionPneumothorax();
+  RemoveClosedTensionPneumothorax();
   RemoveSepsis();
   RemoveUrinate();
   RemoveOverride();
@@ -104,15 +96,13 @@ void SEPatientActionCollection::Unload(std::vector<CDM::ActionData*>& to)
   if (HasBurnWound())
     to.push_back(GetBurnWound()->Unload());
   if (HasCardiacArrest())
-      to.push_back(GetCardiacArrest()->Unload());
+    to.push_back(GetCardiacArrest()->Unload());
   if (HasChestCompressionForce())
     to.push_back(GetChestCompressionForce()->Unload());
   if (HasChestCompressionForceScale())
     to.push_back(GetChestCompressionForceScale()->Unload());
-  if (HasLeftChestOcclusiveDressing())
-    to.push_back(GetLeftChestOcclusiveDressing()->Unload());
-  if (HasRightChestOcclusiveDressing())
-    to.push_back(GetRightChestOcclusiveDressing()->Unload());
+  if (HasChestOcclusiveDressing())
+    to.push_back(GetChestOcclusiveDressing()->Unload());
   if (HasConsciousRespiration())
     to.push_back(GetConsciousRespiration()->Unload());
   if (HasConsumeNutrients())
@@ -127,22 +117,16 @@ void SEPatientActionCollection::Unload(std::vector<CDM::ActionData*>& to)
     to.push_back(GetIntubation()->Unload());
   if (HasMechanicalVentilation())
     to.push_back(GetMechanicalVentilation()->Unload());
-  if (HasLeftNeedleDecompression())
-    to.push_back(GetLeftNeedleDecompression()->Unload());
-  if (HasRightNeedleDecompression())
-    to.push_back(GetRightNeedleDecompression()->Unload());
+  if (HasNeedleDecompression())
+    to.push_back(GetNeedleDecompression()->Unload());
   if (HasPainStimulus()) {
     for (auto itr : GetPainStimuli())
       to.push_back(itr.second->Unload());
   }
-  if (HasLeftClosedTensionPneumothorax())
-    to.push_back(GetLeftClosedTensionPneumothorax()->Unload());
-  if (HasLeftOpenTensionPneumothorax())
-    to.push_back(GetLeftOpenTensionPneumothorax()->Unload());
-  if (HasRightClosedTensionPneumothorax())
-    to.push_back(GetRightClosedTensionPneumothorax()->Unload());
-  if (HasRightOpenTensionPneumothorax())
-    to.push_back(GetRightOpenTensionPneumothorax()->Unload());
+  if (HasClosedTensionPneumothorax())
+    to.push_back(GetClosedTensionPneumothorax()->Unload());
+  if (HasOpenTensionPneumothorax())
+    to.push_back(GetOpenTensionPneumothorax()->Unload());
   if (HasSepsis())
     to.push_back(GetSepsis()->Unload());
   for (auto itr : GetSubstanceBoluses())
@@ -320,25 +304,14 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
 
   const CDM::ChestOcclusiveDressingData* chestOccl = dynamic_cast<const CDM::ChestOcclusiveDressingData*>(&action);
   if (chestOccl != nullptr) {
-    if (chestOccl->Side() == CDM::enumSide::Left) {
-      if (m_LeftChestOcclusiveDressing == nullptr)
-        m_LeftChestOcclusiveDressing = new SEChestOcclusiveDressing();
-      m_LeftChestOcclusiveDressing->Load(*chestOccl);
-      if (!m_LeftChestOcclusiveDressing->IsActive()) {
-        RemoveLeftChestOcclusiveDressing();
-        return true;
-      }
-      return IsValid(*m_LeftChestOcclusiveDressing);
-    } else if (chestOccl->Side() == CDM::enumSide::Right) {
-      if (m_RightChestOcclusiveDressing == nullptr)
-        m_RightChestOcclusiveDressing = new SEChestOcclusiveDressing();
-      m_RightChestOcclusiveDressing->Load(*chestOccl);
-      if (!m_RightChestOcclusiveDressing->IsActive()) {
-        RemoveRightChestOcclusiveDressing();
-        return true;
-      }
-      return IsValid(*m_RightChestOcclusiveDressing);
+    if (m_ChestOcclusiveDressing == nullptr)
+      m_ChestOcclusiveDressing = new SEChestOcclusiveDressing();
+    m_ChestOcclusiveDressing->Load(*chestOccl);
+    if (!m_ChestOcclusiveDressing->IsActive()) {
+      RemoveChestOcclusiveDressing();
+      return true;
     }
+    return IsValid(*m_ChestOcclusiveDressing);
   }
 
   const CDM::ConsciousRespirationData* conResp = dynamic_cast<const CDM::ConsciousRespirationData*>(&action);
@@ -420,26 +393,14 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
 
   const CDM::NeedleDecompressionData* needleDecomp = dynamic_cast<const CDM::NeedleDecompressionData*>(&action);
   if (needleDecomp != nullptr) {
-    if (needleDecomp->Side() == CDM::enumSide::Left) {
-      if (m_LeftNeedleDecompression == nullptr)
-        m_LeftNeedleDecompression = new SENeedleDecompression();
-      m_LeftNeedleDecompression->Load(*needleDecomp);
-      if (!m_LeftNeedleDecompression->IsActive()) {
-        RemoveLeftNeedleDecompression();
-        return true;
-      }
-      return IsValid(*m_LeftNeedleDecompression);
-    } else if (needleDecomp->Side() == CDM::enumSide::Right) {
-      if (m_RightNeedleDecompression == nullptr)
-        m_RightNeedleDecompression = new SENeedleDecompression();
-      m_RightNeedleDecompression->Load(*needleDecomp);
-      if (!m_RightNeedleDecompression->IsActive()) {
-        RemoveRightNeedleDecompression();
-        return true;
-      }
-      return IsValid(*m_RightNeedleDecompression);
-    } else
-      return false;
+    if (m_NeedleDecompression == nullptr)
+      m_NeedleDecompression = new SENeedleDecompression();
+    m_NeedleDecompression->Load(*needleDecomp);
+    if (!m_NeedleDecompression->IsActive()) {
+      RemoveNeedleDecompression();
+      return true;
+    }
+    return IsValid(*m_NeedleDecompression);
   }
 
   const CDM::PainStimulusData* pain = dynamic_cast<const CDM::PainStimulusData*>(&action);
@@ -477,43 +438,25 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
 
   const CDM::TensionPneumothoraxData* pneumo = dynamic_cast<const CDM::TensionPneumothoraxData*>(&action);
   if (pneumo != nullptr) {
-    if (pneumo->Side() == CDM::enumSide::Left && pneumo->Type() == CDM::enumPneumothoraxType::Open) {
-      if (m_LeftOpenTensionPneumothorax == nullptr)
-        m_LeftOpenTensionPneumothorax = new SETensionPneumothorax();
-      m_LeftOpenTensionPneumothorax->Load(*pneumo);
-      if (!m_LeftOpenTensionPneumothorax->IsActive()) {
-        RemoveLeftClosedTensionPneumothorax();
+    if (pneumo->Type() == CDM::enumPneumothoraxType::Open) {
+      if (m_OpenTensionPneumothorax == nullptr)
+        m_OpenTensionPneumothorax = new SETensionPneumothorax();
+      m_OpenTensionPneumothorax->Load(*pneumo);
+      if (!m_OpenTensionPneumothorax->IsActive()) {
+        RemoveOpenTensionPneumothorax();
         return true;
       }
-      return IsValid(*m_LeftOpenTensionPneumothorax);
-    } else if (pneumo->Side() == CDM::enumSide::Left && pneumo->Type() == CDM::enumPneumothoraxType::Closed) {
-      if (m_LeftClosedTensionPneumothorax == nullptr)
-        m_LeftClosedTensionPneumothorax = new SETensionPneumothorax();
-      m_LeftClosedTensionPneumothorax->Load(*pneumo);
-      if (!m_LeftClosedTensionPneumothorax->IsActive()) {
-        RemoveLeftOpenTensionPneumothorax();
+      return IsValid(*m_OpenTensionPneumothorax);
+    } else if (pneumo->Type() == CDM::enumPneumothoraxType::Closed) {
+      if (m_ClosedTensionPneumothorax == nullptr)
+        m_ClosedTensionPneumothorax = new SETensionPneumothorax();
+      m_ClosedTensionPneumothorax->Load(*pneumo);
+      if (!m_ClosedTensionPneumothorax->IsActive()) {
+        RemoveClosedTensionPneumothorax();
         return true;
       }
-      return IsValid(*m_LeftClosedTensionPneumothorax);
-    } else if (pneumo->Side() == CDM::enumSide::Right && pneumo->Type() == CDM::enumPneumothoraxType::Open) {
-      if (m_RightOpenTensionPneumothorax == nullptr)
-        m_RightOpenTensionPneumothorax = new SETensionPneumothorax();
-      m_RightOpenTensionPneumothorax->Load(*pneumo);
-      if (!m_RightOpenTensionPneumothorax->IsActive()) {
-        RemoveRightOpenTensionPneumothorax();
-        return true;
-      }
-      return IsValid(*m_RightOpenTensionPneumothorax);
-    } else if (pneumo->Side() == CDM::enumSide::Right && pneumo->Type() == CDM::enumPneumothoraxType::Closed) {
-      if (m_RightClosedTensionPneumothorax == nullptr)
-        m_RightClosedTensionPneumothorax = new SETensionPneumothorax();
-      m_RightClosedTensionPneumothorax->Load(*pneumo);
-      if (!m_RightClosedTensionPneumothorax->IsActive()) {
-        RemoveRightClosedTensionPneumothorax();
-        return true;
-      }
-      return IsValid(*m_RightClosedTensionPneumothorax);
-    }
+      return IsValid(*m_ClosedTensionPneumothorax);
+    } 
     return false; // Duno what this is...
   }
 
@@ -707,37 +650,17 @@ SEChestCompressionForceScale* SEPatientActionCollection::GetChestCompressionForc
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasChestOcclusiveDressing() const
 {
-  return m_LeftChestOcclusiveDressing != nullptr || m_RightChestOcclusiveDressing != nullptr ? true : false;
+  return m_ChestOcclusiveDressing != nullptr ? true : false;
 }
 //-------------------------------------------------------------------------------
-bool SEPatientActionCollection::HasLeftChestOcclusiveDressing() const
+SEChestOcclusiveDressing* SEPatientActionCollection::GetChestOcclusiveDressing() const
 {
-  return m_LeftChestOcclusiveDressing != nullptr ? true : false;
+  return m_ChestOcclusiveDressing;
 }
 //-------------------------------------------------------------------------------
-SEChestOcclusiveDressing* SEPatientActionCollection::GetLeftChestOcclusiveDressing() const
+void SEPatientActionCollection::RemoveChestOcclusiveDressing()
 {
-  return m_LeftChestOcclusiveDressing;
-}
-//-------------------------------------------------------------------------------
-void SEPatientActionCollection::RemoveLeftChestOcclusiveDressing()
-{
-  SAFE_DELETE(m_LeftChestOcclusiveDressing);
-}
-//-------------------------------------------------------------------------------
-bool SEPatientActionCollection::HasRightChestOcclusiveDressing() const
-{
-  return m_RightChestOcclusiveDressing != nullptr ? true : false;
-}
-//-------------------------------------------------------------------------------
-SEChestOcclusiveDressing* SEPatientActionCollection::GetRightChestOcclusiveDressing() const
-{
-  return m_RightChestOcclusiveDressing;
-}
-//-------------------------------------------------------------------------------
-void SEPatientActionCollection::RemoveRightChestOcclusiveDressing()
-{
-  SAFE_DELETE(m_RightChestOcclusiveDressing);
+  SAFE_DELETE(m_ChestOcclusiveDressing);
 }
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasConsciousRespiration() const
@@ -797,7 +720,7 @@ const std::map<std::string, SEHemorrhage*>& SEPatientActionCollection::GetHemorr
 //-------------------------------------------------------------------------------
 void SEPatientActionCollection::RemoveHemorrhage(const char* cmpt)
 {
-  RemoveHemorrhage(std::string{ cmpt });
+  RemoveHemorrhage(std::string { cmpt });
 }
 //-------------------------------------------------------------------------------
 void SEPatientActionCollection::RemoveHemorrhage(const std::string& cmpt)
@@ -839,37 +762,17 @@ void SEPatientActionCollection::RemoveMechanicalVentilation()
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasNeedleDecompression() const
 {
-  return m_LeftNeedleDecompression != nullptr || m_RightNeedleDecompression ? true : false;
+  return m_NeedleDecompression != nullptr ? true : false;
 }
 //-------------------------------------------------------------------------------
-bool SEPatientActionCollection::HasLeftNeedleDecompression() const
+SENeedleDecompression* SEPatientActionCollection::GetNeedleDecompression() const
 {
-  return m_LeftNeedleDecompression == nullptr ? false : true;
+  return m_NeedleDecompression;
 }
 //-------------------------------------------------------------------------------
-SENeedleDecompression* SEPatientActionCollection::GetLeftNeedleDecompression() const
+void SEPatientActionCollection::RemoveNeedleDecompression()
 {
-  return m_LeftNeedleDecompression;
-}
-//-------------------------------------------------------------------------------
-void SEPatientActionCollection::RemoveLeftNeedleDecompression()
-{
-  SAFE_DELETE(m_LeftNeedleDecompression);
-}
-//-------------------------------------------------------------------------------
-bool SEPatientActionCollection::HasRightNeedleDecompression() const
-{
-  return m_RightNeedleDecompression == nullptr ? false : true;
-}
-//-------------------------------------------------------------------------------
-SENeedleDecompression* SEPatientActionCollection::GetRightNeedleDecompression() const
-{
-  return m_RightNeedleDecompression;
-}
-//-------------------------------------------------------------------------------
-void SEPatientActionCollection::RemoveRightNeedleDecompression()
-{
-  SAFE_DELETE(m_RightNeedleDecompression);
+  SAFE_DELETE(m_NeedleDecompression);
 }
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasPainStimulus() const
@@ -884,7 +787,7 @@ const std::map<std::string, SEPainStimulus*>& SEPatientActionCollection::GetPain
 //-------------------------------------------------------------------------------
 void SEPatientActionCollection::RemovePainStimulus(const char* cmpt)
 {
-  RemovePainStimulus(std::string{ cmpt });
+  RemovePainStimulus(std::string { cmpt });
 }
 //-------------------------------------------------------------------------------
 void SEPatientActionCollection::RemovePainStimulus(const std::string& cmpt)
@@ -911,75 +814,41 @@ void SEPatientActionCollection::RemoveSepsis()
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasTensionPneumothorax() const
 {
-  if (m_LeftOpenTensionPneumothorax != nullptr) //&&m_LeftOpenTensionPneumothorax->IsValid())// TODO
+  if (m_OpenTensionPneumothorax != nullptr) //&&m_LeftOpenTensionPneumothorax->IsValid())// TODO
     return true;
-  if (m_LeftClosedTensionPneumothorax != nullptr) //&&m_LeftClosedTensionPneumothorax->IsValid())// TODO
-    return true;
-  if (m_RightOpenTensionPneumothorax != nullptr) //&&m_RightOpenTensionPneumothorax->IsValid())// TODO
-    return true;
-  if (m_RightClosedTensionPneumothorax != nullptr) //&&m_RightClosedTensionPneumothorax->IsValid())// TODO
+  if (m_ClosedTensionPneumothorax != nullptr) //&&m_LeftClosedTensionPneumothorax->IsValid())// TODO
     return true;
   return false;
 }
 //-------------------------------------------------------------------------------
-bool SEPatientActionCollection::HasLeftOpenTensionPneumothorax() const
+bool SEPatientActionCollection::HasOpenTensionPneumothorax() const
 {
-  return m_LeftOpenTensionPneumothorax == nullptr ? false : true; //m_LeftOpenTensionPneumothorax->IsValid();//TODO
+  return m_OpenTensionPneumothorax == nullptr ? false : true; //m_LeftOpenTensionPneumothorax->IsValid();//TODO
 }
 //-------------------------------------------------------------------------------
-SETensionPneumothorax* SEPatientActionCollection::GetLeftOpenTensionPneumothorax() const
+SETensionPneumothorax* SEPatientActionCollection::GetOpenTensionPneumothorax() const
 {
-  return m_LeftOpenTensionPneumothorax;
+  return m_OpenTensionPneumothorax;
 }
 //-------------------------------------------------------------------------------
-void SEPatientActionCollection::RemoveLeftOpenTensionPneumothorax()
+void SEPatientActionCollection::RemoveOpenTensionPneumothorax()
 {
-  SAFE_DELETE(m_LeftOpenTensionPneumothorax);
+  SAFE_DELETE(m_OpenTensionPneumothorax);
 }
 //-------------------------------------------------------------------------------
-bool SEPatientActionCollection::HasLeftClosedTensionPneumothorax() const
+bool SEPatientActionCollection::HasClosedTensionPneumothorax() const
 {
-  return m_LeftClosedTensionPneumothorax == nullptr ? false : true; //m_LeftClosedTensionPneumothorax->IsValid();//TODO
+  return m_ClosedTensionPneumothorax == nullptr ? false : true; //m_LeftClosedTensionPneumothorax->IsValid();//TODO
 }
 //-------------------------------------------------------------------------------
-SETensionPneumothorax* SEPatientActionCollection::GetLeftClosedTensionPneumothorax() const
+SETensionPneumothorax* SEPatientActionCollection::GetClosedTensionPneumothorax() const
 {
-  return m_LeftClosedTensionPneumothorax;
+  return m_ClosedTensionPneumothorax;
 }
 //-------------------------------------------------------------------------------
-void SEPatientActionCollection::RemoveLeftClosedTensionPneumothorax()
+void SEPatientActionCollection::RemoveClosedTensionPneumothorax()
 {
-  SAFE_DELETE(m_LeftClosedTensionPneumothorax);
-}
-//-------------------------------------------------------------------------------
-bool SEPatientActionCollection::HasRightOpenTensionPneumothorax() const
-{
-  return m_RightOpenTensionPneumothorax == nullptr ? false : true; //m_RightOpenTensionPneumothorax->IsValid();//TODO
-}
-//-------------------------------------------------------------------------------
-SETensionPneumothorax* SEPatientActionCollection::GetRightOpenTensionPneumothorax() const
-{
-  return m_RightOpenTensionPneumothorax;
-}
-//-------------------------------------------------------------------------------
-void SEPatientActionCollection::RemoveRightOpenTensionPneumothorax()
-{
-  SAFE_DELETE(m_RightOpenTensionPneumothorax);
-}
-//-------------------------------------------------------------------------------
-bool SEPatientActionCollection::HasRightClosedTensionPneumothorax() const
-{
-  return m_RightClosedTensionPneumothorax == nullptr ? false : true; //m_RightClosedTensionPneumothorax->IsValid();//TODO
-}
-//-------------------------------------------------------------------------------
-SETensionPneumothorax* SEPatientActionCollection::GetRightClosedTensionPneumothorax() const
-{
-  return m_RightClosedTensionPneumothorax;
-}
-//-------------------------------------------------------------------------------
-void SEPatientActionCollection::RemoveRightClosedTensionPneumothorax()
-{
-  SAFE_DELETE(m_RightClosedTensionPneumothorax);
+  SAFE_DELETE(m_ClosedTensionPneumothorax);
 }
 //-------------------------------------------------------------------------------
 const std::map<const SESubstance*, SESubstanceBolus*>& SEPatientActionCollection::GetSubstanceBoluses() const

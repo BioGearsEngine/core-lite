@@ -17,7 +17,6 @@ SENeedleDecompression::SENeedleDecompression()
   : SEPatientAction()
 {
   m_State = CDM::enumOnOff::Off;
-  m_Side = (CDM::enumSide::value)-1;
 }
 
 SENeedleDecompression::~SENeedleDecompression()
@@ -29,12 +28,11 @@ void SENeedleDecompression::Clear()
 {
   SEPatientAction::Clear();
   m_State = CDM::enumOnOff::Off;
-  m_Side = (CDM::enumSide::value)-1;
 }
 
 bool SENeedleDecompression::IsValid() const
 {
-  return SEPatientAction::IsValid() && HasSide();
+  return SEPatientAction::IsValid();
 }
 
 bool SENeedleDecompression::IsActive() const
@@ -50,7 +48,6 @@ void SENeedleDecompression::SetActive(bool b)
 bool SENeedleDecompression::Load(const CDM::NeedleDecompressionData& in)
 {
   SEPatientAction::Load(in);
-  m_Side = in.Side();
   m_State = in.State();
   return true;
 }
@@ -66,35 +63,13 @@ void SENeedleDecompression::Unload(CDM::NeedleDecompressionData& data) const
 {
   SEPatientAction::Unload(data);
   data.State(m_State);
-  if (HasSide())
-    data.Side(m_Side);
 }
-
-CDM::enumSide::value SENeedleDecompression::GetSide() const
-{
-  return m_Side;
-}
-void SENeedleDecompression::SetSide(CDM::enumSide::value Side)
-{
-  m_Side = Side;
-}
-bool SENeedleDecompression::HasSide() const
-{
-  return m_Side == ((CDM::enumSide::value)-1) ? false : true;
-}
-void SENeedleDecompression::InvalidateSide()
-{
-  m_Side = (CDM::enumSide::value)-1;
-}
-
 void SENeedleDecompression::ToString(std::ostream& str) const
 {
   str << "Patient Action : Needle Decompression";
   if (HasComment())
     str << "\n\tComment: " << m_Comment;
   str << "\n\tState: " << IsActive();
-  str << "\n\tSide: ";
-  HasSide() ? str << GetSide() : str << "No Side Set";
   str << std::flush;
 }
 }

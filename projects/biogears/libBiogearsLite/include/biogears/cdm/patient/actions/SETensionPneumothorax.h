@@ -42,11 +42,6 @@ public:
   virtual bool HasType() const;
   virtual void InvalidateType();
 
-  virtual CDM::enumSide::value GetSide() const;
-  virtual void SetSide(CDM::enumSide::value name);
-  virtual bool HasSide() const;
-  virtual void InvalidateSide();
-
   virtual bool HasSeverity() const;
   virtual SEScalar0To1& GetSeverity();
 
@@ -54,7 +49,6 @@ public:
 
 protected:
   CDM::enumPneumothoraxType::value m_Type;
-  CDM::enumSide::value m_Side;
   SEScalar0To1* m_Severity;
   CDM::enumOnOff::value m_State;
 };
