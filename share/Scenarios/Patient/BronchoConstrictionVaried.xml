@@ -80,7 +80,7 @@
         <Severity value="0.0"/>       
     </Action>
     <Action xsi:type="AdvanceTimeData">
-        <Time value="300" unit="s"/>       
+        <Time value="10" unit="min"/>       
     </Action>
     <Action xsi:type="BronchoconstrictionData">
         <Severity value="0.6"/>       
@@ -92,7 +92,7 @@
         <Severity value="0.0"/>       
     </Action>
     <Action xsi:type="AdvanceTimeData">
-        <Time value="300" unit="s"/>       
+        <Time value="10" unit="min"/>       
     </Action>
 	<Action xsi:type="BronchoconstrictionData">
         <Severity value="1.0"/>       
@@ -104,8 +104,7 @@
         <Severity value="0.0"/>       
     </Action>
     <Action xsi:type="AdvanceTimeData">
-        <!-- <Time value="180" unit="s"/>   -->
-		<Time value="500" unit="s"/>  		
+		<Time value="10" unit="min"/>  		
     </Action>
 </Scenario>
 

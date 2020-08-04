@@ -1035,7 +1035,7 @@ bool BioGears::CreateCircuitsAndCompartments()
 
   SetupCardiovascularLite();
   if (m_Config->IsRenalEnabled()) {
-    SetupRenalLite();
+    SetupRenal();
   }
   if (m_Config->IsTissueEnabled()) {
     SetupTissue();
@@ -1046,7 +1046,7 @@ bool BioGears::CreateCircuitsAndCompartments()
   // Create and Combine External and Internal Temperature Circuits //
   ///////////////////////////////////////////////////////////////////
 
-  SetupLiteTemperature();
+  SetupTemperature();
 
   // This node is shared between the respiratory, anesthesia, and inhaler circuits
   SEFluidCircuitNode& Ambient = m_Circuits->CreateFluidNode(BGE::EnvironmentNode::Ambient);
@@ -1918,9 +1918,9 @@ void BioGears::SetupCardiovascularLite()
   gCombinedCardiovascular.StateChange();
 }
 
-void BioGears::SetupRenalLite()
+void BioGears::SetupRenal()
 {
-  Info("Setting Up Renal Lite");
+  Info("Setting Up Renal");
   //////////////////////////
   // Circuit Interdependence
   SEFluidCircuit& cCardiovascular = m_Circuits->GetCardiovascularCircuit();
@@ -4043,9 +4043,9 @@ void BioGears::SetupMechanicalVentilator()
   gCombinedMechanicalVentilator.StateChange();
 }
 
-void BioGears::SetupLiteTemperature()
+void BioGears::SetupTemperature()
 {
-  Info("Setting Up Thermal Lite");
+  Info("Setting Up Thermal Circuit");
   SEThermalCircuit& cThermal = m_Circuits->GetTemperatureCircuit();
 
   //Set up circuit constants

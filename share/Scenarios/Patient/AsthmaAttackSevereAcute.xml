@@ -78,12 +78,12 @@
         <Severity value="0.7"/>       
     </Action>
     <Action xsi:type="AdvanceTimeData">
-		<Time value="550" unit="s"/>
+		<Time value="10" unit="min"/>
 	</Action>  
 	<Action xsi:type="AsthmaAttackData">
         <Severity value="0.0"/>       
     </Action>
 	<Action xsi:type="AdvanceTimeData">
-		<Time value="200" unit="s"/>
+		<Time value="10" unit="min"/>
 	</Action>
 </Scenario>

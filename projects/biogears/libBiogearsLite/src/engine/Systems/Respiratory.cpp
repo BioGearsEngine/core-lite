@@ -158,6 +158,13 @@ void Respiratory::Initialize()
   m_InstantaneousFunctionalResidualCapacity_L = m_Patient->GetFunctionalResidualCapacity(VolumeUnit::L);
   m_PreviousTotalLungVolume_L = m_Patient->GetFunctionalResidualCapacity(VolumeUnit::L);
 
+  //Action removal flags
+  m_HadAirwayObstruction = false;
+  m_HadBronchoconstriction = false;
+
+  //Asthma/COPD obstruction scale
+  m_ObstructiveResistanceScale = 1.0;
+
   //System data
   double TidalVolume_L = m_Patient->GetTidalVolumeBaseline(VolumeUnit::L);
   double RespirationRate_Per_min = m_Patient->GetRespirationRateBaseline(FrequencyUnit::Per_min);
@@ -225,6 +232,10 @@ bool Respiratory::Load(const CDM::BioGearsRespiratorySystemData& in)
   m_ConsciousStartPressure_cmH2O = in.ConsciousStartPressure_cmH2O();
   m_ConsciousEndPressure_cmH2O = in.ConsciousEndPressure_cmH2O();
 
+  m_HadAirwayObstruction = in.HadAirwayObstruction();
+  m_HadBronchoconstriction = in.HadBronchoconstriction();
+  m_ObstructiveResistanceScale = in.ObstructiveResistanceScale();
+
   BioGearsSystem::LoadState();
   return true;
 }
@@ -278,6 +289,10 @@ void Respiratory::Unload(CDM::BioGearsRespiratorySystemData& data) const
   data.InspiratoryCapacityFraction(m_InspiratoryCapacityFraction);
   data.ConsciousStartPressure_cmH2O(m_ConsciousStartPressure_cmH2O);
   data.ConsciousEndPressure_cmH2O(m_ConsciousEndPressure_cmH2O);
+
+  data.HadAirwayObstruction(m_HadAirwayObstruction);
+  data.HadBronchoconstriction(m_HadBronchoconstriction);
+  data.ObstructiveResistanceScale(m_ObstructiveResistanceScale);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -400,6 +415,7 @@ void Respiratory::PreProcess()
 {
   AirwayObstruction();
   UpdateObstructiveResistance();
+  m_data.GetDataTrack().Probe("ResistanceFactor", m_ObstructiveResistanceScale);
   BronchoConstriction();
   Pneumothorax();
   RespiratoryDriverLite();
@@ -803,18 +819,34 @@ void Respiratory::RespiratoryDriverLite()
 //--------------------------------------------------------------------------------------------------
 void Respiratory::AirwayObstruction()
 {
-  if (!m_PatientActions->HasAirwayObstruction())
-    return;
-
-  double Severity = m_PatientActions->GetAirwayObstruction()->GetSeverity().GetValue();
-  double AirwayResistance;
-  double dClosedResistance;
-
-  SEFluidCircuitPath* mouthToTrachea = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::MouthToTrachea);
-  AirwayResistance = mouthToTrachea->GetNextResistance(FlowResistanceUnit::cmH2O_s_Per_L);
-  dClosedResistance = AirwayResistance;
-  AirwayResistance = GeneralMath::ResistanceFunction(20.0, m_dRespOpenResistance_cmH2O_s_Per_L, dClosedResistance, Severity);
-  mouthToTrachea->GetNextResistance().SetValue(AirwayResistance, FlowResistanceUnit::cmH2O_s_Per_L);
+  if (m_PatientActions->HasAirwayObstruction()) {
+    SEFluidCircuitPath* mouthToTrachea = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::MouthToTrachea);
+    double Severity = m_PatientActions->GetAirwayObstruction()->GetSeverity().GetValue();
+    double AirwayResistance = mouthToTrachea->GetNextResistance().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
+    double dClosedResistance = AirwayResistance;
+    AirwayResistance = GeneralMath::ResistanceFunction(5.0, m_dRespOpenResistance_cmH2O_s_Per_L, dClosedResistance, Severity);
+    mouthToTrachea->GetNextResistance().SetValue(AirwayResistance, FlowResistanceUnit::cmH2O_s_Per_L);
+    //This flag tells this function to ramp down resistors once the Airway obstruction has been deactivated
+    m_HadAirwayObstruction = true;
+  } else {
+    if (m_HadAirwayObstruction) {
+      //This block is entered when an airway obstruction action has been deactivated.
+      //We need to gradually scale back resistances--returning to baseline in one time step causes from high severities circuit instabilities.
+      //Since other functions use these resistors (like Aerosol Deposition), we check to make sure that an obstruction
+      //was previously active so that we don't overwrite a different action's circuit changes
+      SEFluidCircuitPath* mouthToTrachea = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::MouthToTrachea);
+      const double scale = 1.0e-4;
+      const double lastAirwayResistance = mouthToTrachea->GetResistance().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
+      const double baselineAirwayResistance = mouthToTrachea->GetResistanceBaseline().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
+      const double nextAirwayResistance = lastAirwayResistance + scale * (baselineAirwayResistance - lastAirwayResistance);
+      mouthToTrachea->GetNextResistance().SetValue(nextAirwayResistance, FlowResistanceUnit::cmH2O_s_Per_L);
+      //We'll say we're back to normal if there's < 1% difference from baseline.  When that happens, set HadBronchonstriction back to false
+      //to reflect return to baseline physiology
+      if (std::abs((lastAirwayResistance - baselineAirwayResistance) / baselineAirwayResistance) < 0.01) {
+        m_HadAirwayObstruction = false;
+      }
+    }
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -829,24 +861,33 @@ void Respiratory::AirwayObstruction()
 //--------------------------------------------------------------------------------------------------
 void Respiratory::BronchoConstriction()
 {
-  if (!m_PatientActions->HasBronchoconstriction() || !m_PatientActions->HasAsthmaAttack())
-    return;
-
-  SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::TracheaToBronchi);
-  double dBronchiResistance = tracheaToBronchi->GetNextResistance(FlowResistanceUnit::cmH2O_s_Per_L);
-  double dClosedResistance = dBronchiResistance;
-
-  //Asthma attack on
-  double aSeverity = m_PatientActions->GetAsthmaAttack()->GetSeverity().GetValue();
-  // Resistance function: Base = 10, Min = 10, Max = 1750 (increasing with severity)
-  double dResistanceScalingFactor = GeneralMath::ResistanceFunction(10.0, m_dRespOpenResistance_cmH2O_s_Per_L, dClosedResistance, aSeverity);
-
-  //bronchoconstriction
-  const double dSeverity = m_PatientActions->GetBronchoconstriction()->GetSeverity().GetValue();
-  dBronchiResistance = GeneralMath::ResistanceFunction(70.0, m_dRespOpenResistance_cmH2O_s_Per_L, dClosedResistance, dSeverity);
-
-  double totalResistance = dResistanceScalingFactor + dBronchiResistance;
-  tracheaToBronchi->GetNextResistance().SetValue(totalResistance, FlowResistanceUnit::cmH2O_s_Per_L);
+  if (m_PatientActions->HasBronchoconstriction()) {
+    SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::TracheaToBronchi);
+    double dBronchiResistance = tracheaToBronchi->GetNextResistance(FlowResistanceUnit::cmH2O_s_Per_L);
+    const double dSeverity = m_PatientActions->GetBronchoconstriction()->GetSeverity().GetValue();
+    const double dClosedResistance = dBronchiResistance;
+    dBronchiResistance = GeneralMath::ResistanceFunction(5.0, m_dRespOpenResistance_cmH2O_s_Per_L, dClosedResistance, dSeverity);
+    tracheaToBronchi->GetNextResistance().SetValue(dBronchiResistance, FlowResistanceUnit::cmH2O_s_Per_L);
+    m_HadBronchoconstriction = true;
+  } else {
+    if (m_HadBronchoconstriction) {
+      //This block is entered when a bronchoconstriction action has been deactivated.
+      //We need to gradually scale back resistances--returning to baseline in one time step causes from high severities circuit instabilities.
+      //Since other functions use these resistors (like Asthma), we check to make sure that a bronchoconstriction
+      // was previously active so that we don't overwrite a different action's circuit changes
+      SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::TracheaToBronchi);
+      const double scale = 1.0e-4;
+      const double lastBronchiResistance = tracheaToBronchi->GetResistance().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
+      const double baselineBronchiResistance = tracheaToBronchi->GetResistanceBaseline().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
+      const double nextBronchiResistance = lastBronchiResistance + scale * (baselineBronchiResistance - lastBronchiResistance);
+      tracheaToBronchi->GetNextResistance().SetValue(nextBronchiResistance, FlowResistanceUnit::cmH2O_s_Per_L);
+      //We'll say we're back to normal if there's < 1% difference from baseline.  When that happens, set HadBronchonstriction back to false
+      //to reflect return to baseline physiology
+      if (std::abs((lastBronchiResistance - baselineBronchiResistance) / baselineBronchiResistance) < 0.01) {
+        m_HadBronchoconstriction = false;
+      }
+    }
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1332,22 +1373,30 @@ void Respiratory::CalculateVitalSignsLite()
 
 void Respiratory::UpdateObstructiveResistance()
 {
-  if (!m_PatientActions->HasAsthmaAttack() || GetExpiratoryFlow(VolumePerTimeUnit::L_Per_s) < 0.0) { // Only on exhalation
+  if (GetExpiratoryFlow(VolumePerTimeUnit::L_Per_s) < 0.0) { // Only on exhalation
     return;
   }
-  double resistanceScalingFactor = 1.0;
-  //Asthma attack on
+  SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::TracheaToBronchi);
   if (m_PatientActions->HasAsthmaAttack()) {
     double dSeverity = m_PatientActions->GetAsthmaAttack()->GetSeverity().GetValue();
     // Resistance function: Base = 10, Min = 10, Max = 1750 (increasing with severity)
-    double dResistanceScalingFactor = GeneralMath::ResistanceFunction(10.0, 1000.0, 40.0, dSeverity);
-    resistanceScalingFactor = dResistanceScalingFactor;
+    double targetResistanceScalingFactor = GeneralMath::ResistanceFunction(10.0, 1000.0, 40.0, dSeverity);
+    double scaleUp = 1.0e-3;
+    m_ObstructiveResistanceScale += scaleUp * (targetResistanceScalingFactor - m_ObstructiveResistanceScale); //Gradually ramp up to target.  Rapid changes to circuit cause instabilities 
+    m_ObstructiveResistanceScale = std::min(m_ObstructiveResistanceScale, targetResistanceScalingFactor); //Make sure we don't exceed target
+  } else {
+   if (m_ObstructiveResistanceScale > 1.05) {
+      //This block is entered when an airway obstruction action has been deactivated.
+      //We need to gradually scale back resistances--returning to baseline in one time step causes from high severities circuit instabilities.
+      //Since other functions use these resistors (like Aerosol Deposition), we check to make sure that an obstruction
+      //was previously active so that we don't overwrite a different action's circuit changes
+      const double scaleDown = 1.0e-4;
+      m_ObstructiveResistanceScale += scaleDown * (1.0 - m_ObstructiveResistanceScale); //move scale back towards 1.0
+      m_ObstructiveResistanceScale = std::max(1.0, m_ObstructiveResistanceScale);   //make sure we don't go below 1 (baseline)
+    }
   }
-  // Get the path resistances
-  SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::TracheaToBronchi);
   double bronchiResistance = tracheaToBronchi->GetNextResistance().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
-  
-  bronchiResistance *= resistanceScalingFactor;
+  bronchiResistance *= m_ObstructiveResistanceScale;
   tracheaToBronchi->GetNextResistance().SetValue(bronchiResistance, FlowResistanceUnit::cmH2O_s_Per_L);
 }
 

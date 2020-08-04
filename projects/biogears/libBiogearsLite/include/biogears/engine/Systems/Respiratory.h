@@ -163,6 +163,11 @@ private:
   double m_InspiratoryCapacityFraction;
   double m_ConsciousStartPressure_cmH2O;
   double m_ConsciousEndPressure_cmH2O;
+  //Action Removal
+  bool m_HadAirwayObstruction;
+  bool m_HadBronchoconstriction;
+  //Asthma/COPD obstruction scale
+  double m_ObstructiveResistanceScale;
 
   // Stateless member variable (Set in SetUp())
   double m_dt_s;

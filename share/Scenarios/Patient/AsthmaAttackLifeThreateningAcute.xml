@@ -84,6 +84,6 @@
         <Severity value="0.0"/>       
     </Action>
 	<Action xsi:type="AdvanceTimeData">
-		<Time value="200" unit="s"/>
+		<Time value="10" unit="min"/>
 	</Action>  
 </Scenario>

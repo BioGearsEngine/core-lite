@@ -41,6 +41,7 @@
   <DataRequest xsi:type="PhysiologyDataRequestData" Name="RenalBloodFlow"                    Unit="L/min"      Precision="2"/>
   <DataRequest xsi:type="PhysiologyDataRequestData" Name="UrineProductionRate"               Unit="mL/min"      Precision="3"/>
   <DataRequest xsi:type="PhysiologyDataRequestData" Name="ArterialBloodPH" Precision="2"/>
+  <DataRequest xsi:type="PhysiologyDataRequestData" Name="VenousBloodPH" Precision="2"/>
   
   <DataRequest xsi:type="GasCompartmentDataRequestData" Compartment="Alveoli"                            Name="Pressure"        Unit="cmH2O" Precision="0"/>
 	<DataRequest xsi:type="GasCompartmentDataRequestData" Compartment="Alveoli"  Substance="Oxygen"        Name="PartialPressure" Unit="mmHg"  Precision="0"/>
@@ -51,10 +52,17 @@
 	<DataRequest xsi:type="GasCompartmentDataRequestData" Compartment="Trachea"       Substance="Oxygen"        Name="PartialPressure" Unit="cmH2O" Precision="0"/>
 	<DataRequest xsi:type="GasCompartmentDataRequestData" Compartment="Trachea"       Substance="CarbonDioxide" Name="PartialPressure" Unit="cmH2O" Precision="1"/>
 	
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="Aorta"     Substance="Oxygen"        Name="PartialPressure" Unit="mmHg" Precision="1"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="Aorta"     Substance="CarbonDioxide" Name="PartialPressure" Unit="mmHg" Precision="1"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"  Substance="Oxygen"        Name="PartialPressure" Unit="mmHg" Precision="1"/>
-	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"  Substance="CarbonDioxide" Name="PartialPressure" Unit="mmHg" Precision="1"/>
+		<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="Aorta"     Substance="Bicarbonate"        Name="Molarity" Unit="mmol/L" Precision="2"/>
+		<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="Aorta"     Substance="Oxygen"        Name="Molarity" Unit="mmol/L" Precision="2"/>
+		<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="Aorta"     Substance="CarbonDioxide"        Name="Molarity" Unit="mmol/L" Precision="2"/>
+		<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="Aorta"     Substance="Oxygen"        Name="PartialPressure" Unit="mmHg" Precision="2"/>
+		<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="Aorta"     Substance="CarbonDioxide" Name="PartialPressure" Unit="mmHg" Precision="2"/>
+		<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"     Substance="Bicarbonate"        Name="Molarity" Unit="mmol/L" Precision="2"/>
+		<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"     Substance="Oxygen"        Name="Molarity" Unit="mmol/L" Precision="2"/>
+		<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"     Substance="CarbonDioxide"        Name="Molarity" Unit="mmol/L" Precision="2"/>
+		<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"  Substance="Oxygen"        Name="PartialPressure" Unit="mmHg" Precision="2"/>
+		<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"  Substance="CarbonDioxide" Name="PartialPressure" Unit="mmHg" Precision="2"/>
+		<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"  Substance="Oxygen"        Name="Saturation" Precision="2"/>
 	
   
   <DataRequest xsi:type="SubstanceDataRequestData"  Substance="Oxygen"         Name="AlveolarTransfer" Unit="mL/s" Precision="2"/>
@@ -80,7 +88,7 @@
         <Severity value="0.0"/>       
     </Action>
     <Action xsi:type="AdvanceTimeData">
-        <Time value="300" unit="s"/>       
+        <Time value="10" unit="min"/>       
     </Action>
     <Action xsi:type="AirwayObstructionData">
         <Severity value="0.6"/>       
@@ -92,7 +100,7 @@
         <Severity value="0.0"/>       
     </Action>
     <Action xsi:type="AdvanceTimeData">
-        <Time value="300" unit="s"/>       
+        <Time value="10" unit="min"/>       
     </Action>
 	<Action xsi:type="AirwayObstructionData">
         <Severity value="1.0"/>       
@@ -104,6 +112,6 @@
         <Severity value="0.0"/>       
     </Action>
     <Action xsi:type="AdvanceTimeData">
-		<Time value="500" unit="s"/>		
+		<Time value="10" unit="min"/>		
     </Action>
 </Scenario>

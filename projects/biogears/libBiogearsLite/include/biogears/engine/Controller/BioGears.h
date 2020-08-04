@@ -170,14 +170,14 @@ public:
   void SetAirwayMode(CDM::enumBioGearsAirwayMode::value mode);
 protected:
   void SetupCardiovascularLite();
-  void SetupRenalLite();
+  void SetupRenal();
   void SetupTissue();
   void SetupGastrointestinal();
   void SetupRespiratory();
   void SetupAnesthesiaMachine();
   void SetupInhaler();
   void SetupMechanicalVentilator();
-  void SetupLiteTemperature();
+  void SetupTemperature();
 
   bool Initialize(const PhysiologyEngineConfiguration* config);
   bool SetupPatient();
