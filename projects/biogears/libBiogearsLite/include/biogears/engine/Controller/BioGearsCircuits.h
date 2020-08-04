@@ -122,30 +122,6 @@ namespace tatrc {
       };
 
       namespace RespiratoryNode {
-
-        DEFINE_STATIC_STRING(Carina);
-
-        DEFINE_STATIC_STRING(LeftAlveoli);
-        DEFINE_STATIC_STRING(LeftAlveoliLeak);
-        DEFINE_STATIC_STRING(LeftAnatomicDeadSpace);
-        DEFINE_STATIC_STRING(LeftChestLeak);
-        DEFINE_STATIC_STRING(LeftPleural);
-        DEFINE_STATIC_STRING(LeftPleuralConnection);
-
-        DEFINE_STATIC_STRING(Mouth);
-
-        DEFINE_STATIC_STRING(RightAlveoli);
-        DEFINE_STATIC_STRING(RightAlveoliLeak);
-        DEFINE_STATIC_STRING(RightAnatomicDeadSpace);
-        DEFINE_STATIC_STRING(RightChestLeak);
-        DEFINE_STATIC_STRING(RightPleural);
-        DEFINE_STATIC_STRING(RightPleuralConnection);
-
-        DEFINE_STATIC_STRING(Stomach);
-        DEFINE_STATIC_STRING(RespiratoryMuscle);
-      };
-
-      namespace RespiratoryLiteNode {
         DEFINE_STATIC_STRING(Mouth);
         DEFINE_STATIC_STRING(Trachea);
         DEFINE_STATIC_STRING(Bronchi);
@@ -157,42 +133,6 @@ namespace tatrc {
       };
 
       namespace RespiratoryPath {
-
-        DEFINE_STATIC_STRING(CarinaToLeftAnatomicDeadSpace);
-        DEFINE_STATIC_STRING(CarinaToRightAnatomicDeadSpace);
-
-        DEFINE_STATIC_STRING(EnvironmentToLeftChestLeak);
-        DEFINE_STATIC_STRING(EnvironmentToMouth);
-        DEFINE_STATIC_STRING(EnvironmentToRightChestLeak);
-
-        DEFINE_STATIC_STRING(LeftAlveoliLeakToLeftPleural);
-        DEFINE_STATIC_STRING(LeftAlveoliToLeftAlveoliLeak);
-        DEFINE_STATIC_STRING(LeftAlveoliToLeftPleuralConnection);
-        DEFINE_STATIC_STRING(LeftPleuralConnectionToLeftPleural);
-        DEFINE_STATIC_STRING(LeftAnatomicDeadSpaceToLeftAlveoli);
-        DEFINE_STATIC_STRING(LeftAnatomicDeadSpaceToLeftPleuralConnection);
-        DEFINE_STATIC_STRING(LeftChestLeakToLeftPleural);
-        DEFINE_STATIC_STRING(LeftPleuralToEnvironment);
-        DEFINE_STATIC_STRING(LeftPleuralToRespiratoryMuscle);
-
-        DEFINE_STATIC_STRING(MouthToCarina);
-        DEFINE_STATIC_STRING(MouthToStomach);
-
-        DEFINE_STATIC_STRING(RightAlveoliLeakToRightPleural);
-        DEFINE_STATIC_STRING(RightAlveoliToRightAlveoliLeak);
-        DEFINE_STATIC_STRING(RightAlveoliToRightPleuralConnection);
-        DEFINE_STATIC_STRING(RightPleuralConnectionToRightPleural);
-        DEFINE_STATIC_STRING(RightAnatomicDeadSpaceToRightAlveoli);
-        DEFINE_STATIC_STRING(RightAnatomicDeadSpaceToRightPleuralConnection);
-        DEFINE_STATIC_STRING(RightChestLeakToRightPleural);
-        DEFINE_STATIC_STRING(RightPleuralToEnvironment);
-        DEFINE_STATIC_STRING(RightPleuralToRespiratoryMuscle);
-
-        DEFINE_STATIC_STRING(EnvironmentToRespiratoryMuscle);
-        DEFINE_STATIC_STRING(StomachToEnvironment);
-      };
-
-      namespace RespiratoryLitePath {
         DEFINE_STATIC_STRING(EnvironmentToMouth);
         DEFINE_STATIC_STRING(MouthToTrachea);
         DEFINE_STATIC_STRING(TracheaToBronchi);

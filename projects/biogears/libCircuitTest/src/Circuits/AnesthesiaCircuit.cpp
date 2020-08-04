@@ -91,11 +91,7 @@ void BioGearsEngineTest::AnesthesiaMachineCircuitAndTransportTest(RespiratoryCon
     sCircuitFileName = "/RespiratoryAndAnesthesiaMachineCircuitOutput.csv";
     sTransportFileName = "/RespiratoryAndAnesthesiaMachineTransportOutput.csv";
 
-    //Precharge the stomach to prevent negative volume
-    amCircuit->GetNode(BGE::RespiratoryNode::Stomach)->GetNextPressure().Set(env.GetAtmosphericPressure());
-    amCircuit->GetNode(BGE::RespiratoryNode::Stomach)->GetPressure().Set(env.GetAtmosphericPressure());
-
-    SEFluidCircuitPath* driverPath = amCircuit->GetPath(BGE::RespiratoryPath::EnvironmentToRespiratoryMuscle);
+    SEFluidCircuitPath* driverPath = amCircuit->GetPath(BGE::RespiratoryPath::PleuralToRespiratoryMuscle);
     driverPath->GetPressureSourceBaseline().SetValue(-12.0, PressureUnit::cmH2O);
     driverPath->GetNextPressureSource().SetValue(-12.0, PressureUnit::cmH2O);
   } else {

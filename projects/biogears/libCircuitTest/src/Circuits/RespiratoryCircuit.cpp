@@ -93,7 +93,7 @@ void BioGearsEngineTest::RespiratoryCircuitAndTransportTest(RespiratoryConfigura
     return;
   }
 
-  SEFluidCircuitPath* driverPath = rCircuit->GetPath(BGE::RespiratoryPath::EnvironmentToRespiratoryMuscle);
+  SEFluidCircuitPath* driverPath = rCircuit->GetPath(BGE::RespiratoryPath::PleuralToRespiratoryMuscle);
   SEGasTransporter gtxpt(VolumePerTimeUnit::L_Per_s, VolumeUnit::L, VolumeUnit::L, NoUnit::unitless, bg.GetLogger());
   SELiquidTransporter ltxpt(VolumePerTimeUnit::mL_Per_s, VolumeUnit::mL, MassUnit::ug, MassPerVolumeUnit::ug_Per_mL, bg.GetLogger());
   SEFluidCircuitCalculator calc(FlowComplianceUnit::L_Per_cmH2O, VolumePerTimeUnit::L_Per_s, FlowInertanceUnit::cmH2O_s2_Per_L, PressureUnit::cmH2O, VolumeUnit::L, FlowResistanceUnit::cmH2O_s_Per_L, bg.GetLogger());
@@ -102,9 +102,7 @@ void BioGearsEngineTest::RespiratoryCircuitAndTransportTest(RespiratoryConfigura
   //This is needed because we're not setting the Environment during initialization in this unit test
   rCircuit->GetNode(BGE::EnvironmentNode::Ambient)->GetNextPressure().Set(env.GetAtmosphericPressure());
   rCircuit->GetNode(BGE::EnvironmentNode::Ambient)->GetPressure().Set(env.GetAtmosphericPressure());
-  //Precharge the stomach to prevent negative volume
-  rCircuit->GetNode(BGE::RespiratoryNode::Stomach)->GetNextPressure().Set(env.GetAtmosphericPressure());
-  rCircuit->GetNode(BGE::RespiratoryNode::Stomach)->GetPressure().Set(env.GetAtmosphericPressure());
+
 
   //Circuit Analysis Test --------------------------------------------------
   //Execution parameters
@@ -198,16 +196,12 @@ void BioGearsEngineTest::RespiratoryDriverTest(const std::string& sTestDirectory
 
   double deltaT_s = 1.0 / 90.0;
 
-  SEFluidCircuitPath* driverPressurePath = RespCircuit.GetPath(BGE::RespiratoryPath::EnvironmentToRespiratoryMuscle);
-  SEFluidCircuitPath* rightPleuralToRespiratoryMuscle = RespCircuit.GetPath(BGE::RespiratoryPath::RightPleuralToRespiratoryMuscle);
-  SEFluidCircuitPath* leftPleuralToRespiratoryMuscle = RespCircuit.GetPath(BGE::RespiratoryPath::LeftPleuralToRespiratoryMuscle);
+  SEFluidCircuitPath* driverPressurePath = RespCircuit.GetPath(BGE::RespiratoryPath::PleuralToEnvironment);
+  SEFluidCircuitPath* PleuralToRespiratoryMuscle = RespCircuit.GetPath(BGE::RespiratoryPath::PleuralToRespiratoryMuscle);
 
-  SEFluidCircuitNode* rightPleuralNode = RespCircuit.GetNode(BGE::RespiratoryNode::RightPleural);
-  SEFluidCircuitNode* leftPleuralNode = RespCircuit.GetNode(BGE::RespiratoryNode::LeftPleural);
-  SEFluidCircuitNode* rightDeadSpaceNode = RespCircuit.GetNode(BGE::RespiratoryNode::RightAnatomicDeadSpace);
-  SEFluidCircuitNode* leftDeadSpaceNode = RespCircuit.GetNode(BGE::RespiratoryNode::LeftAnatomicDeadSpace);
-  SEFluidCircuitNode* rightAlveoliNode = RespCircuit.GetNode(BGE::RespiratoryNode::RightAlveoli);
-  SEFluidCircuitNode* leftAlveoliNode = RespCircuit.GetNode(BGE::RespiratoryNode::LeftAlveoli);
+  SEFluidCircuitNode* PleuralNode = RespCircuit.GetNode(BGE::RespiratoryNode::Pleural);
+  SEFluidCircuitNode* DeadSpaceNode = RespCircuit.GetNode(BGE::RespiratoryNode::Bronchi);
+  SEFluidCircuitNode* AlveoliNode = RespCircuit.GetNode(BGE::RespiratoryNode::Alveoli);
 
   RespCircuit.GetNode(BGE::EnvironmentNode::Ambient)->GetNextPressure().SetValue(760, PressureUnit::mmHg);
 
@@ -229,21 +223,16 @@ void BioGearsEngineTest::RespiratoryDriverTest(const std::string& sTestDirectory
 
       //Variable compliance feedback
       //TODO: Figure out how to use that actual Respiratory function.  For now we'll just copy and paste it in.
-      double dRightPleuralCompliance = rightPleuralToRespiratoryMuscle->GetNextCompliance().GetValue(FlowComplianceUnit::L_Per_cmH2O);
-      double dLeftPleuralCompliance = leftPleuralToRespiratoryMuscle->GetNextCompliance().GetValue(FlowComplianceUnit::L_Per_cmH2O);
-      double dRightPleuralVolumeBaseline = rightPleuralNode->GetVolumeBaseline().GetValue(VolumeUnit::L);
-      double dLeftPleuralVolumeBaseline = leftPleuralNode->GetVolumeBaseline().GetValue(VolumeUnit::L);
-      double dRightPleuralVolume = rightPleuralNode->GetNextVolume().GetValue(VolumeUnit::L);
-      double dLeftPleuralVolume = leftPleuralNode->GetNextVolume().GetValue(VolumeUnit::L);
+      double dPleuralCompliance = PleuralToRespiratoryMuscle->GetNextCompliance().GetValue(FlowComplianceUnit::L_Per_cmH2O);
+      double dPleuralVolumeBaseline = PleuralNode->GetVolumeBaseline().GetValue(VolumeUnit::L);
+      double dPleuralVolume = PleuralNode->GetNextVolume().GetValue(VolumeUnit::L);
 
-      dRightPleuralCompliance = (dRightPleuralVolume - dRightPleuralVolumeBaseline) * 5.0 * dRightPleuralCompliance + dRightPleuralCompliance;
-      dLeftPleuralCompliance = (dLeftPleuralVolume - dLeftPleuralVolumeBaseline) * 5.0 * dLeftPleuralCompliance + dLeftPleuralCompliance;
+      dPleuralCompliance = (dPleuralVolume - dPleuralVolumeBaseline) * 5.0 * dPleuralCompliance + dPleuralCompliance;
+     
 
-      dRightPleuralCompliance = LIMIT(dRightPleuralCompliance, 1e-6, 0.05);
-      dLeftPleuralCompliance = LIMIT(dLeftPleuralCompliance, 1e-6, 0.05);
+      dPleuralCompliance = LIMIT(dPleuralCompliance, 1e-6, 0.05);
 
-      rightPleuralToRespiratoryMuscle->GetNextCompliance().SetValue(dRightPleuralCompliance, FlowComplianceUnit::L_Per_cmH2O);
-      leftPleuralToRespiratoryMuscle->GetNextCompliance().SetValue(dLeftPleuralCompliance, FlowComplianceUnit::L_Per_cmH2O);
+      PleuralToRespiratoryMuscle->GetNextCompliance().SetValue(dPleuralCompliance, FlowComplianceUnit::L_Per_cmH2O);
 
       //Process the circuit
       calc.Process(RespCircuit, deltaT_s);
@@ -251,7 +240,7 @@ void BioGearsEngineTest::RespiratoryDriverTest(const std::string& sTestDirectory
       calc.PostProcess(RespCircuit);
 
       //Calculate the total lung volume
-      TotalVolume_L = leftDeadSpaceNode->GetNextVolume(VolumeUnit::L) + leftAlveoliNode->GetNextVolume(VolumeUnit::L) + rightDeadSpaceNode->GetNextVolume(VolumeUnit::L) + rightAlveoliNode->GetNextVolume(VolumeUnit::L);
+      TotalVolume_L = DeadSpaceNode->GetNextVolume(VolumeUnit::L) + AlveoliNode->GetNextVolume(VolumeUnit::L);
 
       //Check to see if the circuit has stabilized
       if (std::abs(TotalVolume_L - PreviousTotalVolume_L) < 0.0001) {

@@ -119,26 +119,26 @@ void BioGearsSubstances::InitializeGasCompartments()
   double AmbientCO2VF = Ambient->GetSubstanceQuantity(*m_CO2)->GetVolumeFraction().GetValue();
   double AmbientN2VF = Ambient->GetSubstanceQuantity(*m_N2)->GetVolumeFraction().GetValue();
 
-  SEGasCompartment* Mouth = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::Mouth);
+  SEGasCompartment* Mouth = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Mouth);
   Mouth->GetSubstanceQuantity(*m_CO2)->GetVolumeFraction().SetValue(AmbientCO2VF);
   Mouth->GetSubstanceQuantity(*m_N2)->GetVolumeFraction().SetValue(AmbientN2VF);
   Mouth->GetSubstanceQuantity(*m_O2)->GetVolumeFraction().SetValue(AmbientO2VF);
-  SEGasCompartment* Trachea = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::Trachea);
+  SEGasCompartment* Trachea = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Trachea);
   Trachea->GetSubstanceQuantity(*m_CO2)->GetVolumeFraction().SetValue(0.0413596);
   Trachea->GetSubstanceQuantity(*m_O2)->GetVolumeFraction().SetValue(0.161171);
   Trachea->GetSubstanceQuantity(*m_N2)->GetVolumeFraction().SetValue(1.0 - 0.0413596 - 0.161171);
   Trachea->Balance(BalanceGasBy::VolumeFraction);
-  SEGasCompartment* Bronchi = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::Bronchi);
+  SEGasCompartment* Bronchi = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Bronchi);
   Bronchi->GetSubstanceQuantity(*m_CO2)->GetVolumeFraction().SetValue(0.0430653);
   Bronchi->GetSubstanceQuantity(*m_O2)->GetVolumeFraction().SetValue(0.159124);
   Bronchi->GetSubstanceQuantity(*m_N2)->GetVolumeFraction().SetValue(1.0 - 0.0430653 - 0.159124);
   Bronchi->Balance(BalanceGasBy::VolumeFraction);
-  SEGasCompartment* Alveoli = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::Alveoli);
+  SEGasCompartment* Alveoli = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Alveoli);
   Alveoli->GetSubstanceQuantity(*m_CO2)->GetVolumeFraction().SetValue(0.049271);
   Alveoli->GetSubstanceQuantity(*m_O2)->GetVolumeFraction().SetValue(0.151463);
   Alveoli->GetSubstanceQuantity(*m_N2)->GetVolumeFraction().SetValue(1.0 - 0.049271 - 0.151463);
   Alveoli->Balance(BalanceGasBy::VolumeFraction);
-  SEGasCompartment* PleuralCavity = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::Pleural);
+  SEGasCompartment* PleuralCavity = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Pleural);
   PleuralCavity->GetSubstanceQuantity(*m_CO2)->GetVolumeFraction().SetValue(AmbientCO2VF);
   PleuralCavity->GetSubstanceQuantity(*m_N2)->GetVolumeFraction().SetValue(AmbientN2VF);
   PleuralCavity->GetSubstanceQuantity(*m_O2)->GetVolumeFraction().SetValue(AmbientO2VF);
@@ -320,9 +320,9 @@ void BioGearsSubstances::WritePulmonaryGases()
 {
   std::stringstream ss;
   std::vector<SEGasCompartment*> cmpts;
-  cmpts.push_back(m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::Trachea));
-  cmpts.push_back(m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::Bronchi));
-  cmpts.push_back(m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::Alveoli));
+  cmpts.push_back(m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Trachea));
+  cmpts.push_back(m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Bronchi));
+  cmpts.push_back(m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Alveoli));
 
   for (SEGasCompartment* cmpt : cmpts) {
     if (cmpt->HasVolume()) {

@@ -168,7 +168,7 @@ void Respiratory::Initialize()
   //System data
   double TidalVolume_L = m_Patient->GetTidalVolumeBaseline(VolumeUnit::L);
   double RespirationRate_Per_min = m_Patient->GetRespirationRateBaseline(FrequencyUnit::Per_min);
-  double DeadSpace_L = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::DeadSpace)->GetVolume(VolumeUnit::L);
+  double DeadSpace_L = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::DeadSpace)->GetVolume(VolumeUnit::L);
   GetTidalVolume().SetValue(TidalVolume_L, VolumeUnit::L);
   GetRespirationRate().SetValue(RespirationRate_Per_min, FrequencyUnit::Per_min);
   GetRespirationDriverFrequency().SetValue(RespirationRate_Per_min, FrequencyUnit::Per_min);
@@ -321,7 +321,7 @@ void Respiratory::SetUp()
   //Circuits
   m_RespiratoryCircuit = &m_data.GetCircuits().GetRespiratoryCircuit();
   m_Ambient = m_RespiratoryCircuit->GetNode(BGE::EnvironmentNode::Ambient);
-  m_DriverPressurePath = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::RespiratoryMuscleDriver);
+  m_DriverPressurePath = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::RespiratoryMuscleDriver);
 
   //Common to both full and lite circuits
   m_Environment = m_data.GetCompartments().GetGasCompartment(BGE::EnvironmentCompartment::Ambient);
@@ -339,9 +339,9 @@ void Respiratory::SetUp()
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //The variables below are not used currently in biogears lite but they have been left here in the event we support lite aerosol or lite ventilator.
   m_MechanicalVentilatorConnection = m_data.GetCompartments().GetGasCompartment(BGE::MechanicalVentilatorCompartment::Connection);
-  m_AerosolEffects.push_back(m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Trachea));
-  m_AerosolEffects.push_back(m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Bronchi));
-  m_AerosolEffects.push_back(m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Alveoli));
+  m_AerosolEffects.push_back(m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryCompartment::Trachea));
+  m_AerosolEffects.push_back(m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryCompartment::Bronchi));
+  m_AerosolEffects.push_back(m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryCompartment::Alveoli));
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
@@ -449,7 +449,7 @@ void Respiratory::Process()
   // Transport substances
   m_GasTransporter.Transport(RespirationGraph, m_dt_s);
   //Update system data
-  if (m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Mouth)->HasSubstanceQuantities()) {
+  if (m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryCompartment::Mouth)->HasSubstanceQuantities()) {
     m_AerosolTransporter.Transport(AerosolGraph, m_dt_s);
   }
   CalculateVitalSignsLite();
@@ -489,19 +489,19 @@ void Respiratory::PostProcess()
 void Respiratory::ProcessAerosolSubstances()
 {
   //Leaving this here because we might re-introduce albuterol to Respiratory Lite.  Leave everything as "left" for now and account for single alveoli in lite setup later.
-  SELiquidCompartment* AerosolMouth = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Mouth);
+  SELiquidCompartment* AerosolMouth = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryCompartment::Mouth);
   size_t numAerosols = AerosolMouth->GetSubstanceQuantities().size();
   if (numAerosols == 0)
     return;
 
   m_AverageLocalTissueBronchodilationEffects = 0.0; //No effect
 
-  SELiquidCompartment* AerosolTrachea = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Trachea);
-  SELiquidCompartment* AerosolBronchi = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Bronchi);
-  SELiquidCompartment* AerosolAlveoli = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryLiteCompartment::Alveoli);
-  SEFluidCircuitPath* MouthToTrachea = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::MouthToTrachea);
-  SEFluidCircuitPath* TracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::TracheaToBronchi);
-  SEFluidCircuitPath* BronchiToAlveoli = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::BronchiToAlveoli);
+  SELiquidCompartment* AerosolTrachea = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryCompartment::Trachea);
+  SELiquidCompartment* AerosolBronchi = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryCompartment::Bronchi);
+  SELiquidCompartment* AerosolAlveoli = m_data.GetCompartments().GetLiquidCompartment(BGE::PulmonaryCompartment::Alveoli);
+  SEFluidCircuitPath* MouthToTrachea = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::MouthToTrachea);
+  SEFluidCircuitPath* TracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::TracheaToBronchi);
+  SEFluidCircuitPath* BronchiToAlveoli = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::BronchiToAlveoli);
 
   double inflammationCoefficient;
 
@@ -820,7 +820,7 @@ void Respiratory::RespiratoryDriverLite()
 void Respiratory::AirwayObstruction()
 {
   if (m_PatientActions->HasAirwayObstruction()) {
-    SEFluidCircuitPath* mouthToTrachea = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::MouthToTrachea);
+    SEFluidCircuitPath* mouthToTrachea = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::MouthToTrachea);
     double Severity = m_PatientActions->GetAirwayObstruction()->GetSeverity().GetValue();
     double AirwayResistance = mouthToTrachea->GetNextResistance().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
     double dClosedResistance = AirwayResistance;
@@ -834,7 +834,7 @@ void Respiratory::AirwayObstruction()
       //We need to gradually scale back resistances--returning to baseline in one time step causes from high severities circuit instabilities.
       //Since other functions use these resistors (like Aerosol Deposition), we check to make sure that an obstruction
       //was previously active so that we don't overwrite a different action's circuit changes
-      SEFluidCircuitPath* mouthToTrachea = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::MouthToTrachea);
+      SEFluidCircuitPath* mouthToTrachea = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::MouthToTrachea);
       const double scale = 1.0e-4;
       const double lastAirwayResistance = mouthToTrachea->GetResistance().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
       const double baselineAirwayResistance = mouthToTrachea->GetResistanceBaseline().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
@@ -862,7 +862,7 @@ void Respiratory::AirwayObstruction()
 void Respiratory::BronchoConstriction()
 {
   if (m_PatientActions->HasBronchoconstriction()) {
-    SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::TracheaToBronchi);
+    SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::TracheaToBronchi);
     double dBronchiResistance = tracheaToBronchi->GetNextResistance(FlowResistanceUnit::cmH2O_s_Per_L);
     const double dSeverity = m_PatientActions->GetBronchoconstriction()->GetSeverity().GetValue();
     const double dClosedResistance = dBronchiResistance;
@@ -875,7 +875,7 @@ void Respiratory::BronchoConstriction()
       //We need to gradually scale back resistances--returning to baseline in one time step causes from high severities circuit instabilities.
       //Since other functions use these resistors (like Asthma), we check to make sure that a bronchoconstriction
       // was previously active so that we don't overwrite a different action's circuit changes
-      SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::TracheaToBronchi);
+      SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::TracheaToBronchi);
       const double scale = 1.0e-4;
       const double lastBronchiResistance = tracheaToBronchi->GetResistance().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
       const double baselineBronchiResistance = tracheaToBronchi->GetResistanceBaseline().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
@@ -907,7 +907,7 @@ void Respiratory::BronchoDilation()
   //The bronchi are ~30% of the total pulmonary resistance, so we'll make a dilation effect of 1.0 be at the respiratory open resistance.
   //Dilation effect values have max effect at 1 and below -1, so anything outside of that will maintain that effect.
   double bronchoDilationEffect = m_data.GetDrugs().GetBronchodilationLevel().GetValue();
-  SEFluidCircuitPath* TracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::TracheaToBronchi);
+  SEFluidCircuitPath* TracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::TracheaToBronchi);
   if (bronchoDilationEffect != 0.0) {
     //Note: It'll pretty much always get in here because there's epinephrine present
     // Get the path resistances
@@ -964,14 +964,14 @@ void Respiratory::Pneumothorax()
         resistance_cmH2O_s_Per_L = dPneumoMinFlowResistance_cmH2O_s_Per_L / std::pow(severity, 2.0);
       }
       resistance_cmH2O_s_Per_L = std::min(resistance_cmH2O_s_Per_L, dPneumoMaxFlowResistance_cmH2O_s_Per_L);
-      m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::AlveoliLeakToPleural)->GetNextResistance().SetValue(resistance_cmH2O_s_Per_L, FlowResistanceUnit::cmH2O_s_Per_L);
+      m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::AlveoliLeakToPleural)->GetNextResistance().SetValue(resistance_cmH2O_s_Per_L, FlowResistanceUnit::cmH2O_s_Per_L);
       if (severity == 0) {
-        m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::AlveoliToAlveoliLeak)->SetNextValve(CDM::enumOpenClosed::Open);
+        m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::AlveoliToAlveoliLeak)->SetNextValve(CDM::enumOpenClosed::Open);
       }
       if (m_PatientActions->HasLeftNeedleDecompression() || m_PatientActions->HasRightNeedleDecompression()) {
         double dScalingFactor = 0.5; //Tuning parameter to allow gas flow due to needle decompression using lung resistance as reference
         double dFlowResistanceLeftNeedle = dScalingFactor * dNeedleFlowResistance_cmH2O_s_Per_L;
-        m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::PleuralToEnvironment)->GetNextResistance().SetValue(dFlowResistanceLeftNeedle, FlowResistanceUnit::cmH2O_s_Per_L);
+        m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::PleuralToEnvironment)->GetNextResistance().SetValue(dFlowResistanceLeftNeedle, FlowResistanceUnit::cmH2O_s_Per_L);
       }
     }
 
@@ -1135,14 +1135,14 @@ void Respiratory::CalculateVitalSignsLite()
   SESubstance& O2 = m_data.GetSubstances().GetO2();
   SESubstance& CO2 = m_data.GetSubstances().GetCO2();
   //Get circuit parameters--might put these in Initialize/Set-Up
-  SEFluidCircuitNode* nAlveoli = m_RespiratoryCircuit->GetNode(BGE::RespiratoryLiteNode::Alveoli);
-  SEFluidCircuitNode* nBronchi = m_RespiratoryCircuit->GetNode(BGE::RespiratoryLiteNode::Bronchi);
-  SEFluidCircuitNode* nPleural = m_RespiratoryCircuit->GetNode(BGE::RespiratoryLiteNode::Pleural);
-  SEFluidCircuitNode* nRespiratoryMuscle = m_RespiratoryCircuit->GetNode(BGE::RespiratoryLiteNode::RespiratoryMuscle);
-  SEFluidCircuitPath* pMouthToTrachea = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::MouthToTrachea);
-  SEGasCompartment* cDeadSpace = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::DeadSpace);
-  SEGasCompartment* cAlveoli = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::Alveoli);
-  SEGasCompartment* cTrachea = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryLiteCompartment::Trachea);
+  SEFluidCircuitNode* nAlveoli = m_RespiratoryCircuit->GetNode(BGE::RespiratoryNode::Alveoli);
+  SEFluidCircuitNode* nBronchi = m_RespiratoryCircuit->GetNode(BGE::RespiratoryNode::Bronchi);
+  SEFluidCircuitNode* nPleural = m_RespiratoryCircuit->GetNode(BGE::RespiratoryNode::Pleural);
+  SEFluidCircuitNode* nRespiratoryMuscle = m_RespiratoryCircuit->GetNode(BGE::RespiratoryNode::RespiratoryMuscle);
+  SEFluidCircuitPath* pMouthToTrachea = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::MouthToTrachea);
+  SEGasCompartment* cDeadSpace = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::DeadSpace);
+  SEGasCompartment* cAlveoli = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Alveoli);
+  SEGasCompartment* cTrachea = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Trachea);
 
   //Total Respiratory Volume - this should not include the Pleural Space
   GetTotalLungVolume().SetValue(cDeadSpace->GetVolume(VolumeUnit::mL) + cAlveoli->GetVolume(VolumeUnit::mL), VolumeUnit::mL);
@@ -1376,7 +1376,7 @@ void Respiratory::UpdateObstructiveResistance()
   if (GetExpiratoryFlow(VolumePerTimeUnit::L_Per_s) < 0.0) { // Only on exhalation
     return;
   }
-  SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryLitePath::TracheaToBronchi);
+  SEFluidCircuitPath* tracheaToBronchi = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::TracheaToBronchi);
   if (m_PatientActions->HasAsthmaAttack()) {
     double dSeverity = m_PatientActions->GetAsthmaAttack()->GetSeverity().GetValue();
     // Resistance function: Base = 10, Min = 10, Max = 1750 (increasing with severity)

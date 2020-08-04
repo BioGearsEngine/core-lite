@@ -204,7 +204,7 @@ void BioGearsEngineTest::AerosolTest(const std::string& sOutputDirectory)
 }
 
 void BioGearsEngineTest::SizeIndependentDepositionEfficencyCoefficientsTest(SETestSuite& suite, SESubstance& substance,
-  double expectedMouthCoeff, double expectedCarinaCoeff, double expectedDeadSpaceCoeff, double expectedAlveoliCoeff)
+  double expectedMouthCoeff, double expectedTracheaCoeff, double expectedDeadSpaceCoeff, double expectedAlveoliCoeff)
 {
   double PercentTolerance = 0.1;
   // Set up our test report
@@ -218,13 +218,13 @@ void BioGearsEngineTest::SizeIndependentDepositionEfficencyCoefficientsTest(SETe
   m_ss << "Mouth: " << SIDECoeff.GetMouth();
   Info(m_ss);
   if (GeneralMath::PercentTolerance(SIDECoeff.GetMouth(), expectedMouthCoeff) > PercentTolerance) {
-    m_ss << " Carina SIDE Coefficient is not correct : " << SIDECoeff.GetMouth() << " expected " << expectedMouthCoeff;
+    m_ss << " Trachea SIDE Coefficient is not correct : " << SIDECoeff.GetMouth() << " expected " << expectedMouthCoeff;
     tc1.AddFailure(m_ss);
   }
-  m_ss << "Carina: " << SIDECoeff.GetCarina();
+  m_ss << "Trachea: " << SIDECoeff.GetCarina();
   Info(m_ss);
-  if (GeneralMath::PercentTolerance(SIDECoeff.GetCarina(), expectedCarinaCoeff) > PercentTolerance) {
-    m_ss << " Deadspace SIDE Coefficient is not correct : " << SIDECoeff.GetCarina() << " expected " << expectedCarinaCoeff;
+  if (GeneralMath::PercentTolerance(SIDECoeff.GetCarina(), expectedTracheaCoeff) > PercentTolerance) {
+    m_ss << " Deadspace SIDE Coefficient is not correct : " << SIDECoeff.GetCarina() << " expected " << expectedTracheaCoeff;
     tc1.AddFailure(m_ss);
   }
   m_ss << "Deadspace: " << SIDECoeff.GetDeadSpace();
@@ -243,7 +243,7 @@ void BioGearsEngineTest::SizeIndependentDepositionEfficencyCoefficientsTest(SETe
 }
 
 void BioGearsEngineTest::DepositionFractionTest(SETestSuite& suite, SESubstance& substance,
-  double expectedMouthDepFrac, double expectedCarinaDepFrac, double expectedDeadSpaceDepFrac, double expectedAlveoliDepFrac)
+  double expectedMouthDepFrac, double expectedTracheaDepFrac, double expectedDeadSpaceDepFrac, double expectedAlveoliDepFrac)
 {
   TimingProfile pTimer;
   pTimer.Start("Test");
@@ -267,7 +267,7 @@ void BioGearsEngineTest::DepositionFractionTest(SETestSuite& suite, SESubstance&
 
   const SizeIndependentDepositionEfficencyCoefficient& SIDECoeff = bg.GetSubstances().GetSizeIndependentDepositionEfficencyCoefficient(substance);
 
-  SEFluidCircuitPath* driverPath = rCircuit->GetPath(BGE::RespiratoryPath::EnvironmentToRespiratoryMuscle);
+  SEFluidCircuitPath* driverPath = rCircuit->GetPath(BGE::RespiratoryPath::PleuralToRespiratoryMuscle);
   SEGasTransporter gtxpt(VolumePerTimeUnit::L_Per_s, VolumeUnit::L, VolumeUnit::L, NoUnit::unitless, bg.GetLogger());
   SELiquidTransporter ltxpt(VolumePerTimeUnit::mL_Per_s, VolumeUnit::mL, MassUnit::ug, MassPerVolumeUnit::ug_Per_mL, bg.GetLogger());
   SEFluidCircuitCalculator calc(FlowComplianceUnit::L_Per_cmH2O, VolumePerTimeUnit::L_Per_s, FlowInertanceUnit::cmH2O_s2_Per_L, PressureUnit::cmH2O, VolumeUnit::L, FlowResistanceUnit::cmH2O_s_Per_L, bg.GetLogger());
@@ -276,18 +276,13 @@ void BioGearsEngineTest::DepositionFractionTest(SETestSuite& suite, SESubstance&
   //This is needed because we're not setting the Environment during initialization in this unit test
   rCircuit->GetNode(BGE::EnvironmentNode::Ambient)->GetNextPressure().Set(env.GetAtmosphericPressure());
   rCircuit->GetNode(BGE::EnvironmentNode::Ambient)->GetPressure().Set(env.GetAtmosphericPressure());
-  //Precharge the stomach to prevent negative volume
-  rCircuit->GetNode(BGE::RespiratoryNode::Stomach)->GetNextPressure().Set(env.GetAtmosphericPressure());
-  rCircuit->GetNode(BGE::RespiratoryNode::Stomach)->GetPressure().Set(env.GetAtmosphericPressure());
 
   SEFluidCircuitPath* Env2Mouth = rCircuit->GetPath(BGE::RespiratoryPath::EnvironmentToMouth);
 
   SELiquidSubstanceQuantity* mouthParticulate = nullptr;
-  SELiquidSubstanceQuantity* carinaParticulate = nullptr;
-  SELiquidSubstanceQuantity* leftDeadSpaceParticulate = nullptr;
-  SELiquidSubstanceQuantity* leftAlveoliParticulate = nullptr;
-  SELiquidSubstanceQuantity* rightDeadSpaceParticulate = nullptr;
-  SELiquidSubstanceQuantity* rightAlveoliParticulate = nullptr;
+  SELiquidSubstanceQuantity* TracheaParticulate = nullptr;
+  SELiquidSubstanceQuantity* DeadSpaceParticulate = nullptr;
+  SELiquidSubstanceQuantity* AlveoliParticulate = nullptr;
 
   //Circuit Analysis Test --------------------------------------------------
   //Execution parameters
@@ -311,11 +306,9 @@ void BioGearsEngineTest::DepositionFractionTest(SETestSuite& suite, SESubstance&
 
   double totalParticulateDeposited_ug = 0;
   double depositedMouthParticulate_ug = 0;
-  double depositedCarinaParticulate_ug = 0;
-  double depositedLeftDeadSpaceParticulate_ug = 0;
-  double depositedLeftAlveoliParticulate_ug = 0;
-  double depositedRightDeadSpaceParticulate_ug = 0;
-  double depositedRightAlveoliParticulate_ug = 0;
+  double depositedTracheaParticulate_ug = 0;
+  double depositedDeadSpaceParticulate_ug = 0;
+  double depositedAlveoliParticulate_ug = 0;
 
   for (unsigned int i = 0; i < runTime_s / deltaT_s; i++) {
     sinusoid = cos(alpha * time);
@@ -349,26 +342,21 @@ void BioGearsEngineTest::DepositionFractionTest(SETestSuite& suite, SESubstance&
         ambient->Balance(BalanceLiquidBy::Concentration);
 
         mouthParticulate = aGraph->GetCompartment(BGE::PulmonaryCompartment::Mouth)->GetSubstanceQuantity(substance);
-        carinaParticulate = aGraph->GetCompartment(BGE::PulmonaryCompartment::Carina)->GetSubstanceQuantity(substance);
-        leftDeadSpaceParticulate = aGraph->GetCompartment(BGE::PulmonaryCompartment::LeftDeadSpace)->GetSubstanceQuantity(substance);
-        leftAlveoliParticulate = aGraph->GetCompartment(BGE::PulmonaryCompartment::LeftAlveoli)->GetSubstanceQuantity(substance);
-        rightDeadSpaceParticulate = aGraph->GetCompartment(BGE::PulmonaryCompartment::RightDeadSpace)->GetSubstanceQuantity(substance);
-        rightAlveoliParticulate = aGraph->GetCompartment(BGE::PulmonaryCompartment::RightAlveoli)->GetSubstanceQuantity(substance);
+        TracheaParticulate = aGraph->GetCompartment(BGE::PulmonaryCompartment::Trachea)->GetSubstanceQuantity(substance);
+        DeadSpaceParticulate = aGraph->GetCompartment(BGE::PulmonaryCompartment::Bronchi)->GetSubstanceQuantity(substance);
+        AlveoliParticulate = aGraph->GetCompartment(BGE::PulmonaryCompartment::Alveoli)->GetSubstanceQuantity(substance);
+
 
         // Initialize to the env concentrations
         // aerosolConcentration_g_Per_m3 = 0.; // Or initialize to zero if you want.
         mouthParticulate->GetConcentration().SetValue(aerosolConcentration_g_Per_m3, MassPerVolumeUnit::g_Per_m3);
         mouthParticulate->Balance(BalanceLiquidBy::Concentration);
-        carinaParticulate->GetConcentration().SetValue(aerosolConcentration_g_Per_m3, MassPerVolumeUnit::g_Per_m3);
-        carinaParticulate->Balance(BalanceLiquidBy::Concentration);
-        leftDeadSpaceParticulate->GetConcentration().SetValue(aerosolConcentration_g_Per_m3, MassPerVolumeUnit::g_Per_m3);
-        leftDeadSpaceParticulate->Balance(BalanceLiquidBy::Concentration);
-        leftAlveoliParticulate->GetConcentration().SetValue(aerosolConcentration_g_Per_m3, MassPerVolumeUnit::g_Per_m3);
-        leftAlveoliParticulate->Balance(BalanceLiquidBy::Concentration);
-        rightDeadSpaceParticulate->GetConcentration().SetValue(aerosolConcentration_g_Per_m3, MassPerVolumeUnit::g_Per_m3);
-        rightDeadSpaceParticulate->Balance(BalanceLiquidBy::Concentration);
-        rightAlveoliParticulate->GetConcentration().SetValue(aerosolConcentration_g_Per_m3, MassPerVolumeUnit::g_Per_m3);
-        rightAlveoliParticulate->Balance(BalanceLiquidBy::Concentration);
+        TracheaParticulate->GetConcentration().SetValue(aerosolConcentration_g_Per_m3, MassPerVolumeUnit::g_Per_m3);
+        TracheaParticulate->Balance(BalanceLiquidBy::Concentration);
+        DeadSpaceParticulate->GetConcentration().SetValue(aerosolConcentration_g_Per_m3, MassPerVolumeUnit::g_Per_m3);
+        DeadSpaceParticulate->Balance(BalanceLiquidBy::Concentration);
+        AlveoliParticulate->GetConcentration().SetValue(aerosolConcentration_g_Per_m3, MassPerVolumeUnit::g_Per_m3);
+        AlveoliParticulate->Balance(BalanceLiquidBy::Concentration);
       }
 
       if (Env2Mouth->GetFlow().IsPositive()) {
@@ -385,43 +373,35 @@ void BioGearsEngineTest::DepositionFractionTest(SETestSuite& suite, SESubstance&
       if (true) {
         // Calculate the deposited mass by concentration and flow
         depositedMouthParticulate_ug = mouthParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL) * aGraph->GetCompartment(BGE::PulmonaryCompartment::Mouth)->GetInFlow(VolumePerTimeUnit::mL_Per_s) * deltaT_s * SIDECoeff.GetMouth();
-        depositedCarinaParticulate_ug = carinaParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL) * aGraph->GetCompartment(BGE::PulmonaryCompartment::Carina)->GetInFlow(VolumePerTimeUnit::mL_Per_s) * deltaT_s * SIDECoeff.GetCarina();
-        depositedLeftDeadSpaceParticulate_ug = leftDeadSpaceParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL) * aGraph->GetCompartment(BGE::PulmonaryCompartment::LeftDeadSpace)->GetInFlow(VolumePerTimeUnit::mL_Per_s) * deltaT_s * SIDECoeff.GetDeadSpace();
-        depositedLeftAlveoliParticulate_ug = leftAlveoliParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL) * aGraph->GetCompartment(BGE::PulmonaryCompartment::LeftAlveoli)->GetInFlow(VolumePerTimeUnit::mL_Per_s) * deltaT_s * SIDECoeff.GetAlveoli();
-        depositedRightDeadSpaceParticulate_ug = rightDeadSpaceParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL) * aGraph->GetCompartment(BGE::PulmonaryCompartment::RightDeadSpace)->GetInFlow(VolumePerTimeUnit::mL_Per_s) * deltaT_s * SIDECoeff.GetDeadSpace();
-        depositedRightAlveoliParticulate_ug = rightAlveoliParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL) * aGraph->GetCompartment(BGE::PulmonaryCompartment::RightAlveoli)->GetInFlow(VolumePerTimeUnit::mL_Per_s) * deltaT_s * SIDECoeff.GetAlveoli();
-
+        depositedTracheaParticulate_ug = TracheaParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL) * aGraph->GetCompartment(BGE::PulmonaryCompartment::Trachea)->GetInFlow(VolumePerTimeUnit::mL_Per_s) * deltaT_s * SIDECoeff.GetCarina();
+        depositedDeadSpaceParticulate_ug = DeadSpaceParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL) * aGraph->GetCompartment(BGE::PulmonaryCompartment::Bronchi)->GetInFlow(VolumePerTimeUnit::mL_Per_s) * deltaT_s * SIDECoeff.GetDeadSpace();
+        depositedAlveoliParticulate_ug = AlveoliParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL) * aGraph->GetCompartment(BGE::PulmonaryCompartment::Alveoli)->GetInFlow(VolumePerTimeUnit::mL_Per_s) * deltaT_s * SIDECoeff.GetAlveoli();
+       
         // Total deposited
-        totalParticulateDeposited_ug += depositedMouthParticulate_ug + depositedCarinaParticulate_ug + depositedLeftDeadSpaceParticulate_ug + depositedLeftAlveoliParticulate_ug + depositedRightDeadSpaceParticulate_ug + depositedRightAlveoliParticulate_ug;
+        totalParticulateDeposited_ug += depositedMouthParticulate_ug + depositedTracheaParticulate_ug + depositedDeadSpaceParticulate_ug + depositedAlveoliParticulate_ug;
 
         // Remove the delta from the compartment substance quantity mass
         mouthParticulate->GetMass().IncrementValue(-depositedMouthParticulate_ug, MassUnit::ug);
         mouthParticulate->Balance(BalanceLiquidBy::Mass);
-        carinaParticulate->GetMass().IncrementValue(-depositedCarinaParticulate_ug, MassUnit::ug);
-        carinaParticulate->Balance(BalanceLiquidBy::Mass);
-        leftDeadSpaceParticulate->GetMass().IncrementValue(-depositedLeftDeadSpaceParticulate_ug, MassUnit::ug);
-        leftDeadSpaceParticulate->Balance(BalanceLiquidBy::Mass);
-        leftAlveoliParticulate->GetMass().IncrementValue(-depositedLeftAlveoliParticulate_ug, MassUnit::ug);
-        leftAlveoliParticulate->Balance(BalanceLiquidBy::Mass);
-        rightDeadSpaceParticulate->GetMass().IncrementValue(-depositedRightDeadSpaceParticulate_ug, MassUnit::ug);
-        rightDeadSpaceParticulate->Balance(BalanceLiquidBy::Mass);
-        rightAlveoliParticulate->GetMass().IncrementValue(-depositedRightAlveoliParticulate_ug, MassUnit::ug);
-        rightAlveoliParticulate->Balance(BalanceLiquidBy::Mass);
+        TracheaParticulate->GetMass().IncrementValue(-depositedTracheaParticulate_ug, MassUnit::ug);
+        TracheaParticulate->Balance(BalanceLiquidBy::Mass);
+        DeadSpaceParticulate->GetMass().IncrementValue(-depositedDeadSpaceParticulate_ug, MassUnit::ug);
+        DeadSpaceParticulate->Balance(BalanceLiquidBy::Mass);
+        AlveoliParticulate->GetMass().IncrementValue(-depositedAlveoliParticulate_ug, MassUnit::ug);
+        AlveoliParticulate->Balance(BalanceLiquidBy::Mass);
         // Add the delta to the compartment substance quantity mass deposited
         mouthParticulate->GetMassDeposited().IncrementValue(depositedMouthParticulate_ug, MassUnit::ug);
-        carinaParticulate->GetMassDeposited().IncrementValue(depositedCarinaParticulate_ug, MassUnit::ug);
-        leftDeadSpaceParticulate->GetMassDeposited().IncrementValue(depositedLeftDeadSpaceParticulate_ug, MassUnit::ug);
-        leftAlveoliParticulate->GetMassDeposited().IncrementValue(depositedLeftAlveoliParticulate_ug, MassUnit::ug);
-        rightDeadSpaceParticulate->GetMassDeposited().IncrementValue(depositedRightDeadSpaceParticulate_ug, MassUnit::ug);
-        rightAlveoliParticulate->GetMassDeposited().IncrementValue(depositedRightAlveoliParticulate_ug, MassUnit::ug);
+        TracheaParticulate->GetMassDeposited().IncrementValue(depositedTracheaParticulate_ug, MassUnit::ug);
+        DeadSpaceParticulate->GetMassDeposited().IncrementValue(depositedDeadSpaceParticulate_ug, MassUnit::ug);
+        AlveoliParticulate->GetMassDeposited().IncrementValue(depositedAlveoliParticulate_ug, MassUnit::ug);
       }
     }
 
     trk.Track("MouthConcentration_ug_Per_mL", time, mouthParticulate == nullptr ? 0 : mouthParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL));
-    trk.Track("CarinaConcentration_ug_Per_mL", time, carinaParticulate == nullptr ? 0 : carinaParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL));
+    trk.Track("TracheaConcentration_ug_Per_mL", time, TracheaParticulate == nullptr ? 0 : TracheaParticulate->GetConcentration(MassPerVolumeUnit::ug_Per_mL));
 
     trk.Track("MouthInFlow_mL_Per_s", time, aGraph->GetCompartment(BGE::PulmonaryCompartment::Mouth)->GetInFlow(VolumePerTimeUnit::mL_Per_s));
-    trk.Track("CarinaInFlow_mL_Per_s", time, aGraph->GetCompartment(BGE::PulmonaryCompartment::Carina)->GetInFlow(VolumePerTimeUnit::mL_Per_s));
+    trk.Track("TracheaInFlow_mL_Per_s", time, aGraph->GetCompartment(BGE::PulmonaryCompartment::Trachea)->GetInFlow(VolumePerTimeUnit::mL_Per_s));
 
     trk.Track("TotalInspiredAir_mL", time, totalInspiredAir_mL);
     trk.Track("TotalExspiredAir_mL", time, totalExspiredAir_mL);
@@ -430,16 +410,12 @@ void BioGearsEngineTest::DepositionFractionTest(SETestSuite& suite, SESubstance&
     trk.Track("TotalMouthPostParticulate_ug", time, mouthParticulate == nullptr ? 0 : mouthParticulate->GetMass(MassUnit::ug));
     trk.Track("MouthParticulateDeposited_ug", time, depositedMouthParticulate_ug);
     trk.Track("TotalMouthParticulateDeposited_ug", time, mouthParticulate == nullptr ? 0 : mouthParticulate->GetMassDeposited(MassUnit::ug));
-    trk.Track("CarinaParticulate_ug", time, carinaParticulate == nullptr ? 0 : carinaParticulate->GetMass(MassUnit::ug));
-    trk.Track("CarinaParticulateDeposited_ug", time, carinaParticulate == nullptr ? 0 : carinaParticulate->GetMassDeposited(MassUnit::ug));
-    trk.Track("LeftDeadSpaceParticulate_ug", time, leftDeadSpaceParticulate == nullptr ? 0 : leftDeadSpaceParticulate->GetMass(MassUnit::ug));
-    trk.Track("LeftDeadSpaceParticulateDeposited_ug", time, leftDeadSpaceParticulate == nullptr ? 0 : leftDeadSpaceParticulate->GetMassDeposited(MassUnit::ug));
-    trk.Track("LeftAlveoliParticulate_ug", time, leftAlveoliParticulate == nullptr ? 0 : leftAlveoliParticulate->GetMass(MassUnit::ug));
-    trk.Track("LeftAlveoliParticulateDeposited_ug", time, leftAlveoliParticulate == nullptr ? 0 : leftAlveoliParticulate->GetMassDeposited(MassUnit::ug));
-    trk.Track("RightDeadSpaceParticulate_ug", time, rightDeadSpaceParticulate == nullptr ? 0 : rightDeadSpaceParticulate->GetMass(MassUnit::ug));
-    trk.Track("RightDeadSpaceParticulateDeposited_ug", time, rightDeadSpaceParticulate == nullptr ? 0 : rightDeadSpaceParticulate->GetMassDeposited(MassUnit::ug));
-    trk.Track("RightAlveoliParticulate_ug", time, rightAlveoliParticulate == nullptr ? 0 : rightAlveoliParticulate->GetMass(MassUnit::ug));
-    trk.Track("RightAlveoliParticulateDeposited_ug", time, rightAlveoliParticulate == nullptr ? 0 : rightAlveoliParticulate->GetMassDeposited(MassUnit::ug));
+    trk.Track("TracheaParticulate_ug", time, TracheaParticulate == nullptr ? 0 : TracheaParticulate->GetMass(MassUnit::ug));
+    trk.Track("TracheaParticulateDeposited_ug", time, TracheaParticulate == nullptr ? 0 : TracheaParticulate->GetMassDeposited(MassUnit::ug));
+    trk.Track("DeadSpaceParticulate_ug", time, DeadSpaceParticulate == nullptr ? 0 : DeadSpaceParticulate->GetMass(MassUnit::ug));
+    trk.Track("DeadSpaceParticulateDeposited_ug", time, DeadSpaceParticulate == nullptr ? 0 : DeadSpaceParticulate->GetMassDeposited(MassUnit::ug));
+    trk.Track("AlveoliParticulate_ug", time, AlveoliParticulate == nullptr ? 0 : AlveoliParticulate->GetMass(MassUnit::ug));
+    trk.Track("AlveoliParticulateDeposited_ug", time, AlveoliParticulate == nullptr ? 0 : AlveoliParticulate->GetMassDeposited(MassUnit::ug));
 
     if (i == 0)
       trk.CreateFile((std::string{ "./UnitTests/BioGearsTests/" } +substance.GetName() + "DepositionFraction.csv").c_str(), file);
@@ -467,38 +443,24 @@ void BioGearsEngineTest::DepositionFractionTest(SETestSuite& suite, SESubstance&
     tc.AddFailure(m_ss);
   }
 
-  m_ss << "Particulate Deposited in Carina: " << carinaParticulate->GetMassDeposited(MassUnit::ug);
+  m_ss << "Particulate Deposited in Trachea: " << TracheaParticulate->GetMassDeposited(MassUnit::ug);
   Info(m_ss);
-  if (GeneralMath::PercentTolerance(expectedCarinaDepFrac, carinaParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug) > PercentTolerance) {
-    m_ss << " Carina Particle Deposition is not correct : " << carinaParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug << " expected " << expectedCarinaDepFrac;
+  if (GeneralMath::PercentTolerance(expectedTracheaDepFrac, TracheaParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug) > PercentTolerance) {
+    m_ss << " Trachea Particle Deposition is not correct : " << TracheaParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug << " expected " << expectedTracheaDepFrac;
     tc.AddFailure(m_ss);
   }
 
-  m_ss << "Particulate Deposited in Left Dead Space : " << leftDeadSpaceParticulate->GetMassDeposited(MassUnit::ug);
+  m_ss << "Particulate Deposited in Dead Space : " << DeadSpaceParticulate->GetMassDeposited(MassUnit::ug);
   Info(m_ss);
-  if (GeneralMath::PercentTolerance(expectedDeadSpaceDepFrac, leftDeadSpaceParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug) > PercentTolerance) {
-    m_ss << " Left Dead Space Particle Deposition is not correct : " << leftDeadSpaceParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug << " expected " << expectedDeadSpaceDepFrac;
+  if (GeneralMath::PercentTolerance(expectedDeadSpaceDepFrac, DeadSpaceParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug) > PercentTolerance) {
+    m_ss << " Left Dead Space Particle Deposition is not correct : " << DeadSpaceParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug << " expected " << expectedDeadSpaceDepFrac;
     tc.AddFailure(m_ss);
   }
 
-  m_ss << "Particulate Deposited in Left Alveoli : " << leftAlveoliParticulate->GetMassDeposited(MassUnit::ug);
+  m_ss << "Particulate Deposited in Alveoli : " << AlveoliParticulate->GetMassDeposited(MassUnit::ug);
   Info(m_ss);
-  if (GeneralMath::PercentTolerance(expectedAlveoliDepFrac, leftAlveoliParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug) > PercentTolerance) {
-    m_ss << " Left Alveoli Particle Deposition is not correct : " << leftAlveoliParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug << " expected " << expectedAlveoliDepFrac;
-    tc.AddFailure(m_ss);
-  }
-
-  m_ss << "Particulate Deposited in Right Dead Space : " << rightDeadSpaceParticulate->GetMassDeposited(MassUnit::ug);
-  Info(m_ss);
-  if (GeneralMath::PercentTolerance(expectedDeadSpaceDepFrac, rightDeadSpaceParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug) > PercentTolerance) {
-    m_ss << " Right Dead Space Particle Deposition is not correct : " << rightDeadSpaceParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug << " expected " << expectedDeadSpaceDepFrac;
-    tc.AddFailure(m_ss);
-  }
-
-  m_ss << "Particulate Deposited in Right Alveoli : " << rightAlveoliParticulate->GetMassDeposited(MassUnit::ug);
-  Info(m_ss);
-  if (GeneralMath::PercentTolerance(expectedAlveoliDepFrac, rightAlveoliParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug) > PercentTolerance) {
-    m_ss << " Right Alveoli Particle Deposition is not correct : " << rightAlveoliParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug << " expected " << expectedAlveoliDepFrac;
+  if (GeneralMath::PercentTolerance(expectedAlveoliDepFrac, AlveoliParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug) > PercentTolerance) {
+    m_ss << " Left Alveoli Particle Deposition is not correct : " << AlveoliParticulate->GetMassDeposited(MassUnit::ug) / totalInspiredParticulate_ug << " expected " << expectedAlveoliDepFrac;
     tc.AddFailure(m_ss);
   }
 

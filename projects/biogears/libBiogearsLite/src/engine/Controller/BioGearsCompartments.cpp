@@ -173,15 +173,15 @@ void BioGearsCompartments::StateChange()
   SECompartmentManager::StateChange();
 
   // Hook up our compartment categories---use SORT_CMPTS_LITE macro for your compartment if BioGearsLite is enabled.  Note you must have *System*LiteCompartment 
-  // defined in BioGearsPhysiologyEngine.h with associated GetValues() function, e.g. PulmonaryLiteCompartment
+  // defined in BioGearsPhysiologyEngine.h with associated GetValues()
   // Anatomy
   SORT_CMPTS(Chyme, Liquid);
 
   m_AerosolCompartments.clear();
   m_AerosolLeafCompartments.clear();
 
-  SORT_CMPTS_LITE(Pulmonary, Gas);
-  for (const std::string& name : BGE::PulmonaryLiteCompartment::GetValues()) {
+  SORT_CMPTS(Pulmonary, Gas);
+  for (const std::string& name : BGE::PulmonaryCompartment::GetValues()) {
     SELiquidCompartment* cmpt = GetLiquidCompartment(name);
     if (cmpt == nullptr) {
       Warning("Could not find expected Aerosol compartment, " + name + " in compartment manager");
