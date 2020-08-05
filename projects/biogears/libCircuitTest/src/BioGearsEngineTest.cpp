@@ -133,30 +133,6 @@ void BioGearsEngineTest::FillFunctionMap()
       LiteRespiratoryCircuitTest));
 
   bgeMap.insert(std::make_pair(
-    "InternalTemperatureVariableBMRCircuitTest",
-    &BioGearsEngineTest::InternalTemperatureVariableBMRCircuitTest));
-  bgeMap.insert(std::make_pair(
-    "InternalTemperatureVariableSkinCircuitTest",
-    &BioGearsEngineTest::InternalTemperatureVariableSkinCircuitTest));
-  bgeMap.insert(std::make_pair(
-    "InternalTemperatureVariableCoreCircuitTest",
-    &BioGearsEngineTest::InternalTemperatureVariableCoreCircuitTest));
-  bgeMap.insert(std::make_pair(
-    "EnvironmentVariableTemperatureCircuitTest",
-    &BioGearsEngineTest::EnvironmentVariableTemperatureCircuitTest));
-  bgeMap.insert(std::make_pair(
-    "CombinedInternalAndEnvironmentVariableBMRandTemperatureCircuitTest",
-    &BioGearsEngineTest::
-      CombinedInternalAndEnvironmentVariableBMRandTemperatureCircuitTest));
-  bgeMap.insert(std::make_pair(
-    "CombinedInternalAndEnvironmentSkinTempDropCircuitTest",
-    &BioGearsEngineTest::
-      CombinedInternalAndEnvironmentSkinTempDropCircuitTest));
-  bgeMap.insert(std::make_pair(
-    "EnvironmentISO7730ComparisonTest",
-    &BioGearsEngineTest::
-      EnvironmentISO7730ComparisonTest));
-  bgeMap.insert(std::make_pair(
     "LiteThermalCircuitTest",
     &BioGearsEngineTest::
       LiteThermalCircuitTest));

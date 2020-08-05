@@ -658,7 +658,7 @@ void BloodChemistry::Sepsis()
 
   //We need to signal that there is a source of inflammation--soon this will be incorporated with Acute Inflammation Model
   //Right now we are patching in Sepsis functionality and saving merge for a future story
-  SEThermalCircuitPath* coreCompliance = m_data.GetCircuits().GetTemperatureCircuit().GetPath(BGE::ThermalLitePath::CoreToGround);
+  SEThermalCircuitPath* coreCompliance = m_data.GetCircuits().GetTemperatureCircuit().GetPath(BGE::ThermalPath::CoreToGround);
 
   //Physiological response
   double wbcBaseline_ct_Per_uL = 7000.0;

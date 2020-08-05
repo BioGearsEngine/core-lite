@@ -353,12 +353,12 @@ void BioGearsSubstances::InitializeLiquidCompartmentNonGases()
   // Upper Tract
   SELiquidCompartment* BowmansCapsules = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::BowmansCapsules);
   SELiquidCompartment* Tubules = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Tubules);
-  SELiquidCompartment* Ureter = m_data.GetCompartments().GetLiquidCompartment(BGE::UrineLiteCompartment::Ureter);
+  SELiquidCompartment* Ureter = m_data.GetCompartments().GetLiquidCompartment(BGE::UrineCompartment::Ureter);
 
   // Lower Tract
   // Note I don't modify the urethra, it's just a flow pipe, with no volume, hence, no substance quantities (NaN)
   //SELiquidCompartment* urethra = m_data.GetCompartments().GetUrineCompartment("Urethra");
-  SELiquidCompartment* bladder = m_data.GetCompartments().GetLiquidCompartment(BGE::UrineLiteCompartment::Bladder);
+  SELiquidCompartment* bladder = m_data.GetCompartments().GetLiquidCompartment(BGE::UrineCompartment::Bladder);
   SELiquidCompartment* lymph = m_data.GetCompartments().GetLiquidCompartment(BGE::LymphCompartment::Lymph);
   //Right now the lymph is not used, but code is in place and commented out in case we revisit
   SETissueCompartment* brain = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Brain);

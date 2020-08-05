@@ -205,7 +205,7 @@ void Cardiovascular::Initialize()
   double systemicVascularResistance_mmHg_s_Per_mL = (GetMeanArterialPressure().GetValue(PressureUnit::mmHg) - GetMeanCentralVenousPressure().GetValue(PressureUnit::mmHg)) / GetCardiacOutput().GetValue(VolumePerTimeUnit::mL_Per_s);
   GetSystemicVascularResistance().SetValue(systemicVascularResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
   // This is not part of stabilization due to not knowing when we hit the patient parameters with a circuit configuration
-  //TuneCircuit();
+  TuneCircuit();
   systemicVascularResistance_mmHg_s_Per_mL = (GetMeanArterialPressure().GetValue(PressureUnit::mmHg) - GetMeanCentralVenousPressure().GetValue(PressureUnit::mmHg)) / GetCardiacOutput().GetValue(VolumePerTimeUnit::mL_Per_s);
   GetSystemicVascularResistance().SetValue(systemicVascularResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
   m_LeftHeartElastanceMax_mmHg_Per_mL = m_data.GetConfiguration().GetLeftHeartElastanceMaximum(FlowElastanceUnit::mmHg_Per_mL);
@@ -361,7 +361,7 @@ void Cardiovascular::SetUp()
   m_LeftHeartToAorta = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::LeftHeart1ToAorta2);
 
   /// \todo We are assuming that the complex renal system is connected. Make it agnostic.
-  m_RenalArteryPath = m_CirculatoryCircuit->GetPath(BGE::RenalLitePath::RenalArteryToAfferentArteriole);
+  m_RenalArteryPath = m_CirculatoryCircuit->GetPath(BGE::RenalPath::RenalArteryToAfferentArteriole);
 
   m_systemicResistancePaths.clear();
   m_systemicCompliancePaths.clear();

@@ -143,13 +143,6 @@ protected:
 public:
   ////////////////////////////
   // Environment and Energy //
-  void InternalTemperatureVariableBMRCircuitTest(const std::string& sTestDirectory);
-  void InternalTemperatureVariableSkinCircuitTest(const std::string& sTestDirectory);
-  void InternalTemperatureVariableCoreCircuitTest(const std::string& sTestDirectory);
-  void EnvironmentVariableTemperatureCircuitTest(const std::string& sTestDirectory);
-  void CombinedInternalAndEnvironmentVariableBMRandTemperatureCircuitTest(const std::string& sTestDirectory);
-  void CombinedInternalAndEnvironmentSkinTempDropCircuitTest(const std::string& sTestDirectory);
-  void EnvironmentISO7730ComparisonTest(const std::string& sTestDirectory);
   void LiteThermalCircuitTest(const std::string& sTestDirectory);
 
 protected:

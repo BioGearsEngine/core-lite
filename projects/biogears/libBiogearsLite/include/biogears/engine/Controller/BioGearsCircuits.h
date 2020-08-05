@@ -44,8 +44,6 @@ public:
   SEFluidCircuit& GetRespiratoryAndMechanicalVentilatorCircuit();
 
   SEThermalCircuit& GetTemperatureCircuit();
-  SEThermalCircuit& GetExternalTemperatureCircuit();
-  SEThermalCircuit& GetInternalTemperatureCircuit();
 
   SEFluidCircuit& GetAnesthesiaMachineCircuit();
 
@@ -77,8 +75,6 @@ protected:
   SEFluidCircuit* m_CombinedRespiratoryMechanicalVentilatorCircuit;
 
   SEThermalCircuit* m_TemperatureCircuit;
-  SEThermalCircuit* m_InternalTemperatureCircuit; // Attempt at circuit independence
-  SEThermalCircuit* m_ExternalTemperatureCircuit; // Attempt at circuit independence
 };
 }
 ///////////////////////////////
@@ -232,59 +228,11 @@ namespace tatrc {
         DEFINE_STATIC_STRING(Ambient);
       };
 
-      ///////////////////////////////////////////
-      // External Temperature Circuit Enums //
-      ///////////////////////////////////////////
-
-      namespace ExternalTemperatureNode {
-
-        DEFINE_STATIC_STRING(Active);
-        DEFINE_STATIC_STRING(Clothing);
-        DEFINE_STATIC_STRING(Enclosure);
-        DEFINE_STATIC_STRING(ExternalCore);
-        DEFINE_STATIC_STRING(ExternalSkin);
-        DEFINE_STATIC_STRING(ExternalGround);
-        DEFINE_STATIC_STRING(Ambient);
-      };
-
-      namespace ExternalTemperaturePath {
-
-        DEFINE_STATIC_STRING(ActiveToClothing);
-        DEFINE_STATIC_STRING(ClothingToEnclosure);
-        DEFINE_STATIC_STRING(ClothingToEnvironment);
-        DEFINE_STATIC_STRING(ExternalCoreToGround);
-        DEFINE_STATIC_STRING(GroundToActive);
-        DEFINE_STATIC_STRING(GroundToClothing);
-        DEFINE_STATIC_STRING(GroundToEnclosure);
-        DEFINE_STATIC_STRING(GroundToEnvironment);
-        DEFINE_STATIC_STRING(ExternalSkinToGround);
-        DEFINE_STATIC_STRING(ExternalSkinToClothing);
-      };
-
       ////////////////////////////////////////
-      // Internal Temperature Circuit Enums //
+      // ThermalCircuit Enums //
       ////////////////////////////////////////
 
-      namespace InternalTemperatureNode {
-
-        DEFINE_STATIC_STRING(InternalCore);
-        DEFINE_STATIC_STRING(InternalSkin);
-        DEFINE_STATIC_STRING(InternalGround);
-      };
-
-      namespace InternalTemperaturePath {
-
-        DEFINE_STATIC_STRING(GroundToInternalCore);
-        DEFINE_STATIC_STRING(InternalCoreToInternalSkin);
-        DEFINE_STATIC_STRING(InternalCoreToGround);
-        DEFINE_STATIC_STRING(InternalSkinToGround);
-      };
-
-      ////////////////////////////////////////
-      // Thermal Lite Circuit Enums //
-      ////////////////////////////////////////
-
-      namespace ThermalLiteNode {
+      namespace ThermalNode {
 
         DEFINE_STATIC_STRING(Core);
         DEFINE_STATIC_STRING(Skin);
@@ -293,7 +241,7 @@ namespace tatrc {
         DEFINE_STATIC_STRING(Ref);
       };
 
-      namespace ThermalLitePath {
+      namespace ThermalPath {
 
         DEFINE_STATIC_STRING(CoreToRef); //Respiration
         DEFINE_STATIC_STRING(RefToEnvironment); //TempSource
@@ -302,16 +250,6 @@ namespace tatrc {
         DEFINE_STATIC_STRING(CoreToSkin); //Resistor
         DEFINE_STATIC_STRING(CoreToGround); //Capacitor
         DEFINE_STATIC_STRING(SkinToGround); //Capacitor
-      };
-
-      ////////////////////////////////////////
-      // Combined Temperature Circuit Enums //
-      ////////////////////////////////////////
-
-      namespace CombinedTemperaturePath {
-
-        DEFINE_STATIC_STRING(InternalCoreToExternalCore);
-        DEFINE_STATIC_STRING(InternalSkinToExternalSkin);
       };
 
       namespace CardiovascularNode {
@@ -639,100 +577,9 @@ namespace tatrc {
         DEFINE_STATIC_STRING(GutIToGround);
         DEFINE_STATIC_STRING(GutE3ToGutL);
         DEFINE_STATIC_STRING(GutLToLymph)
-      }
+      };
 
       namespace RenalNode {
-
-        // Blood
-        DEFINE_STATIC_STRING(RightAortaConnection);
-        DEFINE_STATIC_STRING(RightRenalArtery);
-        DEFINE_STATIC_STRING(RightAfferentArteriole);
-        DEFINE_STATIC_STRING(RightGlomerularCapillaries);
-        DEFINE_STATIC_STRING(RightNetGlomerularCapillaries);
-        DEFINE_STATIC_STRING(RightEfferentArteriole);
-        DEFINE_STATIC_STRING(RightPeritubularCapillaries);
-        DEFINE_STATIC_STRING(RightNetPeritubularCapillaries);
-        DEFINE_STATIC_STRING(RightRenalVein);
-        DEFINE_STATIC_STRING(RightVenaCavaConnection);
-        // Urine
-        DEFINE_STATIC_STRING(RightBowmansCapsules);
-        DEFINE_STATIC_STRING(RightNetBowmansCapsules);
-        DEFINE_STATIC_STRING(RightTubules);
-        DEFINE_STATIC_STRING(RightNetTubules);
-        DEFINE_STATIC_STRING(RightUreter);
-
-        // Blood
-        DEFINE_STATIC_STRING(LeftAortaConnection);
-        DEFINE_STATIC_STRING(LeftRenalArtery);
-        DEFINE_STATIC_STRING(LeftAfferentArteriole);
-        DEFINE_STATIC_STRING(LeftGlomerularCapillaries);
-        DEFINE_STATIC_STRING(LeftNetGlomerularCapillaries);
-        DEFINE_STATIC_STRING(LeftEfferentArteriole);
-        DEFINE_STATIC_STRING(LeftPeritubularCapillaries);
-        DEFINE_STATIC_STRING(LeftNetPeritubularCapillaries);
-        DEFINE_STATIC_STRING(LeftRenalVein);
-        DEFINE_STATIC_STRING(LeftVenaCavaConnection);
-        // Urine
-        DEFINE_STATIC_STRING(LeftNetBowmansCapsules);
-        DEFINE_STATIC_STRING(LeftBowmansCapsules);
-        DEFINE_STATIC_STRING(LeftTubules);
-        DEFINE_STATIC_STRING(LeftNetTubules);
-        DEFINE_STATIC_STRING(LeftUreter);
-
-        DEFINE_STATIC_STRING(Bladder);
-
-        DEFINE_STATIC_STRING(Ground);
-      };
-
-      namespace RenalPath {
-
-        DEFINE_STATIC_STRING(RightAortaConnectionToRenalArtery);
-        DEFINE_STATIC_STRING(RightRenalArteryToAfferentArteriole);
-        DEFINE_STATIC_STRING(RightRenalArteryCompliance);
-        DEFINE_STATIC_STRING(RightAfferentArterioleToGlomerularCapillaries);
-        DEFINE_STATIC_STRING(RightGlomerularCapillariesToEfferentArteriole);
-        DEFINE_STATIC_STRING(RightGlomerularCapillariesCompliance);
-        DEFINE_STATIC_STRING(RightEfferentArterioleToPeritubularCapillaries);
-        DEFINE_STATIC_STRING(RightPeritubularCapillariesToRenalVein);
-        DEFINE_STATIC_STRING(RightRenalVeinToVenaCavaConnection);
-        DEFINE_STATIC_STRING(RightRenalVeinCompliance);
-
-        DEFINE_STATIC_STRING(RightGlomerularCapillariesToNetGlomerularCapillaries);
-        DEFINE_STATIC_STRING(RightNetGlomerularCapillariesToNetBowmansCapsules);
-        DEFINE_STATIC_STRING(RightBowmansCapsulesToNetBowmansCapsules);
-        DEFINE_STATIC_STRING(RightBowmansCapsulesToTubules);
-        DEFINE_STATIC_STRING(RightTubulesToUreter);
-        DEFINE_STATIC_STRING(RightTubulesToNetTubules);
-        DEFINE_STATIC_STRING(RightNetTubulesToNetPeritubularCapillaries);
-        DEFINE_STATIC_STRING(RightPeritubularCapillariesToNetPeritubularCapillaries);
-        DEFINE_STATIC_STRING(RightUreterToBladder);
-
-        DEFINE_STATIC_STRING(LeftAortaConnectionToRenalArtery);
-        DEFINE_STATIC_STRING(LeftRenalArteryToAfferentArteriole);
-        DEFINE_STATIC_STRING(LeftRenalArteryCompliance);
-        DEFINE_STATIC_STRING(LeftAfferentArterioleToGlomerularCapillaries);
-        DEFINE_STATIC_STRING(LeftGlomerularCapillariesToEfferentArteriole);
-        DEFINE_STATIC_STRING(LeftGlomerularCapillariesCompliance);
-        DEFINE_STATIC_STRING(LeftEfferentArterioleToPeritubularCapillaries);
-        DEFINE_STATIC_STRING(LeftPeritubularCapillariesToRenalVein);
-        DEFINE_STATIC_STRING(LeftRenalVeinToVenaCavaConnection);
-        DEFINE_STATIC_STRING(LeftRenalVeinCompliance);
-
-        DEFINE_STATIC_STRING(LeftGlomerularCapillariesToNetGlomerularCapillaries);
-        DEFINE_STATIC_STRING(LeftNetGlomerularCapillariesToNetBowmansCapsules);
-        DEFINE_STATIC_STRING(LeftBowmansCapsulesToNetBowmansCapsules);
-        DEFINE_STATIC_STRING(LeftBowmansCapsulesToTubules);
-        DEFINE_STATIC_STRING(LeftTubulesToUreter);
-        DEFINE_STATIC_STRING(LeftTubulesToNetTubules);
-        DEFINE_STATIC_STRING(LeftNetTubulesToNetPeritubularCapillaries);
-        DEFINE_STATIC_STRING(LeftPeritubularCapillariesToNetPeritubularCapillaries);
-        DEFINE_STATIC_STRING(LeftUreterToBladder);
-
-        DEFINE_STATIC_STRING(BladderToGroundPressure);
-        DEFINE_STATIC_STRING(BladderToGroundUrinate);
-      };
-
-      namespace RenalLiteNode {
 
         // Blood
         DEFINE_STATIC_STRING(AortaConnection);
@@ -757,7 +604,7 @@ namespace tatrc {
         DEFINE_STATIC_STRING(Ground);
       };
 
-      namespace RenalLitePath {
+      namespace RenalPath {
 
         DEFINE_STATIC_STRING(AortaConnectionToRenalArtery);
         DEFINE_STATIC_STRING(RenalArteryToAfferentArteriole);

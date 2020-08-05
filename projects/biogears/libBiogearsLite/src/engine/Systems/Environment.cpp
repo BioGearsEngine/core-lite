@@ -142,15 +142,15 @@ void Environment::SetUp()
   m_AmbientGases = m_data.GetCompartments().GetGasCompartment(BGE::EnvironmentCompartment::Ambient);
   m_AmbientAerosols = m_data.GetCompartments().GetLiquidCompartment(BGE::EnvironmentCompartment::Ambient);
   //Nodes
-  m_ThermalEnvironment = m_EnvironmentCircuit->GetNode(BGE::ThermalLiteNode::Environment);
-  m_SkinNode = m_EnvironmentCircuit->GetNode(BGE::ThermalLiteNode::Skin);
+  m_ThermalEnvironment = m_EnvironmentCircuit->GetNode(BGE::ThermalNode::Environment);
+  m_SkinNode = m_EnvironmentCircuit->GetNode(BGE::ThermalNode::Skin);
   m_ClothingNode = m_SkinNode;
   m_EnclosureNode = m_ThermalEnvironment;
   //Paths
-  m_EnvironmentCoreToGroundPath = m_EnvironmentCircuit->GetPath(BGE::ThermalLitePath::CoreToRef);
-  m_GroundToEnvironmentPath = m_EnvironmentCircuit->GetPath(BGE::ThermalLitePath::RefToEnvironment);
-  m_ClothingToEnvironmentPath = m_EnvironmentCircuit->GetPath(BGE::ThermalLitePath::EnvironmentToSkin); //RENAME ONCE ESTABLISHED...NO MORE CLOTHING DEFINED
-  m_SkinToGroundPath = m_EnvironmentCircuit->GetPath(BGE::ThermalLitePath::SkinToGround);
+  m_EnvironmentCoreToGroundPath = m_EnvironmentCircuit->GetPath(BGE::ThermalPath::CoreToRef);
+  m_GroundToEnvironmentPath = m_EnvironmentCircuit->GetPath(BGE::ThermalPath::RefToEnvironment);
+  m_ClothingToEnvironmentPath = m_EnvironmentCircuit->GetPath(BGE::ThermalPath::EnvironmentToSkin); //RENAME ONCE ESTABLISHED...NO MORE CLOTHING DEFINED
+  m_SkinToGroundPath = m_EnvironmentCircuit->GetPath(BGE::ThermalPath::SkinToGround);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -464,9 +464,9 @@ void Environment::CalculateEvaporationLite()
       heatLeft = ((sweatCapacitorModifier - 1.025) / 1.025); // percent heat capacitance unaccounted for
       sweatCapacitorModifier = 1.025;
       double skinSweatHeatLost_K = 0.0000000572 * heatLeft * EvaporativeHeatLossFromSkin_W / (dSurfaceArea_m2 * dEvaporativeHeatTransferCoefficient_WPerM2_K); //Greatly scaled down (through tuning) to reduce effect directly on node
-      m_data.GetCircuits().GetTemperatureCircuit().GetNode(BGE::ThermalLiteNode::Skin)->GetTemperature().SetReadOnly(false);
-      m_data.GetCircuits().GetTemperatureCircuit().GetNode(BGE::ThermalLiteNode::Skin)->GetTemperature().SetValue(skinTemp_K - skinSweatHeatLost_K, TemperatureUnit::K);
-      m_data.GetCircuits().GetTemperatureCircuit().GetNode(BGE::ThermalLiteNode::Skin)->GetTemperature().SetReadOnly(true);
+      m_data.GetCircuits().GetTemperatureCircuit().GetNode(BGE::ThermalNode::Skin)->GetTemperature().SetReadOnly(false);
+      m_data.GetCircuits().GetTemperatureCircuit().GetNode(BGE::ThermalNode::Skin)->GetTemperature().SetValue(skinTemp_K - skinSweatHeatLost_K, TemperatureUnit::K);
+      m_data.GetCircuits().GetTemperatureCircuit().GetNode(BGE::ThermalNode::Skin)->GetTemperature().SetReadOnly(true);
     }
     newCap = sweatCapacitorModifier * (currentSkinCapacitor);
   } else {

@@ -191,7 +191,7 @@ namespace tatrc {
         DEFINE_STATIC_STRING(RightPulmonaryArteries);
         DEFINE_STATIC_STRING(RightPulmonaryCapillaries);
         DEFINE_STATIC_STRING(RightPulmonaryVeins);
-        // RenalLite
+        // Renal
         DEFINE_STATIC_STRING_EX(Kidneys, KidneysVasculature);
         DEFINE_STATIC_STRING(RenalArtery);
         DEFINE_STATIC_STRING(Nephron);
@@ -323,41 +323,7 @@ namespace tatrc {
         }
       };
 
-       namespace UrineCompartment {
-
-        DEFINE_STATIC_STRING(Ureters);
-        DEFINE_STATIC_STRING(LeftUreter);
-        DEFINE_STATIC_STRING(RightUreter);
-        DEFINE_STATIC_STRING(Bladder);
-
-        static const std::vector<std::string>& GetValues()
-        {
-          static std::vector<std::string> _values = {
-            Ureters, LeftUreter, RightUreter, Bladder
-          };
-          return _values;
-        }
-      };
-
-       namespace UrineLink {
-
-         DEFINE_STATIC_STRING(RightTubulesToUreter);
-         DEFINE_STATIC_STRING(LeftTubulesToUreter);
-         DEFINE_STATIC_STRING(RightUreterToBladder);
-         DEFINE_STATIC_STRING(LeftUreterToBladder);
-         DEFINE_STATIC_STRING(BladderToGround);
-         DEFINE_STATIC_STRING(BladderToGroundSource);
-
-         static const std::vector<std::string>& GetValues()
-         {
-           static std::vector<std::string> _values = {
-             RightTubulesToUreter, LeftTubulesToUreter, RightUreterToBladder, LeftUreterToBladder, BladderToGround, BladderToGroundSource
-           };
-           return _values;
-         }
-       }
-
-      namespace UrineLiteCompartment {
+      namespace UrineCompartment {
 
         DEFINE_STATIC_STRING(Ureter);
         DEFINE_STATIC_STRING(Bladder);
@@ -371,7 +337,7 @@ namespace tatrc {
         }
       };
 
-      namespace UrineLiteLink {
+      namespace UrineLink {
 
         DEFINE_STATIC_STRING(TubulesToUreter);
         DEFINE_STATIC_STRING(UreterToBladder);
@@ -426,56 +392,6 @@ namespace tatrc {
         }
       };
 
-      namespace TemperatureCompartment {
-
-        DEFINE_STATIC_STRING(Active);
-        DEFINE_STATIC_STRING(Ambient);
-        DEFINE_STATIC_STRING(Clothing);
-        DEFINE_STATIC_STRING(Enclosure);
-        DEFINE_STATIC_STRING(ExternalCore);
-        DEFINE_STATIC_STRING(ExternalSkin);
-        DEFINE_STATIC_STRING(ExternalGround);
-        DEFINE_STATIC_STRING(InternalCore);
-        DEFINE_STATIC_STRING(InternalSkin);
-        DEFINE_STATIC_STRING(InternalGround);
-
-        static const std::vector<std::string>& GetValues()
-        {
-          static std::vector<std::string> _values = {
-            Active, Ambient, Clothing, Enclosure, ExternalCore, ExternalSkin, ExternalGround, InternalCore, InternalSkin, InternalGround
-          };
-          return _values;
-        }
-      };
-
-      namespace TemperatureLink {
-
-        DEFINE_STATIC_STRING(ActiveToClothing);
-        DEFINE_STATIC_STRING(ClothingToEnclosure);
-        DEFINE_STATIC_STRING(ClothingToEnvironment);
-        DEFINE_STATIC_STRING(ExternalCoreToGround);
-        DEFINE_STATIC_STRING(GroundToActive);
-        DEFINE_STATIC_STRING(GroundToClothing);
-        DEFINE_STATIC_STRING(GroundToEnclosure);
-        DEFINE_STATIC_STRING(GroundToEnvironment);
-        DEFINE_STATIC_STRING(ExternalSkinToGround);
-        DEFINE_STATIC_STRING(ExternalSkinToClothing);
-        DEFINE_STATIC_STRING(GroundToInternalCore);
-        DEFINE_STATIC_STRING(InternalCoreToInternalSkin);
-        DEFINE_STATIC_STRING(InternalCoreToGround);
-        DEFINE_STATIC_STRING(InternalSkinToGround);
-        DEFINE_STATIC_STRING(InternalCoreToExternalCore);
-        DEFINE_STATIC_STRING(InternalSkinToExternalSkin);
-
-        static const std::vector<std::string>& GetValues()
-        {
-          static std::vector<std::string> _values = {
-            ActiveToClothing, ClothingToEnclosure, ClothingToEnvironment, ExternalCoreToGround, GroundToActive, GroundToClothing, GroundToEnclosure, GroundToEnvironment, ExternalSkinToGround, ExternalSkinToClothing, GroundToInternalCore, InternalCoreToInternalSkin, InternalCoreToGround, InternalSkinToGround, InternalCoreToExternalCore, InternalSkinToExternalSkin
-          };
-          return _values;
-        }
-      };
-
       namespace EnvironmentCompartment {
 
         DEFINE_STATIC_STRING(Ambient);
@@ -489,7 +405,7 @@ namespace tatrc {
         }
       };
 
-      namespace TemperatureLiteCompartment {
+      namespace TemperatureCompartment {
 
         DEFINE_STATIC_STRING(Core);
         DEFINE_STATIC_STRING(Environment);
@@ -506,7 +422,7 @@ namespace tatrc {
         }
       };
 
-      namespace TemperatureLiteLink {
+      namespace TemperatureLink {
 
         DEFINE_STATIC_STRING(CoreToRef); //Respiration
         DEFINE_STATIC_STRING(RefToEnvironment); //TempSource

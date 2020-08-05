@@ -41,8 +41,6 @@ void BioGearsCircuits::Clear()
   m_CombinedRespiratoryInhalerCircuit = nullptr;
   m_CombinedRespiratoryMechanicalVentilatorCircuit = nullptr;
   m_TemperatureCircuit = nullptr;
-  m_InternalTemperatureCircuit = nullptr;
-  m_ExternalTemperatureCircuit = nullptr;
 }
 
 bool BioGearsCircuits::Load(const CDM::CircuitManagerData& in)
@@ -176,17 +174,5 @@ SEThermalCircuit& BioGearsCircuits::GetTemperatureCircuit()
   if (m_TemperatureCircuit == nullptr)
     m_TemperatureCircuit = &CreateThermalCircuit(BGE::Circuits::Temperature);
   return *m_TemperatureCircuit;
-}
-SEThermalCircuit& BioGearsCircuits::GetInternalTemperatureCircuit()
-{
-  if (m_InternalTemperatureCircuit == nullptr)
-    m_InternalTemperatureCircuit = &CreateThermalCircuit(BGE::Circuits::InternalTemperature);
-  return *m_InternalTemperatureCircuit;
-}
-SEThermalCircuit& BioGearsCircuits::GetExternalTemperatureCircuit()
-{
-  if (m_ExternalTemperatureCircuit == nullptr)
-    m_ExternalTemperatureCircuit = &CreateThermalCircuit(BGE::Circuits::ExternalTemperature);
-  return *m_ExternalTemperatureCircuit;
 }
 }

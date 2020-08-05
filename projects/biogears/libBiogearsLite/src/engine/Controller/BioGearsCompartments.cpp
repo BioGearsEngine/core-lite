@@ -192,7 +192,7 @@ void BioGearsCompartments::StateChange()
       m_AerosolLeafCompartments.push_back(cmpt);
   }
 
-  SORT_CMPTS_LITE(Temperature, Thermal)
+  SORT_CMPTS(Temperature, Thermal)
 
   if (m_data.GetConfiguration().IsTissueEnabled()) {
     SORT_CMPTS(Tissue, Tissue);
@@ -224,7 +224,7 @@ void BioGearsCompartments::StateChange()
   }
 
   if (m_data.GetConfiguration().IsRenalEnabled()) {
-    SORT_CMPTS_LITE(Urine, Liquid);
+    SORT_CMPTS(Urine, Liquid);
   }
 
 
