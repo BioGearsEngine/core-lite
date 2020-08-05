@@ -228,9 +228,9 @@ void BioGearsCompartments::StateChange()
   }
 
 
-  SORT_CMPTS_LITE(Vascular, Liquid);
+  SORT_CMPTS(Vascular, Liquid);
 
-  for (const std::string& name : BGE::VascularLiteCompartment::GetValues()) {
+  for (const std::string& name : BGE::VascularCompartment::GetValues()) {
     SELiquidCompartment* cmpt = GetLiquidCompartment(name);
     if (cmpt == nullptr) {
       Warning("Could not find expected Vascular compartment, " + name + " in compartment manager");

@@ -184,14 +184,13 @@ private:
   SEFluidCircuitPath* m_pAortaToBone;
   SEFluidCircuitPath* m_pAortaToBrain;
   SEFluidCircuitPath* m_pBrainToVenaCava;
+  SEFluidCircuitPath* m_pAortaToKidneys;
   SEFluidCircuitPath* m_pAortaToLiver;
-  SEFluidCircuitPath* m_pAortaToLeftKidney;
   SEFluidCircuitPath* m_pAortaToLargeIntestine;
   SEFluidCircuitPath* m_pAortaToMuscle;
   SEFluidCircuitPath* m_pMuscleToVenaCava;
   SEFluidCircuitPath* m_pAortaToMyocardium;
   SEFluidCircuitPath* m_pMyocardiumToVenaCava;
-  SEFluidCircuitPath* m_pAortaToRightKidney;
   SEFluidCircuitPath* m_pAortaToSkin;
   SEFluidCircuitPath* m_pAortaToSmallIntestine;
   SEFluidCircuitPath* m_pAortaToSplanchnic;

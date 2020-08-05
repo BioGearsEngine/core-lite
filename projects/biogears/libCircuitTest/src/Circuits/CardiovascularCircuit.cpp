@@ -321,9 +321,9 @@ void BioGearsEngineTest::CardiovascularCircuitAndTransportTest(CardiovascularDri
   SEFluidCircuitPath* LeftCompliance = cvCircuit.GetPath(BGE::CardiovascularPath::LeftHeart1ToLeftHeart3);
   SEFluidCircuitPath* HeartLeft = cvCircuit.GetPath(BGE::CardiovascularPath::LeftHeart1ToAorta2);
 
-  SELiquidSubstanceQuantity* venaCavaN2 = cvGraph.GetCompartment(BGE::VascularLiteCompartment::VenaCava)->GetSubstanceQuantity(bg.GetSubstances().GetN2());
-  SELiquidSubstanceQuantity* leftPulmonaryCapillariesN2 = cvGraph.GetCompartment(BGE::VascularLiteCompartment::LeftPulmonaryCapillaries)->GetSubstanceQuantity(bg.GetSubstances().GetN2());
-  SELiquidSubstanceQuantity* rightPulmonaryCapillariesN2 = cvGraph.GetCompartment(BGE::VascularLiteCompartment::LeftPulmonaryCapillaries)->GetSubstanceQuantity(bg.GetSubstances().GetN2());
+  SELiquidSubstanceQuantity* venaCavaN2 = cvGraph.GetCompartment(BGE::VascularCompartment::VenaCava)->GetSubstanceQuantity(bg.GetSubstances().GetN2());
+  SELiquidSubstanceQuantity* leftPulmonaryCapillariesN2 = cvGraph.GetCompartment(BGE::VascularCompartment::LeftPulmonaryCapillaries)->GetSubstanceQuantity(bg.GetSubstances().GetN2());
+  SELiquidSubstanceQuantity* rightPulmonaryCapillariesN2 = cvGraph.GetCompartment(BGE::VascularCompartment::LeftPulmonaryCapillaries)->GetSubstanceQuantity(bg.GetSubstances().GetN2());
 
   SELiquidTransporter txpt(VolumePerTimeUnit::mL_Per_s, VolumeUnit::mL, MassUnit::ug, MassPerVolumeUnit::ug_Per_mL, bg.GetLogger());
   SEFluidCircuitCalculator calc(FlowComplianceUnit::mL_Per_mmHg, VolumePerTimeUnit::mL_Per_s, FlowInertanceUnit::mmHg_s2_Per_mL, PressureUnit::mmHg, VolumeUnit::mL, FlowResistanceUnit::mmHg_s_Per_mL, bg.GetLogger());

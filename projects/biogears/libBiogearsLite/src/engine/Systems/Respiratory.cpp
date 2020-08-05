@@ -328,7 +328,7 @@ void Respiratory::SetUp()
 
   //Common to both full and lite circuits
   m_Environment = m_data.GetCompartments().GetGasCompartment(BGE::EnvironmentCompartment::Ambient);
-  SELiquidCompartment* Aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta);
+  SELiquidCompartment* Aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Aorta);
   m_AortaO2 = Aorta->GetSubstanceQuantity(m_data.GetSubstances().GetO2());
   m_AortaCO2 = Aorta->GetSubstanceQuantity(m_data.GetSubstances().GetCO2());
 
@@ -598,7 +598,7 @@ void Respiratory::ProcessAerosolSubstances()
       // We only process mass deposited on the lungs (dead space and alveoli)
       // We do not currently do anything with the mass in the mouth and carina
       // Could possibly let it go into the stomach somehow...
-      tSubQ = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::LungIntracellular)->GetSubstanceQuantity(subQ->GetSubstance());
+      tSubQ = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::LungsIntracellular)->GetSubstanceQuantity(subQ->GetSubstance());
       tSubQ->GetMass().IncrementValue(leftDeadSpaceDepositied_ug + leftAlveoliDepositied_ug, MassUnit::ug);
       tSubQ->Balance(BalanceLiquidBy::Mass);
       combinedLeftBronchodilationEffects += bronchioleModifier * tSubQ->GetConcentration(MassPerVolumeUnit::ug_Per_mL);

@@ -315,89 +315,6 @@ namespace tatrc {
       };
 
       namespace CardiovascularNode {
-
-        DEFINE_STATIC_STRING(RightHeart1);
-        DEFINE_STATIC_STRING(RightHeart2);
-        DEFINE_STATIC_STRING(RightHeart3);
-
-        DEFINE_STATIC_STRING(MainPulmonaryArteries);
-        DEFINE_STATIC_STRING(LeftIntermediatePulmonaryArteries);
-        DEFINE_STATIC_STRING(LeftPulmonaryArteries);
-        DEFINE_STATIC_STRING(RightIntermediatePulmonaryArteries);
-        DEFINE_STATIC_STRING(RightPulmonaryArteries);
-
-        DEFINE_STATIC_STRING(LeftPulmonaryCapillaries);
-        DEFINE_STATIC_STRING(RightPulmonaryCapillaries);
-
-        DEFINE_STATIC_STRING(LeftIntermediatePulmonaryVeins);
-        DEFINE_STATIC_STRING(LeftPulmonaryVeins);
-        DEFINE_STATIC_STRING(RightIntermediatePulmonaryVeins);
-        DEFINE_STATIC_STRING(RightPulmonaryVeins);
-
-        DEFINE_STATIC_STRING(LeftHeart1);
-        DEFINE_STATIC_STRING(LeftHeart2);
-        DEFINE_STATIC_STRING(LeftHeart3);
-
-        DEFINE_STATIC_STRING(Aorta1);
-        DEFINE_STATIC_STRING(Aorta2);
-        DEFINE_STATIC_STRING(Aorta3);
-
-        DEFINE_STATIC_STRING(Bone1);
-        DEFINE_STATIC_STRING(Bone2);
-
-        DEFINE_STATIC_STRING(Brain1);
-        DEFINE_STATIC_STRING(Brain2);
-
-        DEFINE_STATIC_STRING(Fat1);
-        DEFINE_STATIC_STRING(Fat2);
-
-        DEFINE_STATIC_STRING(LargeIntestine1);
-
-        DEFINE_STATIC_STRING(Liver1);
-        DEFINE_STATIC_STRING(Liver2);
-        DEFINE_STATIC_STRING(PortalVein1);
-
-        DEFINE_STATIC_STRING(LeftArm1);
-        DEFINE_STATIC_STRING(LeftArm2);
-
-        DEFINE_STATIC_STRING(LeftKidney1);
-        DEFINE_STATIC_STRING(LeftKidney2);
-
-        DEFINE_STATIC_STRING(LeftLeg1);
-        DEFINE_STATIC_STRING(LeftLeg2);
-
-        DEFINE_STATIC_STRING(Muscle1);
-        DEFINE_STATIC_STRING(Muscle2);
-
-        DEFINE_STATIC_STRING(Myocardium1);
-        DEFINE_STATIC_STRING(Myocardium2);
-
-        DEFINE_STATIC_STRING(Pericardium1);
-
-        DEFINE_STATIC_STRING(RightArm1);
-        DEFINE_STATIC_STRING(RightArm2);
-
-        DEFINE_STATIC_STRING(RightKidney1);
-        DEFINE_STATIC_STRING(RightKidney2);
-
-        DEFINE_STATIC_STRING(RightLeg1);
-        DEFINE_STATIC_STRING(RightLeg2);
-
-        DEFINE_STATIC_STRING(Skin1);
-        DEFINE_STATIC_STRING(Skin2);
-
-        DEFINE_STATIC_STRING(SmallIntestine1);
-
-        DEFINE_STATIC_STRING(Splanchnic1);
-
-        DEFINE_STATIC_STRING(Spleen1);
-
-        DEFINE_STATIC_STRING(VenaCava);
-
-        DEFINE_STATIC_STRING(Ground);
-      };
-
-      namespace CardiovascularLiteNode {
         DEFINE_STATIC_STRING(RightHeart1);
         DEFINE_STATIC_STRING(RightHeart2);
         DEFINE_STATIC_STRING(RightHeart3);
@@ -438,12 +355,12 @@ namespace tatrc {
 
         DEFINE_STATIC_STRING(Gut1);
 
+        DEFINE_STATIC_STRING(Kidneys1);
+        DEFINE_STATIC_STRING(Kidneys2);
+
         DEFINE_STATIC_STRING(Liver1);
         DEFINE_STATIC_STRING(Liver2);
         DEFINE_STATIC_STRING(PortalVein1);
-
-        DEFINE_STATIC_STRING(LeftKidney1);
-        DEFINE_STATIC_STRING(LeftKidney2);
 
         DEFINE_STATIC_STRING(Legs1);
         DEFINE_STATIC_STRING(Legs2);
@@ -456,9 +373,6 @@ namespace tatrc {
 
         DEFINE_STATIC_STRING(Pericardium1);
 
-        DEFINE_STATIC_STRING(RightKidney1);
-        DEFINE_STATIC_STRING(RightKidney2);
-
         DEFINE_STATIC_STRING(Skin1);
         DEFINE_STATIC_STRING(Skin2);
 
@@ -468,153 +382,6 @@ namespace tatrc {
       };
 
       namespace CardiovascularPath {
-
-        // Heart and Lungs
-        DEFINE_STATIC_STRING(VenaCavaToRightHeart2);
-        DEFINE_STATIC_STRING(RightHeart2ToRightHeart1);
-        DEFINE_STATIC_STRING(RightHeart1ToRightHeart3);
-        DEFINE_STATIC_STRING(RightHeart3ToGround);
-        DEFINE_STATIC_STRING(RightHeart1ToMainPulmonaryArteries);
-        DEFINE_STATIC_STRING(MainPulmonaryArteriesToRightIntermediatePulmonaryArteries);
-        DEFINE_STATIC_STRING(RightIntermediatePulmonaryArteriesToRightPulmonaryArteries);
-        DEFINE_STATIC_STRING(RightPulmonaryArteriesToRightPulmonaryVeins);
-        DEFINE_STATIC_STRING(RightPulmonaryArteriesToRightPulmonaryCapillaries);
-        DEFINE_STATIC_STRING(RightPulmonaryArteriesToGround);
-        DEFINE_STATIC_STRING(RightPulmonaryCapillariesToRightPulmonaryVeins);
-        DEFINE_STATIC_STRING(RightPulmonaryCapillariesToGround);
-        DEFINE_STATIC_STRING(RightPulmonaryVeinsToRightIntermediatePulmonaryVeins);
-        DEFINE_STATIC_STRING(RightPulmonaryVeinsToGround);
-        DEFINE_STATIC_STRING(RightIntermediatePulmonaryVeinsToLeftHeart2);
-        DEFINE_STATIC_STRING(MainPulmonaryArteriesToLeftIntermediatePulmonaryArteries);
-        DEFINE_STATIC_STRING(LeftIntermediatePulmonaryArteriesToLeftPulmonaryArteries);
-        DEFINE_STATIC_STRING(LeftPulmonaryArteriesToLeftPulmonaryVeins);
-        DEFINE_STATIC_STRING(LeftPulmonaryArteriesToLeftPulmonaryCapillaries);
-        DEFINE_STATIC_STRING(LeftPulmonaryArteriesToGround);
-        DEFINE_STATIC_STRING(LeftPulmonaryCapillariesToGround);
-        DEFINE_STATIC_STRING(LeftPulmonaryCapillariesToLeftPulmonaryVeins);
-        DEFINE_STATIC_STRING(LeftPulmonaryVeinsToLeftIntermediatePulmonaryVeins);
-        DEFINE_STATIC_STRING(LeftPulmonaryVeinsToGround);
-        DEFINE_STATIC_STRING(LeftIntermediatePulmonaryVeinsToLeftHeart2)
-        DEFINE_STATIC_STRING(LeftHeart2ToLeftHeart1);
-        DEFINE_STATIC_STRING(LeftHeart1ToLeftHeart3);
-        DEFINE_STATIC_STRING(LeftHeart3ToGround);
-        DEFINE_STATIC_STRING(LeftHeart1ToAorta2);
-        DEFINE_STATIC_STRING(Aorta2ToAorta3);
-        DEFINE_STATIC_STRING(Aorta3ToAorta1);
-        DEFINE_STATIC_STRING(Aorta1ToGround);
-        // Brain
-        DEFINE_STATIC_STRING(Aorta1ToBrain1);
-        DEFINE_STATIC_STRING(Brain1ToGround);
-        DEFINE_STATIC_STRING(Brain1ToBrain2);
-        DEFINE_STATIC_STRING(Brain2ToVenaCava);
-        // Bone
-        DEFINE_STATIC_STRING(Aorta1ToBone1);
-        DEFINE_STATIC_STRING(Bone1ToGround);
-        DEFINE_STATIC_STRING(Bone1ToBone2);
-        DEFINE_STATIC_STRING(Bone2ToVenaCava);
-        // Fat
-        DEFINE_STATIC_STRING(Aorta1ToFat1);
-        DEFINE_STATIC_STRING(Fat1ToGround);
-        DEFINE_STATIC_STRING(Fat1ToFat2);
-        DEFINE_STATIC_STRING(Fat2ToVenaCava);
-        // Large Intestine
-        DEFINE_STATIC_STRING(Aorta1ToLargeIntestine);
-        DEFINE_STATIC_STRING(LargeIntestineToGround);
-        DEFINE_STATIC_STRING(LargeIntestineToPortalVein);
-        // Left Arm
-        DEFINE_STATIC_STRING(Aorta1ToLeftArm1);
-        DEFINE_STATIC_STRING(LeftArm1ToGround);
-        DEFINE_STATIC_STRING(LeftArm1ToLeftArm2);
-        DEFINE_STATIC_STRING(LeftArm2ToVenaCava);
-        // Left Kidney
-        DEFINE_STATIC_STRING(Aorta1ToLeftKidney1);
-        DEFINE_STATIC_STRING(LeftKidney1ToGround);
-        DEFINE_STATIC_STRING(LeftKidney1ToLeftKidney2);
-        DEFINE_STATIC_STRING(LeftKidney2ToVenaCava);
-        // Left Leg
-        DEFINE_STATIC_STRING(Aorta1ToLeftLeg1);
-        DEFINE_STATIC_STRING(LeftLeg1ToGround);
-        DEFINE_STATIC_STRING(LeftLeg1ToLeftLeg2);
-        DEFINE_STATIC_STRING(LeftLeg2ToVenaCava);
-        // Liver
-        DEFINE_STATIC_STRING(Aorta1ToLiver1);
-        DEFINE_STATIC_STRING(Liver1ToGround);
-        DEFINE_STATIC_STRING(PortalVeinToLiver1);
-        DEFINE_STATIC_STRING(Liver1ToLiver2);
-        DEFINE_STATIC_STRING(Liver2ToVenaCava);
-        // Muscle
-        DEFINE_STATIC_STRING(Aorta1ToMuscle1);
-        DEFINE_STATIC_STRING(Muscle1ToGround);
-        DEFINE_STATIC_STRING(Muscle1ToMuscle2);
-        DEFINE_STATIC_STRING(Muscle2ToVenaCava);
-        // Myocardium
-        DEFINE_STATIC_STRING(Aorta1ToMyocardium1);
-        DEFINE_STATIC_STRING(Myocardium1ToGround);
-        DEFINE_STATIC_STRING(Myocardium1ToMyocardium2);
-        DEFINE_STATIC_STRING(Myocardium2ToVenaCava);
-        // Pericardium
-        DEFINE_STATIC_STRING(Pericardium1ToGround);
-        DEFINE_STATIC_STRING(GroundToPericardium1);
-        // Right Arm
-        DEFINE_STATIC_STRING(Aorta1ToRightArm1);
-        DEFINE_STATIC_STRING(RightArm1ToGround);
-        DEFINE_STATIC_STRING(RightArm1ToRightArm2);
-        DEFINE_STATIC_STRING(RightArm2ToVenaCava);
-        // Right Kidney
-        DEFINE_STATIC_STRING(Aorta1ToRightKidney1);
-        DEFINE_STATIC_STRING(RightKidney1ToGround);
-        DEFINE_STATIC_STRING(RightKidney1ToRightKidney2);
-        DEFINE_STATIC_STRING(RightKidney2ToVenaCava);
-        // Kidney
-        DEFINE_STATIC_STRING(Aorta1ToKidney);
-        DEFINE_STATIC_STRING(KidneyToVenaCava);
-        // Right Leg
-        DEFINE_STATIC_STRING(Aorta1ToRightLeg1);
-        DEFINE_STATIC_STRING(RightLeg1ToGround);
-        DEFINE_STATIC_STRING(RightLeg1ToRightLeg2);
-        DEFINE_STATIC_STRING(RightLeg2ToVenaCava);
-        // Skin
-        DEFINE_STATIC_STRING(Aorta1ToSkin1);
-        DEFINE_STATIC_STRING(Skin1ToGround);
-        DEFINE_STATIC_STRING(Skin1ToSkin2);
-        DEFINE_STATIC_STRING(Skin2ToVenaCava);
-        // Small Intestine
-        DEFINE_STATIC_STRING(Aorta1ToSmallIntestine);
-        DEFINE_STATIC_STRING(SmallIntestineToGround);
-        DEFINE_STATIC_STRING(SmallIntestineToPortalVein);
-        // Splanchnic
-        DEFINE_STATIC_STRING(Aorta1ToSplanchnic);
-        DEFINE_STATIC_STRING(SplanchnicToGround);
-        DEFINE_STATIC_STRING(SplanchnicToPortalVein);
-        // Spleen
-        DEFINE_STATIC_STRING(Aorta1ToSpleen);
-        DEFINE_STATIC_STRING(SpleenToGround);
-        DEFINE_STATIC_STRING(SpleenToPortalVein);
-        // Vena Cava
-        DEFINE_STATIC_STRING(VenaCavaToGround);
-        DEFINE_STATIC_STRING(IVToVenaCava);
-        //Hemorrhage
-        DEFINE_STATIC_STRING(AortaBleed);
-        DEFINE_STATIC_STRING(BrainBleed);
-        DEFINE_STATIC_STRING(MyocardiumBleed);
-        DEFINE_STATIC_STRING(LeftLungBleed);
-        DEFINE_STATIC_STRING(RightLungBleed);
-        DEFINE_STATIC_STRING(LeftArmBleed);
-        DEFINE_STATIC_STRING(RightArmBleed);
-        DEFINE_STATIC_STRING(SpleenBleed);
-        DEFINE_STATIC_STRING(SmallIntestineBleed);
-        DEFINE_STATIC_STRING(LargeIntestineBleed);
-        DEFINE_STATIC_STRING(SplanchnicBleed);
-        DEFINE_STATIC_STRING(RightKidneyBleed);
-        DEFINE_STATIC_STRING(LeftKidneyBleed);
-        DEFINE_STATIC_STRING(LiverBleed);
-        DEFINE_STATIC_STRING(PortalBleed);
-        DEFINE_STATIC_STRING(LeftLegBleed);
-        DEFINE_STATIC_STRING(RightLegBleed);
-        DEFINE_STATIC_STRING(VenaCavaBleed);
-      };
-
-      namespace CardiovascularLitePath {
 
         DEFINE_STATIC_STRING(KidneyBleed)
         // Heart and Lungs
@@ -674,11 +441,11 @@ namespace tatrc {
         DEFINE_STATIC_STRING(Aorta1ToGut);
         DEFINE_STATIC_STRING(GutToGround);
         DEFINE_STATIC_STRING(GutToPortalVein);
-        // Left Kidney
-        DEFINE_STATIC_STRING(Aorta1ToLeftKidney1);
-        DEFINE_STATIC_STRING(LeftKidney1ToGround);
-        DEFINE_STATIC_STRING(LeftKidney1ToLeftKidney2);
-        DEFINE_STATIC_STRING(LeftKidney2ToVenaCava);
+        // Kidney
+        DEFINE_STATIC_STRING(Aorta1ToKidneys1);
+        DEFINE_STATIC_STRING(Kidneys1ToGround);
+        DEFINE_STATIC_STRING(Kidneys1ToKidneys2);
+        DEFINE_STATIC_STRING(Kidneys2ToVenaCava);
         //Legs
         DEFINE_STATIC_STRING(Aorta1ToLegs1);
         DEFINE_STATIC_STRING(Legs1ToGround);
@@ -700,14 +467,6 @@ namespace tatrc {
         DEFINE_STATIC_STRING(Myocardium1ToGround);
         DEFINE_STATIC_STRING(Myocardium1ToMyocardium2);
         DEFINE_STATIC_STRING(Myocardium2ToVenaCava);
-        // Pericardium
-        DEFINE_STATIC_STRING(Pericardium1ToGround);
-        DEFINE_STATIC_STRING(GroundToPericardium1);
-        // Right Kidney
-        DEFINE_STATIC_STRING(Aorta1ToRightKidney1);
-        DEFINE_STATIC_STRING(RightKidney1ToGround);
-        DEFINE_STATIC_STRING(RightKidney1ToRightKidney2);
-        DEFINE_STATIC_STRING(RightKidney2ToVenaCava);
         // Skin
         DEFINE_STATIC_STRING(Aorta1ToSkin1);
         DEFINE_STATIC_STRING(Skin1ToGround);
@@ -741,21 +500,21 @@ namespace tatrc {
         DEFINE_STATIC_STRING(FatE3);
         DEFINE_STATIC_STRING(FatI);
         DEFINE_STATIC_STRING(FatL);
-        DEFINE_STATIC_STRING(KidneyE1);
-        DEFINE_STATIC_STRING(KidneyE2);
-        DEFINE_STATIC_STRING(KidneyE3);
-        DEFINE_STATIC_STRING(KidneyI);
-        DEFINE_STATIC_STRING(KidneyL);
+        DEFINE_STATIC_STRING(KidneysE1);
+        DEFINE_STATIC_STRING(KidneysE2);
+        DEFINE_STATIC_STRING(KidneysE3);
+        DEFINE_STATIC_STRING(KidneysI);
+        DEFINE_STATIC_STRING(KidneysL);
         DEFINE_STATIC_STRING(LiverE1);
         DEFINE_STATIC_STRING(LiverE2);
         DEFINE_STATIC_STRING(LiverE3);
         DEFINE_STATIC_STRING(LiverI);
         DEFINE_STATIC_STRING(LiverL);
-        DEFINE_STATIC_STRING(LungE1);
-        DEFINE_STATIC_STRING(LungE2);
-        DEFINE_STATIC_STRING(LungE3);
-        DEFINE_STATIC_STRING(LungI);
-        DEFINE_STATIC_STRING(LungL);
+        DEFINE_STATIC_STRING(LungsE1);
+        DEFINE_STATIC_STRING(LungsE2);
+        DEFINE_STATIC_STRING(LungsE3);
+        DEFINE_STATIC_STRING(LungsI);
+        DEFINE_STATIC_STRING(LungsL);
         DEFINE_STATIC_STRING(Lymph)
         DEFINE_STATIC_STRING(MuscleE1);
         DEFINE_STATIC_STRING(MuscleE2);
@@ -808,14 +567,14 @@ namespace tatrc {
         DEFINE_STATIC_STRING(FatE3ToFatL);
         DEFINE_STATIC_STRING(FatLToLymph);
 
-        DEFINE_STATIC_STRING(KidneyVToKidneyE1);
-        DEFINE_STATIC_STRING(KidneyE1ToKidneyE2);
-        DEFINE_STATIC_STRING(KidneyE2ToKidneyE3);
-        DEFINE_STATIC_STRING(KidneyE3ToKidneyI);
-        DEFINE_STATIC_STRING(KidneyE3ToGround);
-        DEFINE_STATIC_STRING(KidneyIToGround);
-        DEFINE_STATIC_STRING(KidneyE3ToKidneyL);
-        DEFINE_STATIC_STRING(KidneyLToLymph);
+        DEFINE_STATIC_STRING(KidneysVToKidneysE1);
+        DEFINE_STATIC_STRING(KidneysE1ToKidneysE2);
+        DEFINE_STATIC_STRING(KidneysE2ToKidneysE3);
+        DEFINE_STATIC_STRING(KidneysE3ToKidneysI);
+        DEFINE_STATIC_STRING(KidneysE3ToGround);
+        DEFINE_STATIC_STRING(KidneysIToGround);
+        DEFINE_STATIC_STRING(KidneysE3ToKidneysL);
+        DEFINE_STATIC_STRING(KidneysLToLymph);
 
         DEFINE_STATIC_STRING(LiverVToLiverE1);
         DEFINE_STATIC_STRING(LiverE1ToLiverE2);
@@ -826,15 +585,15 @@ namespace tatrc {
         DEFINE_STATIC_STRING(LiverE3ToLiverL);
         DEFINE_STATIC_STRING(LiverLToLymph);
 
-        DEFINE_STATIC_STRING(LeftLungVToLungE1);
-        DEFINE_STATIC_STRING(RightLungVToLungE1);
-        DEFINE_STATIC_STRING(LungE1ToLungE2);
-        DEFINE_STATIC_STRING(LungE2ToLungE3);
-        DEFINE_STATIC_STRING(LungE3ToLungI);
-        DEFINE_STATIC_STRING(LungE3ToGround);
-        DEFINE_STATIC_STRING(LungIToGround);
-        DEFINE_STATIC_STRING(LungE3ToLungL);
-        DEFINE_STATIC_STRING(LungLToLymph);
+        DEFINE_STATIC_STRING(LeftLungVToLungsE1);
+        DEFINE_STATIC_STRING(RightLungVToLungsE1);
+        DEFINE_STATIC_STRING(LungsE1ToLungsE2);
+        DEFINE_STATIC_STRING(LungsE2ToLungsE3);
+        DEFINE_STATIC_STRING(LungsE3ToLungsI);
+        DEFINE_STATIC_STRING(LungsE3ToGround);
+        DEFINE_STATIC_STRING(LungsIToGround);
+        DEFINE_STATIC_STRING(LungsE3ToLungsL);
+        DEFINE_STATIC_STRING(LungsLToLymph);
 
         DEFINE_STATIC_STRING(LymphToVenaCava);
         DEFINE_STATIC_STRING(LymphToGround);

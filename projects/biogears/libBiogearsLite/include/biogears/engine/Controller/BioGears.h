@@ -169,7 +169,7 @@ public:
   void SetIntubation(CDM::enumOnOff::value s);
   void SetAirwayMode(CDM::enumBioGearsAirwayMode::value mode);
 protected:
-  void SetupCardiovascularLite();
+  void SetupCardiovascular();
   void SetupRenal();
   void SetupTissue();
   void SetupGastrointestinal();

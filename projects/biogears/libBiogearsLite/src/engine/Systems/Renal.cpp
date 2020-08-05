@@ -251,15 +251,15 @@ void Renal::SetUp()
   //Substance quantities
 
   //Compartments
-  m_aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta);
-  m_venaCava = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava);
-  m_kidney = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Kidney);
+  m_aorta = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Aorta);
+  m_venaCava = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::VenaCava);
+  m_kidney = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Kidneys);
 
-  m_KidneyTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Kidney);
-  m_Glomerular = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::GlomerularCapillaries);
-  m_Peritubular = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::PeritubularCapillaries);
-  m_Bowmans = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::BowmansCapsules);
-  m_Tubules = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Tubules);
+  m_KidneyTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Kidneys);
+  m_Glomerular = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::GlomerularCapillaries);
+  m_Peritubular = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::PeritubularCapillaries);
+  m_Bowmans = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::BowmansCapsules);
+  m_Tubules = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Tubules);
 
 
   m_bladder = m_data.GetCompartments().GetLiquidCompartment(BGE::UrineLiteCompartment::Bladder);
@@ -598,7 +598,7 @@ void Renal::CalculateGluconeogenesis()
   m_lactate->GetClearance().GetRenalClearance().SetValue(totalLactateExcretionRate_mg_Per_s / plasmaConcentration_mg_Per_mL / patientWeight_kg, VolumePerTimeMassUnit::mL_Per_s_kg);
 
   double totalLactateExcreted_mg = totalLactateExcretionRate_mg_Per_s * m_dt;
-  SELiquidSubstanceQuantity* kidneyIntracellularLactate = m_data.GetCompartments().GetIntracellularFluid(*m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Kidney)).GetSubstanceQuantity(*m_lactate);
+  SELiquidSubstanceQuantity* kidneyIntracellularLactate = m_data.GetCompartments().GetIntracellularFluid(*m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Kidneys)).GetSubstanceQuantity(*m_lactate);
   kidneyIntracellularLactate->GetMassExcreted().IncrementValue(totalLactateExcreted_mg, MassUnit::mg);
   kidneyIntracellularLactate->GetMassCleared().IncrementValue(totalLactateExcreted_mg, MassUnit::mg);
   
@@ -976,7 +976,7 @@ void Renal::CalculateExcretion(SESubstance& sub)
   //Set substance compartment effects
   //Gluconeogenesis calculates it for Lactate later
   if (&sub != m_lactate) {
-    SELiquidSubstanceQuantity* kidneySubQ = m_data.GetCompartments().GetIntracellularFluid(*m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Kidney)).GetSubstanceQuantity(sub);
+    SELiquidSubstanceQuantity* kidneySubQ = m_data.GetCompartments().GetIntracellularFluid(*m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Kidneys)).GetSubstanceQuantity(sub);
     double totalExcreted_mg = totalExcretionRate_mg_Per_s * m_dt;
     kidneySubQ->GetMassExcreted().IncrementValue(totalExcreted_mg, MassUnit::mg);
     kidneySubQ->GetMassCleared().IncrementValue(totalExcreted_mg, MassUnit::mg);

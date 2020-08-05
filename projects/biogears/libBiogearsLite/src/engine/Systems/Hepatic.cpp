@@ -129,12 +129,12 @@ void Hepatic::SetUp()
   m_Ketones = &m_data.GetSubstances().GetKetones();
   m_Albumin = &m_data.GetSubstances().GetAlbumin();
 
-  m_liverInsulin = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Liver)->GetSubstanceQuantity(*m_Insulin);
-  m_liverGlucagon = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Liver)->GetSubstanceQuantity(*m_Glucagon);
-  m_muscleInsulin = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle)->GetSubstanceQuantity(*m_Insulin);
-  m_muscleGlucagon = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle)->GetSubstanceQuantity(*m_Glucagon);
-  m_liverVascularGlucose = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Liver)->GetSubstanceQuantity(*m_Glucose);
-  m_muscleVascularGlucose = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle)->GetSubstanceQuantity(*m_Glucose);
+  m_liverInsulin = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Liver)->GetSubstanceQuantity(*m_Insulin);
+  m_liverGlucagon = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Liver)->GetSubstanceQuantity(*m_Glucagon);
+  m_muscleInsulin = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Muscle)->GetSubstanceQuantity(*m_Insulin);
+  m_muscleGlucagon = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Muscle)->GetSubstanceQuantity(*m_Glucagon);
+  m_liverVascularGlucose = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Liver)->GetSubstanceQuantity(*m_Glucose);
+  m_muscleVascularGlucose = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Muscle)->GetSubstanceQuantity(*m_Glucose);
 
 
   m_liverExtracellularGlucose = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::LiverExtracellular)->GetSubstanceQuantity(*m_Glucose);

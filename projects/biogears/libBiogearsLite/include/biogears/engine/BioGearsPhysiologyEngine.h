@@ -121,9 +121,9 @@ namespace tatrc {
         DEFINE_STATIC_STRING_EX(Brain, BrainTissue);
         DEFINE_STATIC_STRING_EX(Fat, FatTissue);
         DEFINE_STATIC_STRING_EX(Gut, GutTissue);
-        DEFINE_STATIC_STRING_EX(Kidney, KidneyTissue);
+        DEFINE_STATIC_STRING_EX(Kidneys, KidneysTissue);
         DEFINE_STATIC_STRING_EX(Liver, LiverTissue);
-        DEFINE_STATIC_STRING_EX(Lung, LungTissue);
+        DEFINE_STATIC_STRING_EX(Lungs, LungsTissue);
         DEFINE_STATIC_STRING_EX(Muscle, MuscleTissue);
         DEFINE_STATIC_STRING_EX(Myocardium, MyocardiumTissue);
         DEFINE_STATIC_STRING_EX(Skin, SkinTissue);
@@ -131,7 +131,7 @@ namespace tatrc {
         static const std::vector<std::string>& GetValues()
         {
           static std::vector<std::string> _values = {
-            Bone, Brain, Fat, Gut, Kidney, Liver, Lung, Muscle, Myocardium, Skin
+            Bone, Brain, Fat, Gut, Kidneys, Liver, Lungs, Muscle, Myocardium, Skin
           };
           return _values;
         }
@@ -143,9 +143,9 @@ namespace tatrc {
         DEFINE_STATIC_STRING_EX(BrainExtracellular, BrainTissueExtracellular);
         DEFINE_STATIC_STRING_EX(FatExtracellular, FatTissueExtracellular);
         DEFINE_STATIC_STRING_EX(GutExtracellular, GutTissueExtracellular);
-        DEFINE_STATIC_STRING_EX(KidneyExtracellular, KidneyTissueExtracellular);
+        DEFINE_STATIC_STRING_EX(KidneysExtracellular, KidneysTissueExtracellular);
         DEFINE_STATIC_STRING_EX(LiverExtracellular, LiverTissueExtracellular);
-        DEFINE_STATIC_STRING_EX(LungExtracellular, LungTissueExtracellular);
+        DEFINE_STATIC_STRING_EX(LungsExtracellular, LungsTissueExtracellular);
         DEFINE_STATIC_STRING_EX(MuscleExtracellular, MuscleTissueExtracellular);
         DEFINE_STATIC_STRING_EX(MyocardiumExtracellular, MyocardiumTissueExtracellular);
         DEFINE_STATIC_STRING_EX(SkinExtracellular, SkinTissueExtracellular);
@@ -154,9 +154,9 @@ namespace tatrc {
         DEFINE_STATIC_STRING_EX(BrainIntracellular, BrainTissueIntracellular);
         DEFINE_STATIC_STRING_EX(FatIntracellular, FatTissueIntracellular);
         DEFINE_STATIC_STRING_EX(GutIntracellular, GutTissueIntracellular);
-        DEFINE_STATIC_STRING_EX(KidneyIntracellular, KidneyTissueIntracellular);
+        DEFINE_STATIC_STRING_EX(KidneysIntracellular, KidneysTissueIntracellular);
         DEFINE_STATIC_STRING_EX(LiverIntracellular, LiverTissueIntracellular);
-        DEFINE_STATIC_STRING_EX(LungIntracellular, LungTissueIntracellular);
+        DEFINE_STATIC_STRING_EX(LungsIntracellular, LungsTissueIntracellular);
         DEFINE_STATIC_STRING_EX(MuscleIntracellular, MuscleTissueIntracellular);
         DEFINE_STATIC_STRING_EX(MyocardiumIntracellular, MyocardiumTissueIntracellular);
         DEFINE_STATIC_STRING_EX(SkinIntracellular, SkinTissueIntracellular);
@@ -164,36 +164,13 @@ namespace tatrc {
         static const std::vector<std::string>& GetValues()
         {
           static std::vector<std::string> _values = {
-            BoneExtracellular, BrainExtracellular, FatExtracellular, GutExtracellular, KidneyExtracellular, LiverExtracellular, LungExtracellular, MuscleExtracellular, MyocardiumExtracellular, SkinExtracellular, BoneIntracellular, BrainIntracellular, FatIntracellular, GutIntracellular, KidneyIntracellular, LiverIntracellular, LungIntracellular, MuscleIntracellular, MyocardiumIntracellular, SkinIntracellular
+            BoneExtracellular, BrainExtracellular, FatExtracellular, GutExtracellular, KidneysExtracellular, LiverExtracellular, LungsExtracellular, MuscleExtracellular, MyocardiumExtracellular, SkinExtracellular, BoneIntracellular, BrainIntracellular, FatIntracellular, GutIntracellular, KidneysIntracellular, LiverIntracellular, LungsIntracellular, MuscleIntracellular, MyocardiumIntracellular, SkinIntracellular
           };
           return _values;
         }
       };
 
       namespace VascularCompartment {
-        // Renal
-        DEFINE_STATIC_STRING_EX(Kidneys, KidneysVasculature);
-        DEFINE_STATIC_STRING_EX(LeftKidney, LeftKidneyVasculature);
-        DEFINE_STATIC_STRING(LeftRenalArtery);
-        DEFINE_STATIC_STRING(LeftAfferentArteriole);
-        DEFINE_STATIC_STRING(LeftPeritubularCapillaries);
-        DEFINE_STATIC_STRING_EX(RightKidney, RightKidneyVasculature);
-        DEFINE_STATIC_STRING(RightRenalArtery);
-        DEFINE_STATIC_STRING(RightAfferentArteriole);
-        DEFINE_STATIC_STRING(RightPeritubularCapillaries);
-       
-
-        static const std::vector<std::string>& GetValues()
-        {
-          static std::vector<std::string> _values = {
-            Kidneys, LeftKidney, RightKidney
-            //,Ground
-          };
-          return _values;
-        }
-      };
-
-      namespace VascularLiteCompartment {
         // Cardio
         DEFINE_STATIC_STRING(Aorta);
         DEFINE_STATIC_STRING(Heart);
@@ -205,7 +182,7 @@ namespace tatrc {
         DEFINE_STATIC_STRING(PulmonaryArteries);
         DEFINE_STATIC_STRING(PulmonaryCapillaries);
         DEFINE_STATIC_STRING(PulmonaryVeins);
-        DEFINE_STATIC_STRING_EX(Lungs, LungVasculature);
+        DEFINE_STATIC_STRING_EX(Lungs, LungsVasculature);
         DEFINE_STATIC_STRING_EX(LeftLung, LeftLungVasculature);
         DEFINE_STATIC_STRING(LeftPulmonaryArteries);
         DEFINE_STATIC_STRING(LeftPulmonaryCapillaries);
@@ -215,7 +192,7 @@ namespace tatrc {
         DEFINE_STATIC_STRING(RightPulmonaryCapillaries);
         DEFINE_STATIC_STRING(RightPulmonaryVeins);
         // RenalLite
-        DEFINE_STATIC_STRING_EX(Kidney, KidneyVasculature);
+        DEFINE_STATIC_STRING_EX(Kidneys, KidneysVasculature);
         DEFINE_STATIC_STRING(RenalArtery);
         DEFINE_STATIC_STRING(Nephron);
         DEFINE_STATIC_STRING(AfferentArteriole);
@@ -243,7 +220,7 @@ namespace tatrc {
           static std::vector<std::string> _values = {
             Aorta, Heart, Myocardium, LeftHeart, RightHeart, VenaCava, PulmonaryArteries, PulmonaryCapillaries, 
             PulmonaryVeins, Lungs, LeftLung, LeftPulmonaryArteries, LeftPulmonaryCapillaries, LeftPulmonaryVeins, RightLung, 
-            RightPulmonaryArteries, RightPulmonaryCapillaries, RightPulmonaryVeins, Kidney, RenalArtery, Nephron, 
+            RightPulmonaryArteries, RightPulmonaryCapillaries, RightPulmonaryVeins, Kidneys, RenalArtery, Nephron, 
             AfferentArteriole, GlomerularCapillaries, EfferentArteriole, PeritubularCapillaries, BowmansCapsules, Tubules, RenalVein, 
             Bone, Brain, Fat, Gut, Liver, Skin, Muscle, Arms, Legs
           };
@@ -252,7 +229,7 @@ namespace tatrc {
       };
 
 
-    namespace VascularLiteLink {
+    namespace VascularLink {
         // Heart and Lungs
         DEFINE_STATIC_STRING(VenaCavaToRightHeart);
         DEFINE_STATIC_STRING(RightHeartToLeftPulmonaryArteries);
@@ -279,14 +256,8 @@ namespace tatrc {
         DEFINE_STATIC_STRING(AortaToFat);
         DEFINE_STATIC_STRING(FatToVenaCava);
         //  Kidney
-        DEFINE_STATIC_STRING(AortaToKidney);
-        DEFINE_STATIC_STRING(KidneyToVenaCava);
-        //  Left Kidney
-        DEFINE_STATIC_STRING(AortaToLeftKidney);
-        DEFINE_STATIC_STRING(LeftKidneyToVenaCava);
-        //  Right Kidney
-        DEFINE_STATIC_STRING(AortaToRightKidney);
-        DEFINE_STATIC_STRING(RightKidneyToVenaCava);
+        DEFINE_STATIC_STRING(AortaToKidneys);
+        DEFINE_STATIC_STRING(KidneysToVenaCava);
         // Gut
         DEFINE_STATIC_STRING(AortaToGut);
         DEFINE_STATIC_STRING(GutToLiver);
@@ -342,7 +313,7 @@ namespace tatrc {
         static const std::vector<std::string>& GetValues()
         {
           static std::vector<std::string> _values = {
-            VenaCavaToRightHeart, RightHeartToLeftPulmonaryArteries, LeftPulmonaryArteriesToCapillaries, LeftPulmonaryArteriesToVeins, LeftPulmonaryCapillariesToVeins, LeftPulmonaryVeinsToLeftHeart, RightHeartToRightPulmonaryArteries, RightPulmonaryArteriesToCapillaries, RightPulmonaryArteriesToVeins, RightPulmonaryCapillariesToVeins, RightPulmonaryVeinsToLeftHeart, LeftHeartToAorta, AortaToBone, BoneToVenaCava, AortaToBrain, BrainToVenaCava, AortaToFat, FatToVenaCava, AortaToGut, GutToLiver,  AortaToArms, ArmsToVenaCava, AortaToKidney, KidneyToVenaCava, AortaToLegs, LegsToVenaCava, AortaToLiver, LiverToVenaCava, AortaToMuscle, MuscleToVenaCava, AortaToMyocardium, MyocardiumToVenaCava, AortaToSkin, SkinToVenaCava
+            VenaCavaToRightHeart, RightHeartToLeftPulmonaryArteries, LeftPulmonaryArteriesToCapillaries, LeftPulmonaryArteriesToVeins, LeftPulmonaryCapillariesToVeins, LeftPulmonaryVeinsToLeftHeart, RightHeartToRightPulmonaryArteries, RightPulmonaryArteriesToCapillaries, RightPulmonaryArteriesToVeins, RightPulmonaryCapillariesToVeins, RightPulmonaryVeinsToLeftHeart, LeftHeartToAorta, AortaToBone, BoneToVenaCava, AortaToBrain, BrainToVenaCava, AortaToFat, FatToVenaCava, AortaToGut, GutToLiver,  AortaToArms, ArmsToVenaCava, AortaToKidneys, KidneysToVenaCava, AortaToLegs, LegsToVenaCava, AortaToLiver, LiverToVenaCava, AortaToMuscle, MuscleToVenaCava, AortaToMyocardium, MyocardiumToVenaCava, AortaToSkin, SkinToVenaCava
             ,
             BoneVascularToTissue, BrainVascularToTissue, FatVascularToTissue, GutVascularToTissue, KidneyVascularToTissue, LeftLungVascularToTissue, LiverVascularToTissue, MuscleVascularToTissue, MyocardiumVascularToTissue, RightLungVascularToTissue, SkinVascularToTissue
             ,
@@ -435,8 +406,8 @@ namespace tatrc {
         DEFINE_STATIC_STRING(BrainTissueToLymph);
         DEFINE_STATIC_STRING(FatTissueToLymph);
         DEFINE_STATIC_STRING(GutTissueToLymph);
-        DEFINE_STATIC_STRING(KidneyTissueToLymph);
-        DEFINE_STATIC_STRING(LungTissueToLymph);
+        DEFINE_STATIC_STRING(KidneysTissueToLymph);
+        DEFINE_STATIC_STRING(LeftLungTissueToLymph);
         DEFINE_STATIC_STRING(LiverTissueToLymph);
         DEFINE_STATIC_STRING(MuscleTissueToLymph);
         DEFINE_STATIC_STRING(MyocardiumTissueToLymph);
@@ -449,7 +420,7 @@ namespace tatrc {
         static const std::vector<std::string>& GetValues()
         {
           static std::vector<std::string> _values = {
-            BoneTissueToLymph, BrainTissueToLymph, FatTissueToLymph, GutTissueToLymph, KidneyTissueToLymph, LungTissueToLymph, LiverTissueToLymph, MuscleTissueToLymph, MyocardiumTissueToLymph, RightLungTissueToLymph, SkinTissueToLymph, SpleenTissueToLymph, LymphToVenaCava
+            BoneTissueToLymph, BrainTissueToLymph, FatTissueToLymph, GutTissueToLymph, KidneysTissueToLymph, LeftLungTissueToLymph, LiverTissueToLymph, MuscleTissueToLymph, MyocardiumTissueToLymph, RightLungTissueToLymph, SkinTissueToLymph, SpleenTissueToLymph, LymphToVenaCava
           };
           return _values;
         }
