@@ -157,9 +157,9 @@ void Energy::SetUp()
   m_Patient = &m_data.GetPatient();
 
   m_AortaHCO3 = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta)->GetSubstanceQuantity(m_data.GetSubstances().GetHCO3());
-  m_SkinSodium = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::SkinExtracellular)->GetSubstanceQuantity(m_data.GetSubstances().GetSodium());
-  m_SkinChloride = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::SkinExtracellular)->GetSubstanceQuantity(m_data.GetSubstances().GetChloride());
-  m_SkinPotassium = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::SkinExtracellular)->GetSubstanceQuantity(m_data.GetSubstances().GetPotassium());
+  m_SkinSodium = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::SkinExtracellular)->GetSubstanceQuantity(m_data.GetSubstances().GetSodium());
+  m_SkinChloride = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::SkinExtracellular)->GetSubstanceQuantity(m_data.GetSubstances().GetChloride());
+  m_SkinPotassium = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::SkinExtracellular)->GetSubstanceQuantity(m_data.GetSubstances().GetPotassium());
 
   //Circuit elements
   //Circuits
@@ -170,7 +170,7 @@ void Energy::SetUp()
   //Paths
   m_temperatureGroundToCorePath = m_TemperatureCircuit->GetPath(BGE::ThermalLitePath::GroundToCore);
   m_coreToSkinPath = m_TemperatureCircuit->GetPath(BGE::ThermalLitePath::CoreToSkin);
-  m_skinExtravascularToSweatingGroundPath = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::SkinSweating);
+  m_skinExtravascularToSweatingGroundPath = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::SkinSweating);
 }
 
 void Energy::AtSteadyState()

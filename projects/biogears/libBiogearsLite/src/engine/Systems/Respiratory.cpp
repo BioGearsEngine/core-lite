@@ -598,7 +598,7 @@ void Respiratory::ProcessAerosolSubstances()
       // We only process mass deposited on the lungs (dead space and alveoli)
       // We do not currently do anything with the mass in the mouth and carina
       // Could possibly let it go into the stomach somehow...
-      tSubQ = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::LungIntracellular)->GetSubstanceQuantity(subQ->GetSubstance());
+      tSubQ = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::LungIntracellular)->GetSubstanceQuantity(subQ->GetSubstance());
       tSubQ->GetMass().IncrementValue(leftDeadSpaceDepositied_ug + leftAlveoliDepositied_ug, MassUnit::ug);
       tSubQ->Balance(BalanceLiquidBy::Mass);
       combinedLeftBronchodilationEffects += bronchioleModifier * tSubQ->GetConcentration(MassPerVolumeUnit::ug_Per_mL);

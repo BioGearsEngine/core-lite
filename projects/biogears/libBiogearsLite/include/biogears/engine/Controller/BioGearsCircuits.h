@@ -725,7 +725,7 @@ namespace tatrc {
 
       };
 
-      namespace TissueLiteNode {
+      namespace TissueNode {
         DEFINE_STATIC_STRING(BoneE1);
         DEFINE_STATIC_STRING(BoneE2);
         DEFINE_STATIC_STRING(BoneE3);
@@ -780,7 +780,7 @@ namespace tatrc {
         DEFINE_STATIC_STRING(SkinL);
       };
 
-      namespace TissueLitePath {
+      namespace TissuePath {
         DEFINE_STATIC_STRING(BoneVToBoneE1);
         DEFINE_STATIC_STRING(BoneE1ToBoneE2);
         DEFINE_STATIC_STRING(BoneE2ToBoneE3);

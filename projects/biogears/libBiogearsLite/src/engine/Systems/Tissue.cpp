@@ -163,7 +163,7 @@ void Tissue::Initialize()
   GetFatGlucagonSetPoint().Set(m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Fat)->GetSubstanceQuantity(*m_Glucagon)->GetConcentration());
 
   //Set nutrient stores (also reset in AtSteadyState)
-  GetLiverGlycogen().SetValue(.065 * m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver)->GetTotalMass(MassUnit::g), MassUnit::g);
+  GetLiverGlycogen().SetValue(.065 * m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Liver)->GetTotalMass(MassUnit::g), MassUnit::g);
   GetMuscleGlycogen().SetValue(.02 * m_data.GetPatient().GetMuscleMass(MassUnit::g), MassUnit::g); //2% of muscle mass
   GetStoredProtein().SetValue(110, MassUnit::g); //"Reusable" protein stores are usually about 1% of total body protein, ~110 g (https://www.nap.edu/read/10490/chapter/12#595)
   GetStoredFat().SetValue(m_data.GetPatient().GetWeight(MassUnit::g) * m_data.GetPatient().GetBodyFatFraction().GetValue(), MassUnit::g);
@@ -262,111 +262,111 @@ void Tissue::SetUp()
   m_RightPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightPulmonaryCapillaries);
 
   //These were m_GutE1 and m_GutE1ToE3, respectively.  These were compliance elements in old tissue circuits so I have changed them to their new names
-  m_GutE3 = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetNode(BGE::TissueLiteNode::GutE3);
-  m_GutE3ToGround = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::GutE3ToGround);
+  m_GutE3 = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetNode(BGE::TissueNode::GutE3);
+  m_GutE3ToGround = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::GutE3ToGround);
 
-  m_LungTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Lung);
-  m_LiverTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver);
-  m_FatTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Fat);
-  m_MuscleTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Muscle);
-  m_BrainTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Brain);
+  m_LungTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Lung);
+  m_LiverTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Liver);
+  m_FatTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Fat);
+  m_MuscleTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Muscle);
+  m_BrainTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Brain);
 
-  m_LiverIntracellular = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::LiverIntracellular);
-  m_LiverExtracellular = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::LiverExtracellular);
-  m_FatIntracellular = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::FatIntracellular);
-  m_MuscleIntracellular = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::MuscleIntracellular);
+  m_LiverIntracellular = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::LiverIntracellular);
+  m_LiverExtracellular = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::LiverExtracellular);
+  m_FatIntracellular = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::FatIntracellular);
+  m_MuscleIntracellular = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::MuscleIntracellular);
 
   m_LeftPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftPulmonaryCapillaries);
   m_RightPulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightPulmonaryCapillaries);
 
   //Store tissue-blood pairs
   m_TissueToVascular.clear();
-  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Fat)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Fat);
-  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Bone)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Bone);
-  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Brain)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Brain);
-  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Gut)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Gut);
-  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Kidney)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Kidney);
-  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Liver);
-  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Lung)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Lungs);
-  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Muscle)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle);
-  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Myocardium)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Myocardium);
-  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Skin)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Skin);
+  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Fat)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Fat);
+  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Bone)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Bone);
+  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Brain)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Brain);
+  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Gut)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Gut);
+  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Kidney)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Kidney);
+  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Liver)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Liver);
+  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Lung)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Lungs);
+  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Muscle)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle);
+  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Myocardium)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Myocardium);
+  m_TissueToVascular[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Skin)] = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Skin);
 
   //Store paths from vascular node to first extracellular node (i.e. vascular oncotic pressure source)
   m_VascularCopPaths.clear();
-  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Fat)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::FatVToFatE1);
-  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Bone)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::BoneVToBoneE1);
-  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Brain)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::BrainVToBrainE1);
-  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Gut)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::GutVToGutE1);
-  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Kidney)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::KidneyVToKidneyE1);
-  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Liver)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::LiverVToLiverE1);
-  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftLung)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::LeftLungVToLungE1);
-  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightLung)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::RightLungVToLungE1);
-  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::MuscleVToMuscleE1);
-  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Myocardium)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::MyocardiumVToMyocardiumE1);
-  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Skin)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::SkinVToSkinE1);
+  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Fat)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::FatVToFatE1);
+  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Bone)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::BoneVToBoneE1);
+  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Brain)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::BrainVToBrainE1);
+  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Gut)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::GutVToGutE1);
+  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Kidney)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::KidneyVToKidneyE1);
+  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Liver)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::LiverVToLiverE1);
+  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::LeftLung)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::LeftLungVToLungE1);
+  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::RightLung)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::RightLungVToLungE1);
+  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::MuscleVToMuscleE1);
+  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Myocardium)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::MyocardiumVToMyocardiumE1);
+  m_VascularCopPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Skin)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::SkinVToSkinE1);
 
   //Store paths from second extracellular node to third extracellular node (i.e. interstitial oncotic pressure source)
   m_InterstitialCopPaths.clear();
-  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Fat)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::FatE2ToFatE3);
-  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Bone)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::BoneE2ToBoneE3);
-  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Brain)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::BrainE2ToBrainE3);
-  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Gut)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::GutE2ToGutE3);
-  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Kidney)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::KidneyE2ToKidneyE3);
-  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::LiverE2ToLiverE3);
-  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Lung)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::LungE2ToLungE3);
-  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Muscle)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::MuscleE2ToMuscleE3);
-  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Myocardium)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::MyocardiumE2ToMyocardiumE3);
-  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Skin)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::SkinE2ToSkinE3);
+  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Fat)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::FatE2ToFatE3);
+  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Bone)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::BoneE2ToBoneE3);
+  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Brain)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::BrainE2ToBrainE3);
+  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Gut)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::GutE2ToGutE3);
+  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Kidney)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::KidneyE2ToKidneyE3);
+  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Liver)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::LiverE2ToLiverE3);
+  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Lung)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::LungE2ToLungE3);
+  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Muscle)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::MuscleE2ToMuscleE3);
+  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Myocardium)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::MyocardiumE2ToMyocardiumE3);
+  m_InterstitialCopPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Skin)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::SkinE2ToSkinE3);
 
   //Store paths from extracellular space to intracellular space (i.e. flow source paths)
   m_ExtraToIntraPaths.clear();
-  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Fat)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::FatE3ToFatI);
-  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Bone)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::BoneE3ToBoneI);
-  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Brain)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::BrainE3ToBrainI);
-  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Gut)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::GutE3ToGutI);
-  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Kidney)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::KidneyE3ToKidneyI);
-  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::LiverE3ToLiverI);
-  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Lung)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::LungE3ToLungI);
-  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Muscle)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::MuscleE3ToMuscleI);
-  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Myocardium)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::MyocardiumE3ToMyocardiumI);
-  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Skin)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::SkinE3ToSkinI);
+  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Fat)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::FatE3ToFatI);
+  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Bone)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::BoneE3ToBoneI);
+  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Brain)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::BrainE3ToBrainI);
+  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Gut)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::GutE3ToGutI);
+  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Kidney)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::KidneyE3ToKidneyI);
+  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Liver)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::LiverE3ToLiverI);
+  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Lung)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::LungE3ToLungI);
+  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Muscle)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::MuscleE3ToMuscleI);
+  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Myocardium)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::MyocardiumE3ToMyocardiumI);
+  m_ExtraToIntraPaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Skin)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::SkinE3ToSkinI);
 
   m_EndothelialResistancePaths.clear();
-  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Fat)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::FatE1ToFatE2);
-  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Bone)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::BoneE1ToBoneE2);
-  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Brain)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::BrainE1ToBrainE2);
-  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Gut)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::GutE1ToGutE2);
-  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Kidney)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::KidneyE1ToKidneyE2);
-  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::LiverE1ToLiverE2);
-  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Lung)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::LungE1ToLungE2);
-  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Muscle)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::MuscleE1ToMuscleE2);
-  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Myocardium)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::MyocardiumE1ToMyocardiumE2);
-  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Skin)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::SkinE1ToSkinE2);
+  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Fat)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::FatE1ToFatE2);
+  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Bone)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::BoneE1ToBoneE2);
+  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Brain)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::BrainE1ToBrainE2);
+  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Gut)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::GutE1ToGutE2);
+  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Kidney)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::KidneyE1ToKidneyE2);
+  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Liver)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::LiverE1ToLiverE2);
+  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Lung)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::LungE1ToLungE2);
+  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Muscle)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::MuscleE1ToMuscleE2);
+  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Myocardium)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::MyocardiumE1ToMyocardiumE2);
+  m_EndothelialResistancePaths[m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Skin)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::SkinE1ToSkinE2);
 
   m_LymphPaths.clear();
-  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::FatExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::FatE3ToFatL);
-  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::BoneExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::BoneE3ToBoneL);
-  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::BrainExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::BrainE3ToBrainL);
-  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::GutExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::GutE3ToGutL);
-  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::KidneyExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::KidneyE3ToKidneyL);
-  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::LiverExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::LiverE3ToLiverL);
-  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::LungExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::LungE3ToLungL);
-  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::MuscleExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::MuscleE3ToMuscleL);
-  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::MyocardiumExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::MyocardiumE3ToMyocardiumL);
-  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::SkinExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::SkinE3ToSkinL);
-  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::LymphCompartment::Lymph)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissueLitePath::LymphToVenaCava);
+  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::FatExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::FatE3ToFatL);
+  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::BoneExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::BoneE3ToBoneL);
+  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::BrainExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::BrainE3ToBrainL);
+  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::GutExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::GutE3ToGutL);
+  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::KidneyExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::KidneyE3ToKidneyL);
+  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::LiverExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::LiverE3ToLiverL);
+  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::LungExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::LungE3ToLungL);
+  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::MuscleExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::MuscleE3ToMuscleL);
+  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::MyocardiumExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::MyocardiumE3ToMyocardiumL);
+  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::SkinExtracellular)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::SkinE3ToSkinL);
+  m_LymphPaths[m_data.GetCompartments().GetLiquidCompartment(BGE::LymphCompartment::Lymph)] = m_data.GetCircuits().GetActiveCardiovascularCircuit().GetPath(BGE::TissuePath::LymphToVenaCava);
 
   m_ConsumptionProdutionTissues.clear();
-  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Fat));
-  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Bone));
-  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Brain));
-  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Gut));
-  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Kidney));
-  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver));
-  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Muscle));
-  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Myocardium));
-  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Skin));
+  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Fat));
+  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Bone));
+  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Brain));
+  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Gut));
+  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Kidney));
+  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Liver));
+  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Muscle));
+  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Myocardium));
+  m_ConsumptionProdutionTissues.push_back(m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Skin));
 
   // Here is some code to cross check our maps with what is in the compartment manager
   // If by some chance, some other system added a new tissue compartment we don't know about
@@ -407,7 +407,7 @@ void Tissue::AtSteadyState()
 
   if (m_data.GetState() == EngineState::AtSecondaryStableState && !m_data.GetConditions().HasStarvation()) {
     //refill nutrient stores that were depleted during stabilization (should match SetUp)
-    GetLiverGlycogen().SetValue(.065 * m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver)->GetTotalMass(MassUnit::g), MassUnit::g);
+    GetLiverGlycogen().SetValue(.065 * m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Liver)->GetTotalMass(MassUnit::g), MassUnit::g);
     GetMuscleGlycogen().SetValue(.02 * m_data.GetPatient().GetMuscleMass(MassUnit::g), MassUnit::g); //2% of muscle mass
     GetStoredProtein().SetValue(110, MassUnit::g);
     GetStoredFat().SetValue(m_data.GetPatient().GetWeight(MassUnit::g) * m_data.GetPatient().GetBodyFatFraction().GetValue(), MassUnit::g);
@@ -442,10 +442,10 @@ void Tissue::SetStarvationState()
 
   //Liver glycogen
   //Based on engine runtime, lasts ~51 hours, decrease is nearly linear
-  double liverGlycogen_g = GeneralMath::LinearInterpolator(0, 51, .065 * m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver)->GetTotalMass(MassUnit::g), 0, starvedTime_hr);
+  double liverGlycogen_g = GeneralMath::LinearInterpolator(0, 51, .065 * m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Liver)->GetTotalMass(MassUnit::g), 0, starvedTime_hr);
   LLIM(liverGlycogen_g, 0); //can't have negative
   GetLiverGlycogen().SetValue(liverGlycogen_g, MassUnit::g);
-  totalMassLost_g += (.065 * m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver)->GetTotalMass(MassUnit::g)) - liverGlycogen_g;
+  totalMassLost_g += (.065 * m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Liver)->GetTotalMass(MassUnit::g)) - liverGlycogen_g;
 
   //Muscle glycogen
   //Based on engine runtime, drops to ~425g after 76.4 hours, nearly linear
@@ -2175,7 +2175,7 @@ void Tissue::CalculateTissueFluidFluxes()
     for (auto t : m_data.GetCompartments().GetTissueCompartments()) {
       SEFluidCircuitPath* res = m_EndothelialResistancePaths[t];
       double resistanceModifier = m_data.GetBloodChemistry().GetAcuteInflammatoryResponse().GetTissueIntegrity().GetValue();
-      if (t->GetName() != BGE::TissueLiteCompartment::Brain) {
+      if (t->GetName() != BGE::TissueCompartment::Brain) {
         res->GetNextResistance().SetValue(res->GetResistanceBaseline(FlowResistanceUnit::mmHg_min_Per_mL) * resistanceModifier, FlowResistanceUnit::mmHg_min_Per_mL);
       }
     }
@@ -2184,7 +2184,7 @@ void Tissue::CalculateTissueFluidFluxes()
     for (auto t : m_data.GetCompartments().GetTissueCompartments()) {
       SEFluidCircuitPath* res = m_EndothelialResistancePaths[t];
       double resistanceModifier = m_data.GetBloodChemistry().GetAcuteInflammatoryResponse().GetTissueIntegrity().GetValue();
-      if (t->GetName() != BGE::TissueLiteCompartment::Brain) {
+      if (t->GetName() != BGE::TissueCompartment::Brain) {
         res->GetNextResistance().SetValue(res->GetResistanceBaseline(FlowResistanceUnit::mmHg_min_Per_mL) * resistanceModifier, FlowResistanceUnit::mmHg_min_Per_mL);
       }
     }
@@ -2220,7 +2220,7 @@ void Tissue::CalculateOncoticPressure()
   for (auto tissueVascular : m_TissueToVascular) {
     tissue = tissueVascular.first;
     vascular = tissueVascular.second;
-    if (tissue->GetName() == BGE::TissueLiteCompartment::Brain)
+    if (tissue->GetName() == BGE::TissueCompartment::Brain)
       continue;
 
     totalProteinVascular_g_Per_dL = 1.6 * vascular->GetSubstanceQuantity(*m_Albumin)->GetConcentration(MassPerVolumeUnit::g_Per_dL);

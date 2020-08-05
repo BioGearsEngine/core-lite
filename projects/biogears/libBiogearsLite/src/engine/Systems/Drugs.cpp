@@ -152,12 +152,12 @@ void Drugs::SetUp()
 {
   m_dt_s = m_data.GetTimeStep().GetValue(TimeUnit::s);
   m_RbcAcetylcholinesteraseFractionInhibited = 0.0;
-  m_muscleIntracellular = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::MuscleIntracellular);
+  m_muscleIntracellular = m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::MuscleIntracellular);
   m_aortaVascular = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta);
   m_venaCavaVascular = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::VenaCava);
-  m_fatTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Fat);
+  m_fatTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Fat);
   m_liverVascular = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Liver);
-  m_liverTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Liver);
+  m_liverTissue = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Liver);
   m_IVToVenaCava = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularPath::IVToVenaCava);
   if (m_data.GetConfiguration().IsBioGearsLiteEnabled()) {
     m_aortaVascular = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Aorta);

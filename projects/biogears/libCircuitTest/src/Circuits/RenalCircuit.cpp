@@ -46,9 +46,9 @@ void BioGearsEngineTest::RenalCircuitAndTransportTest(const std::string& sTestDi
   bg.CreateCircuitsAndCompartments();
   // Renal needs these tissue compartments
   // Let's make them manually, without the tissue circuit
-  bg.GetCompartments().CreateTissueCompartment(BGE::TissueLiteCompartment::Kidney);
-  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularLiteCompartment::KidneyExtracellular);
-  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularLiteCompartment::KidneyExtracellular);
+  bg.GetCompartments().CreateTissueCompartment(BGE::TissueCompartment::Kidney);
+  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularCompartment::KidneyExtracellular);
+  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularCompartment::KidneyExtracellular);
 
   bg.m_Config->EnableTissue(CDM::enumOnOff::On); // This needs to be on for making the tissue to extravascular mapping
   bg.GetCompartments().StateChange();
@@ -168,9 +168,9 @@ void BioGearsEngineTest::RenalFeedbackTest(RenalFeedback feedback, const std::st
   bg.CreateCircuitsAndCompartments();
   // Renal needs these tissue compartments
   // Let's make them manually, without the tissue circuit
-  bg.GetCompartments().CreateTissueCompartment(BGE::TissueLiteCompartment::Kidney);
-  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularLiteCompartment::KidneyExtracellular);
-  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularLiteCompartment::KidneyExtracellular);
+  bg.GetCompartments().CreateTissueCompartment(BGE::TissueCompartment::Kidney);
+  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularCompartment::KidneyExtracellular);
+  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularCompartment::KidneyExtracellular);
   bg.m_Config->EnableTissue(CDM::enumOnOff::On); // This needs to be on for making the tissue to extravascular mapping
   bg.GetCompartments().StateChange();
   SEPatient* patient = (SEPatient*)&bg.GetPatient();
@@ -467,9 +467,9 @@ void BioGearsEngineTest::RenalSystemTest(RenalSystems systemtest, const std::str
   bg.CreateCircuitsAndCompartments();
   // Renal needs these tissue compartments
   // Let's make them manually, without the tissue circuit
-  bg.GetCompartments().CreateTissueCompartment(BGE::TissueLiteCompartment::Kidney);
-  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularLiteCompartment::KidneyExtracellular);
-  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularLiteCompartment::KidneyExtracellular);
+  bg.GetCompartments().CreateTissueCompartment(BGE::TissueCompartment::Kidney);
+  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularCompartment::KidneyExtracellular);
+  bg.GetCompartments().CreateLiquidCompartment(BGE::ExtravascularCompartment::KidneyExtracellular);
   bg.m_Config->EnableTissue(CDM::enumOnOff::On); // This needs to be on for making the tissue to extravascular mapping
   bg.GetCompartments().StateChange();
   SEPatient* patient = (SEPatient*)&bg.GetPatient();

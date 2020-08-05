@@ -116,7 +116,7 @@ namespace tatrc {
         }
       };
 
-      namespace TissueLiteCompartment {
+      namespace TissueCompartment {
         DEFINE_STATIC_STRING_EX(Bone, BoneTissue);
         DEFINE_STATIC_STRING_EX(Brain, BrainTissue);
         DEFINE_STATIC_STRING_EX(Fat, FatTissue);
@@ -137,7 +137,7 @@ namespace tatrc {
         }
       };
 
-      namespace ExtravascularLiteCompartment {
+      namespace ExtravascularCompartment {
 
         DEFINE_STATIC_STRING_EX(BoneExtracellular, BoneTissueExtracellular);
         DEFINE_STATIC_STRING_EX(BrainExtracellular, BrainTissueExtracellular);

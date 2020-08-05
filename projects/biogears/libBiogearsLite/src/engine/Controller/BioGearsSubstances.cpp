@@ -231,16 +231,16 @@ void BioGearsSubstances::InitializeLiquidCompartmentGases()
   InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Arms), Hb_total_mM, 0.969757, 0.132484, 0.114319, 1.21424, 24.1862, 7.39926);
   InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Legs), Hb_total_mM, 0.969756, 0.132485, 0.114318, 1.21427, 24.1867, 7.39926);
 
-  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueLiteCompartment::Bone), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Bone));
-  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueLiteCompartment::Brain), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Brain));
-  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueLiteCompartment::Fat), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Fat));
-  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueLiteCompartment::Gut), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Gut));
-  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueLiteCompartment::Kidney), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Kidney));
-  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueLiteCompartment::Liver), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Liver));
-  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueLiteCompartment::Lung), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Lungs));
-  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueLiteCompartment::Muscle), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle));
-  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueLiteCompartment::Myocardium), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Myocardium));
-  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueLiteCompartment::Skin), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Skin));
+  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Bone), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Bone));
+  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Brain), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Brain));
+  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Fat), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Fat));
+  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Gut), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Gut));
+  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Kidney), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Kidney));
+  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Liver), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Liver));
+  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Lung), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Lungs));
+  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Muscle), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Muscle));
+  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Myocardium), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Myocardium));
+  InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Skin), *cmpts.GetLiquidCompartment(BGE::VascularLiteCompartment::Skin));
 
   SEScalarMassPerVolume concentration;
   concentration.SetValue(0.146448, MassPerVolumeUnit::g_Per_dL);
@@ -361,7 +361,7 @@ void BioGearsSubstances::InitializeLiquidCompartmentNonGases()
   SELiquidCompartment* bladder = m_data.GetCompartments().GetLiquidCompartment(BGE::UrineLiteCompartment::Bladder);
   SELiquidCompartment* lymph = m_data.GetCompartments().GetLiquidCompartment(BGE::LymphCompartment::Lymph);
   //Right now the lymph is not used, but code is in place and commented out in case we revisit
-  SETissueCompartment* brain = m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Brain);
+  SETissueCompartment* brain = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Brain);
 
   // ALBUMIN //
   concentration.SetValue(4.5, MassPerVolumeUnit::g_Per_dL);
@@ -612,10 +612,10 @@ void BioGearsSubstances::InitializeLiquidCompartmentNonGases()
   lymph->GetSubstanceQuantity(*m_triacylglycerol)->Balance(BalanceLiquidBy::Molarity);
   // TAG can't cross blood-brain barrier, so no TAG there
   molarity1.SetValue(0, AmountPerVolumeUnit::mmol_Per_L);
-  m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::BrainExtracellular)->GetSubstanceQuantity(*m_triacylglycerol)->GetMolarity().Set(molarity1);
-  m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::BrainExtracellular)->GetSubstanceQuantity(*m_triacylglycerol)->Balance(BalanceLiquidBy::Molarity);
-  m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::BrainIntracellular)->GetSubstanceQuantity(*m_triacylglycerol)->GetMolarity().Set(molarity1);
-  m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularLiteCompartment::BrainIntracellular)->GetSubstanceQuantity(*m_triacylglycerol)->Balance(BalanceLiquidBy::Molarity);
+  m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::BrainExtracellular)->GetSubstanceQuantity(*m_triacylglycerol)->GetMolarity().Set(molarity1);
+  m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::BrainExtracellular)->GetSubstanceQuantity(*m_triacylglycerol)->Balance(BalanceLiquidBy::Molarity);
+  m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::BrainIntracellular)->GetSubstanceQuantity(*m_triacylglycerol)->GetMolarity().Set(molarity1);
+  m_data.GetCompartments().GetLiquidCompartment(BGE::ExtravascularCompartment::BrainIntracellular)->GetSubstanceQuantity(*m_triacylglycerol)->Balance(BalanceLiquidBy::Molarity);
 
   // UREA //
   concentration.SetValue(270.0, MassPerVolumeUnit::mg_Per_L);
@@ -666,7 +666,7 @@ void BioGearsSubstances::SetLiquidCompartmentNonGasesForStarvation(double time_h
   SEScalarAmountPerVolume molarity1;
   SEScalarAmountPerVolume molarity2;
 
-  SETissueCompartment* brain = m_data.GetCompartments().GetTissueCompartment(BGE::TissueLiteCompartment::Brain);
+  SETissueCompartment* brain = m_data.GetCompartments().GetTissueCompartment(BGE::TissueCompartment::Brain);
 
   // AMINOACIDS //
   //Probably sholdn't be messed with; see elia1984mineral that says total protein stays ~constant

@@ -418,16 +418,16 @@ void Cardiovascular::SetUp()
 
 
   if(m_data.GetConfiguration().IsTissueEnabled()){
-    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissueLitePath::GutE1ToGutE2));
-    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissueLitePath::BoneE1ToBoneE2));
-    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissueLitePath::BrainE1ToBrainE2));
-    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissueLitePath::FatE1ToFatE2));
-    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissueLitePath::KidneyE1ToKidneyE2));
-    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissueLitePath::LiverE1ToLiverE2));
-    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissueLitePath::LungE1ToLungE2));
-    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissueLitePath::MuscleE1ToMuscleE2));
-    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissueLitePath::MyocardiumE1ToMyocardiumE2));
-    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissueLitePath::SkinE1ToSkinE2));  
+    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissuePath::GutE1ToGutE2));
+    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissuePath::BoneE1ToBoneE2));
+    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissuePath::BrainE1ToBrainE2));
+    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissuePath::FatE1ToFatE2));
+    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissuePath::KidneyE1ToKidneyE2));
+    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissuePath::LiverE1ToLiverE2));
+    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissuePath::LungE1ToLungE2));
+    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissuePath::MuscleE1ToMuscleE2));
+    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissuePath::MyocardiumE1ToMyocardiumE2));
+    m_tissueResistancePaths.push_back(m_CirculatoryCircuit->GetPath(BGE::TissuePath::SkinE1ToSkinE2));  
   }
 
   m_PatientActions = &m_data.GetActions().GetPatientActions();
