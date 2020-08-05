@@ -170,13 +170,13 @@ void Respiratory::Initialize()
   double RespirationRate_Per_min = m_Patient->GetRespirationRateBaseline(FrequencyUnit::Per_min);
   double DeadSpace_L = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::DeadSpace)->GetVolume(VolumeUnit::L);
   double EnvironmentPressure_mmHg = m_data.GetCompartments().GetGasCompartment(BGE::EnvironmentCompartment::Ambient)->GetPressure(PressureUnit::mmHg);
-  double AbsolutePleuralPressure_mmHg = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Pleural)->GetPressure(PressureUnit::mmHg);
+  double AbsolutePleuralPressure_mmHg = m_data.GetCircuits().GetActiveRespiratoryCircuit().GetNode(BGE::RespiratoryNode::Pleural)->GetPressure(PressureUnit::mmHg);
   GetTidalVolume().SetValue(TidalVolume_L, VolumeUnit::L);
   GetRespirationRate().SetValue(RespirationRate_Per_min, FrequencyUnit::Per_min);
   GetRespirationDriverFrequency().SetValue(RespirationRate_Per_min, FrequencyUnit::Per_min);
   GetCarricoIndex().SetValue(452.0, PressureUnit::mmHg);
   GetInspiratoryExpiratoryRatio().SetValue(0.5);
-  //GetMeanPleuralPressure().SetValue(AbsolutePleuralPressure_mmHg - EnvironmentPressure_mmHg, PressureUnit::mmHg);
+  GetMeanPleuralPressure().SetValue(AbsolutePleuralPressure_mmHg - EnvironmentPressure_mmHg, PressureUnit::mmHg);
   GetTotalAlveolarVentilation().SetValue(RespirationRate_Per_min * (TidalVolume_L - DeadSpace_L), VolumePerTimeUnit::L_Per_min);
   GetTotalPulmonaryVentilation().SetValue(RespirationRate_Per_min * TidalVolume_L, VolumePerTimeUnit::L_Per_min);
   GetTotalDeadSpaceVentilation().SetValue(DeadSpace_L * RespirationRate_Per_min, VolumePerTimeUnit::L_Per_min);
@@ -949,26 +949,28 @@ void Respiratory::Pneumothorax()
 {
   if (m_PatientActions->HasTensionPneumothorax()) {
     // Minimum flow resistance for the chest cavity or alveoli leak
-    double dPneumoMinFlowResistance_cmH2O_s_Per_L = 4.0;
+    double dPneumoMinFlowResistance_cmH2O_s_Per_L = 3.5;    //Output is very sensitive to this min value.  <3.5 and respiration rate oscillates like crazy at severity = 1.  But if it's much higher than 4 or 5, respiration rate does not change much.
     // Maximum flow resistance for the chest cavity or alveoli leak
     double dPneumoMaxFlowResistance_cmH2O_s_Per_L = m_dDefaultOpenResistance_cmH2O_s_Per_L;
     // Flow resistance for the decompression needle, if used
     double dNeedleFlowResistance_cmH2O_s_Per_L = 15.0;
 
     // Increase in pleural pressure restricts blood return to heart.Model this by increasing vena cava->right heart resistance
-   /* SEFluidCircuitPath* venousReturn = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularLitePath::VenaCavaToRightHeart2);
+    SEFluidCircuitPath* venousReturn = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularPath::VenaCavaToRightHeart2);
     double nextVenousResistance = venousReturn->GetResistanceBaseline(FlowResistanceUnit::mmHg_s_Per_mL);
     double normalPleuralPressure_mmHg = -4.2;
     double venousResistanceModifier = GeneralMath::LinearInterpolator(normalPleuralPressure_mmHg, 3.0, 1.0, 4.0, GetMeanPleuralPressure(PressureUnit::mmHg));
     venousResistanceModifier = std::max(1.0, venousResistanceModifier);
     nextVenousResistance *= venousResistanceModifier;
     venousReturn->GetNextResistance().SetValue(nextVenousResistance, FlowResistanceUnit::mmHg_s_Per_mL);
-  */
+  
     if (m_PatientActions->HasClosedTensionPneumothorax()) {
       // Scale the flow resistance through the chest opening based on severity
       double severity = m_PatientActions->GetClosedTensionPneumothorax()->GetSeverity().GetValue();
       double resistance_cmH2O_s_Per_L = dPneumoMaxFlowResistance_cmH2O_s_Per_L;
-      resistance_cmH2O_s_Per_L = dPneumoMinFlowResistance_cmH2O_s_Per_L / std::pow(severity, 2.0);
+      if (severity > 0.0) {
+        resistance_cmH2O_s_Per_L = dPneumoMinFlowResistance_cmH2O_s_Per_L / std::pow(severity, 2.0);
+      }
       resistance_cmH2O_s_Per_L = std::min(resistance_cmH2O_s_Per_L, dPneumoMaxFlowResistance_cmH2O_s_Per_L);
       m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::AlveoliLeakToPleural)->GetNextResistance().SetValue(resistance_cmH2O_s_Per_L, FlowResistanceUnit::cmH2O_s_Per_L);
       if (severity == 0) {
@@ -977,18 +979,21 @@ void Respiratory::Pneumothorax()
       if (m_PatientActions->HasNeedleDecompression() ) {
         double dScalingFactor = 0.5; //Tuning parameter to allow gas flow due to needle decompression using lung resistance as reference
         double dFlowResistanceLeftNeedle = dScalingFactor * dNeedleFlowResistance_cmH2O_s_Per_L;
-        m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::AlveoliLeakToPleural)->GetNextResistance().SetValue(dFlowResistanceLeftNeedle, FlowResistanceUnit::cmH2O_s_Per_L);
+        m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::PleuralToEnvironment)->GetNextResistance().SetValue(dFlowResistanceLeftNeedle, FlowResistanceUnit::cmH2O_s_Per_L);
       }
     }
     if (m_PatientActions->HasOpenTensionPneumothorax()) {
       // Scale the flow resistance through the chest opening based on severity
+      dPneumoMinFlowResistance_cmH2O_s_Per_L = 10.0;
       double severity = m_PatientActions->GetOpenTensionPneumothorax()->GetSeverity().GetValue();
       double resistance_cmH2O_s_Per_L = dPneumoMaxFlowResistance_cmH2O_s_Per_L;
-      resistance_cmH2O_s_Per_L = dPneumoMinFlowResistance_cmH2O_s_Per_L / std::pow(severity, 2.0);
+      if (severity > 0.0 && !m_PatientActions->HasChestOcclusiveDressing()) {
+        resistance_cmH2O_s_Per_L = dPneumoMinFlowResistance_cmH2O_s_Per_L / std::pow(severity, 2.0);
+      }
       resistance_cmH2O_s_Per_L = std::min(resistance_cmH2O_s_Per_L, dPneumoMaxFlowResistance_cmH2O_s_Per_L);
-      m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::PleuralToEnvironment)->GetNextResistance().SetValue(resistance_cmH2O_s_Per_L, FlowResistanceUnit::cmH2O_s_Per_L);
+      m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::EnvironmentToChestLeak)->GetNextResistance().SetValue(resistance_cmH2O_s_Per_L, FlowResistanceUnit::cmH2O_s_Per_L);
       if (severity == 0) {
-        m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::PleuralToEnvironment)->SetNextValve(CDM::enumOpenClosed::Open);
+        m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::EnvironmentToChestLeak)->SetNextValve(CDM::enumOpenClosed::Open);
       }
       if (m_PatientActions->HasNeedleDecompression()) {
         double dScalingFactor = 0.5; //Tuning parameter to allow gas flow due to needle decompression using lung resistance as reference
@@ -1186,11 +1191,11 @@ void Respiratory::CalculateVitalSignsLite()
   GetAlveolarArterialGradient().SetValue(avgAlveoliO2PP_mmHg - m_AortaO2->GetPartialPressure(PressureUnit::mmHg), PressureUnit::mmHg);
 
   //Track a weighted average mean pleural pressure (relative to environment).  Used in Nervous feedback and also in Tension Pneumothorax and Asthma
- /* double meanPleuralPressure_cmH2O = GetMeanPleuralPressure(PressureUnit::cmH2O);
+  double meanPleuralPressure_cmH2O = GetMeanPleuralPressure(PressureUnit::cmH2O);
   double dMeanPleuralPressure = 0.1 * (-meanPleuralPressure_cmH2O + (dPleuralPressure_cmH2O - dEnvironmentPressure));
   meanPleuralPressure_cmH2O += dMeanPleuralPressure * m_dt_s;
   GetMeanPleuralPressure().SetValue(meanPleuralPressure_cmH2O, PressureUnit::cmH2O);
-  */
+  
   /// \event Patient: Start of exhale/inhale
   if (m_Patient->IsEventActive(CDM::enumPatientEvent::StartOfExhale))
     m_Patient->SetEvent(CDM::enumPatientEvent::StartOfExhale, false, m_data.GetSimulationTime());
@@ -1410,14 +1415,13 @@ void Respiratory::UpdateObstructiveResistance()
     m_ObstructiveResistanceScale += scaleUp * (targetResistanceScalingFactor - m_ObstructiveResistanceScale); //Gradually ramp up to target.  Rapid changes to circuit cause instabilities 
     m_ObstructiveResistanceScale = std::min(m_ObstructiveResistanceScale, targetResistanceScalingFactor); //Make sure we don't exceed target
     // Increase in pleural pressure restricts blood return to heart.  Model this by increasing vena cava->right heart resistance
-   /* SEFluidCircuitPath* venousReturn = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularLitePath::VenaCavaToRightHeart2);
+    SEFluidCircuitPath* venousReturn = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularPath::VenaCavaToRightHeart2);
     double nextVenousResistance = venousReturn->GetResistanceBaseline(FlowResistanceUnit::mmHg_s_Per_mL);
     double normalPleuralPressure_mmHg = -4.2;
     double venousResistanceModifier = GeneralMath::LinearInterpolator(normalPleuralPressure_mmHg, -1.0, 1.0, 5.0, GetMeanPleuralPressure(PressureUnit::mmHg));
     venousResistanceModifier = std::max(1.0, venousResistanceModifier);
     nextVenousResistance *= venousResistanceModifier;
     venousReturn->GetNextResistance().SetValue(nextVenousResistance, FlowResistanceUnit::mmHg_s_Per_mL);
-    */
   } else {
    if (m_ObstructiveResistanceScale > 1.05) {
       //This block is entered when an airway obstruction action has been deactivated.

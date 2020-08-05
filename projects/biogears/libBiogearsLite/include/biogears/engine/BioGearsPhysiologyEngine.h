@@ -88,11 +88,12 @@ namespace tatrc {
         DEFINE_STATIC_STRING(Pleural);
         DEFINE_STATIC_STRING(DeadSpace);
         DEFINE_STATIC_STRING(AlveoliLeak);
+        DEFINE_STATIC_STRING(ChestLeak);
 
         static const std::vector<std::string>& GetValues()
         {
           static std::vector<std::string> _values = {
-            Mouth, Trachea, Bronchi, Alveoli, Pleural, DeadSpace, AlveoliLeak
+            Mouth, Trachea, Bronchi, Alveoli, Pleural, DeadSpace, AlveoliLeak, ChestLeak
           };
           return _values;
         }
@@ -106,11 +107,13 @@ namespace tatrc {
         DEFINE_STATIC_STRING(AlveoliToAlveoliLeak);
         DEFINE_STATIC_STRING(AlveoliLeakToPleural);
         DEFINE_STATIC_STRING(PleuralToEnvironment);
+        DEFINE_STATIC_STRING(ChestLeakToPleural);
+        DEFINE_STATIC_STRING(EnvironmentToChestLeak);
 
         static const std::vector<std::string>& GetValues()
         {
           static std::vector<std::string> _values = {
-            EnvironmentToMouth, MouthToTrachea, TracheaToBronchi, BronchiToAlveoli, AlveoliToAlveoliLeak, AlveoliLeakToPleural, PleuralToEnvironment
+            EnvironmentToMouth, MouthToTrachea, TracheaToBronchi, BronchiToAlveoli, AlveoliToAlveoliLeak, AlveoliLeakToPleural, PleuralToEnvironment, ChestLeakToPleural, EnvironmentToChestLeak
           };
           return _values;
         }

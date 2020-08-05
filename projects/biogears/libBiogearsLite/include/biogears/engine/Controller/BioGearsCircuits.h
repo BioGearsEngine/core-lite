@@ -123,6 +123,7 @@ namespace tatrc {
         DEFINE_STATIC_STRING(Bronchi);
         DEFINE_STATIC_STRING(Alveoli);
         DEFINE_STATIC_STRING(AlveoliLeak);
+        DEFINE_STATIC_STRING(ChestLeak);
         DEFINE_STATIC_STRING(PleuralConnection);
         DEFINE_STATIC_STRING(Pleural);
         DEFINE_STATIC_STRING(RespiratoryMuscle);
@@ -142,6 +143,9 @@ namespace tatrc {
         DEFINE_STATIC_STRING(AlveoliToAlveoliLeak);
         DEFINE_STATIC_STRING(AlveoliLeakToPleural);
         DEFINE_STATIC_STRING(PleuralToEnvironment);
+        DEFINE_STATIC_STRING(EnvironmentToChestLeak);
+        DEFINE_STATIC_STRING(ChestLeakToPleural);
+
       };
 
       //////////////////////////////////////
