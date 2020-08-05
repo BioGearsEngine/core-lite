@@ -984,7 +984,7 @@ void Respiratory::Pneumothorax()
     }
     if (m_PatientActions->HasOpenTensionPneumothorax()) {
       // Scale the flow resistance through the chest opening based on severity
-      dPneumoMinFlowResistance_cmH2O_s_Per_L = 10.0;
+      dPneumoMinFlowResistance_cmH2O_s_Per_L = 6.0; //7.5;
       double severity = m_PatientActions->GetOpenTensionPneumothorax()->GetSeverity().GetValue();
       double resistance_cmH2O_s_Per_L = dPneumoMaxFlowResistance_cmH2O_s_Per_L;
       if (severity > 0.0 && !m_PatientActions->HasChestOcclusiveDressing()) {
