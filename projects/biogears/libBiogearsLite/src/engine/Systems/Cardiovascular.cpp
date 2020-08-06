@@ -677,7 +677,6 @@ void Cardiovascular::CalculateVitalSigns()
   double gutFlow_mL_Per_s = m_CirculatoryCircuit->GetPath(BGE::CardiovascularPath::Aorta1ToGut)->GetNextFlow(VolumePerTimeUnit::mL_Per_s);
 
   // Calculate heart rate - Threshold of 0.1 is empirically determined. Approximate zero makes it too noisy.
-  m_CurrentCardiacCycleDuration_s += m_dT_s;
   if (LHeartFlow_mL_Per_s > 0.1 && !m_HeartFlowDetected) {
     m_HeartFlowDetected = true;
     CalculateHeartRate();
@@ -919,7 +918,6 @@ void Cardiovascular::ProcessActions()
 {
   TraumaticBrainInjury();
   Hemorrhage();
-  //PericardialEffusion();
   CPR();
   CardiacArrest();
 }
@@ -1178,15 +1176,22 @@ void Cardiovascular::CalculateAndSetCPRcompressionForce()
 //--------------------------------------------------------------------------------------------------
 void Cardiovascular::CardiacArrest()
 {
-  // If there is no call for a cardiac arrest, return to ProcessActions
-  if (!m_data.GetActions().GetPatientActions().HasCardiacArrest())
-    return;
-  // Flip the cardiac arrest switch
-  // This tells the CV system that a cardiac arrest has been initiated.
-  // The cardiac arrest event will be triggered by CardiacCycleCalculations() at the end of the cardiac cycle.
-  m_EnterCardiacArrest = true;
+  if (m_data.GetActions().GetPatientActions().HasCardiacArrest()) {
+    if (m_data.GetActions().GetPatientActions().GetCardiacArrest()->IsActive()) {
+      m_EnterCardiacArrest = true;
+    } else {
+      m_data.GetActions().GetPatientActions().RemoveCardiacArrest();
+      m_patient->SetEvent(CDM::enumPatientEvent::CardiacArrest, false, m_data.GetSimulationTime());
+      m_patient->SetEvent(CDM::enumPatientEvent::Asystole, false, m_data.GetSimulationTime());
+      m_EnterCardiacArrest = false;
+      m_StartSystole = true;
+      SetHeartRhythm(CDM::enumHeartRhythm::NormalSinus);
+      GetHeartRate().SetValue(m_patient->GetHeartRateBaseline().GetValue(FrequencyUnit::Per_min), FrequencyUnit::Per_min);
+      m_CurrentCardiacCycleDuration_s = 1. / m_patient->GetHeartRateBaseline().GetValue(FrequencyUnit::Per_s);
+      m_CardiacCyclePeriod_s = .0;
+    }
+  }
 }
-
 //--------------------------------------------------------------------------------------------------
 /// \brief
 /// Calculates the contraction and relaxation of the left and right heart during the cardiac cycle
@@ -1221,9 +1226,10 @@ void Cardiovascular::HeartDriver()
     m_EnterCardiacArrest = true;
 
   if (!m_patient->IsEventActive(CDM::enumPatientEvent::CardiacArrest)) {
-    if (m_CurrentCardiacCycleTime_s >= m_CardiacCyclePeriod_s - m_dT_s)
+    if (m_CurrentCardiacCycleTime_s + m_dT_s > m_CardiacCyclePeriod_s) {
       m_StartSystole = true; // A new cardiac cycle will begin next time step
-
+      m_CurrentCardiacCycleDuration_s += (m_CardiacCyclePeriod_s - m_CurrentCardiacCycleTime_s);  //Add leftover time to current duration so CalculateHeartRate has an accurate notion of how long this cycle lasted.
+    }
     AdjustVascularTone();
     CalculateHeartElastance();
   }
@@ -1236,6 +1242,7 @@ void Cardiovascular::HeartDriver()
   // So for a normal sinus rhythm, the maximum cardiac cycle time is equal to the cardiac cycle period (m_CardiacCyclePeriod_s).
   // For any ineffective rhythm (no heart beat) the cardiac cycle time will be as long as it has been since the last time there was an effective beat.
   m_CurrentCardiacCycleTime_s += m_dT_s;
+  m_CurrentCardiacCycleDuration_s += m_dT_s;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1289,10 +1296,16 @@ void Cardiovascular::BeginCardiacCycle()
     RecordAndResetCardiacCycle();
     GetHeartRate().SetValue(0.0, FrequencyUnit::Per_min);
   } else {
-    if (HeartDriverFrequency_Per_Min == 0)
+    if (HeartDriverFrequency_Per_Min == 0) {
       m_CardiacCyclePeriod_s = 1.0e9; // Cannot divide by zero so set the period to a large number (1.0e9 sec = 31.7 years)
-    else
+    } else {
       m_CardiacCyclePeriod_s = 60.0 / HeartDriverFrequency_Per_Min;
+      if ((m_CardiacCyclePeriod_s < (1.0 / m_patient->GetHeartRateBaseline(FrequencyUnit::Per_s)) + m_dT_s) && (m_data.GetState() <= EngineState::AtSecondaryStableState)) {
+        // A deviation of < 1 time step in cycle period can introduce undamped oscillations in HR during stabilization.  Make sure that any changes to HeartDriverFrequency
+        // are greater than 1 time step during stabilization -- this will still allow conditions to affect change
+        m_CardiacCyclePeriod_s = 1.0 / m_patient->GetHeartRateBaseline(FrequencyUnit::Per_s);
+      }
+    }
   }
 
   // Reset the systole flag and the cardiac cycle time

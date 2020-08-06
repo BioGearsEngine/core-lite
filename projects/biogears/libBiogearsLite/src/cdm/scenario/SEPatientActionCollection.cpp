@@ -260,13 +260,13 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
 
   const CDM::CardiacArrestData* cardiacarrest = dynamic_cast<const CDM::CardiacArrestData*>(&action);
   if (cardiacarrest != nullptr) {
-    if (m_CardiacArrest == nullptr)
-      m_CardiacArrest = new SECardiacArrest();
-    m_CardiacArrest->Load(*cardiacarrest);
-    if (!m_CardiacArrest->IsActive()) {
-      RemoveCardiacArrest();
-      return true;
+    if (m_CardiacArrest == nullptr && cardiacarrest->State() == CDM::enumOnOff::Off) {
+      return true;  //Ignore CardiacArrest::Off when no cardiac arrest event exists
     }
+    if (m_CardiacArrest == nullptr) {
+      m_CardiacArrest = new SECardiacArrest();
+    }
+    m_CardiacArrest->Load(*cardiacarrest);
     return IsValid(*m_CardiacArrest);
   }
 
