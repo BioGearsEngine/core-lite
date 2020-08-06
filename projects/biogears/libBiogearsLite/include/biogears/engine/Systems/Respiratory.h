@@ -92,6 +92,11 @@ private:
   //Tuning
   void TuneCircuit();
 
+  //Conditions
+  void COPD();
+  void ImpairedAlveolarExchange();
+  void LobarPneumonia();
+
   //PreProcess
   //Actions
   void AirwayObstruction();
@@ -104,10 +109,15 @@ private:
   void MechanicalVentilation();
   void Apnea();
   // Driver
-  void RespiratoryDriverLite();
+  void RespiratoryDriver();
 
   // Shared Utility Methods for Actions/Driver
   /**/ void UpdateIERatio();
+  // LobarPneumonia/COPD
+  /**/ void UpdateAlveoliCompliance(double dCompilanceScalingFactor, double dLungFraction);
+  /**/ void UpdateGasDiffusionSurfaceArea(double dFractionalArea, double dLungFraction);
+  // COPD
+  /**/ void UpdatePulmonaryCapillaryResistance(double dResistanceScalingFactor, double dLungFraction);
   // Aerosol Deposition and various Effects
   void ProcessAerosolSubstances();
 
@@ -197,8 +207,6 @@ private:
   SEFluidCircuitNode* m_Ambient;
   //Paths
   SEFluidCircuitPath* m_DriverPressurePath;
-  SEFluidCircuitPath* m_RightPulmonaryCapillary;
-  SEFluidCircuitPath* m_LeftPulmonaryCapillary;
   SEFluidCircuitPath* m_ConnectionToMouth;
   SEFluidCircuitPath* m_GroundToConnection;
   //Substances

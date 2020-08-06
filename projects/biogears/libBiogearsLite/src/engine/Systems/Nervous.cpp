@@ -105,7 +105,6 @@ bool Nervous::Load(const CDM::BioGearsNervousSystemData& in)
   m_PeripheralFrequencyDelta_Per_min = in.PeripheralFrequencyDelta_Per_min();
   m_PeripheralPressureDelta_cmH2O = in.PeripheralPressureDelta_mmHg(); //Meant to be cmH2O, correct later
 
-
   return true;
 }
 CDM::BioGearsNervousSystemData* Nervous::Unload() const
@@ -176,8 +175,6 @@ void Nervous::AtSteadyState()
   // The set-points (Baselines) get reset at the end of each stabilization period.
   m_ArterialOxygenSetPoint_mmHg = m_data.GetBloodChemistry().GetArterialOxygenPressure(PressureUnit::mmHg);
   m_ArterialCarbonDioxideSetPoint_mmHg = m_data.GetBloodChemistry().GetArterialCarbonDioxidePressure(PressureUnit::mmHg);
-
-
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -492,12 +489,12 @@ void Nervous::ChemoreceptorFeedback()
   //Chemoreceptor time constants (all in s)
   double tau_p_P = 100.0, tau_p_RR = 100.0, tau_c_P = 180.0, tau_c_RR = 180.0;
   //Chemoreceptor gains--Tuned to data from Reynold, 1972 and Reynolds, 1973 (cited in Cheng, 2016)
-  double gain_p_P = 1.25, gain_p_RR = 0.70, gain_c_P = 0.75, gain_c_RR = 0.70; //cp=0.55
+  double gain_p_P = 1.25, gain_p_RR = 0.70, gain_c_P = 0.75, gain_c_RR = 0.70;
 
   ////Inputs
   double arterialO2Pressure_mmHg = m_data.GetBloodChemistry().GetArterialOxygenPressure(PressureUnit::mmHg);
   double arterialCO2Pressure_mmHg = m_data.GetBloodChemistry().GetArterialCarbonDioxidePressure(PressureUnit::mmHg);
-  
+
   //Magosso and Ursino cite findings that central chemoreceptors are less sensitive at sub-normal levels of CO2 than to super-normal levels
   if (arterialCO2Pressure_mmHg < m_ArterialCarbonDioxideSetPoint_mmHg) {
     gain_c_P *= 0.067;
@@ -513,7 +510,6 @@ void Nervous::ChemoreceptorFeedback()
   double gasInteractionBase = 3.0;
   double firingRateTimeConstant_s = 2.0;
   double tuningFactor = 1.4;
-
 
   //The psi parameter captures the combined interactive effect of O2 and CO2 on the peripheral chemoreceptors.  The degree
   //of interaction varies as hypoxia deepens, with CO2 having less impact as O2 levels decrease
@@ -537,7 +533,7 @@ void Nervous::ChemoreceptorFeedback()
   }
 
   //Evaluate model derivatives pertaining to change in chemoreceptor firing rate, and changes in central and peripheral contributions to ventilation
-  
+
   //Differentials
   double dFiringRate = (1.0 / firingRateTimeConstant_s) * (-m_ChemoreceptorFiringRate_Hz + psi) * m_dt_s;
   double dFrequency_c = (-m_CentralFrequencyDelta_Per_min + gain_c_RR * centralInput) / tau_c_RR * m_dt_s;
@@ -545,44 +541,54 @@ void Nervous::ChemoreceptorFeedback()
   double dFrequency_p = (-m_PeripheralFrequencyDelta_Per_min + gain_p_RR * peripheralInput) / tau_p_RR * m_dt_s;
   double dPressure_p = (-m_PeripheralPressureDelta_cmH2O + gain_p_P * peripheralInput) / tau_p_P * m_dt_s;
 
+  m_ChemoreceptorFiringRate_Hz += dFiringRate;
+  m_ChemoreceptorFiringRate_Hz = std::max(0.0, m_ChemoreceptorFiringRate_Hz);
+  m_ChemoreceptorFiringRate_Hz = std::min(m_ChemoreceptorFiringRate_Hz, firingRateMax_Hz);
+  m_CentralFrequencyDelta_Per_min += dFrequency_c;
+  m_CentralPressureDelta_cmH2O += dPressure_c;
+  m_PeripheralFrequencyDelta_Per_min += dFrequency_p;
+  m_PeripheralPressureDelta_cmH2O += dPressure_p;
+
   //Update Respiratory metrics
-  double baselineRespirationRate_Per_min = m_data.GetPatient().GetRespirationRateBaseline(FrequencyUnit::Per_min);
-  double baselineDrivePressure_cmH2O = m_Patient->GetRespiratoryDriverAmplitudeBaseline(PressureUnit::cmH2O);
-  double nextRespirationRate_Per_min;
-  double nextDrivePressure_cmH2O;
+  const double baselineRespirationRate_Per_min = m_data.GetPatient().GetRespirationRateBaseline(FrequencyUnit::Per_min);
+  const double baselineDrivePressure_cmH2O = m_Patient->GetRespiratoryDriverAmplitudeBaseline(PressureUnit::cmH2O);
+  double nextRespirationRate_Per_min = baselineRespirationRate_Per_min + m_CentralFrequencyDelta_Per_min + m_PeripheralFrequencyDelta_Per_min;
+  double nextDrivePressure_cmH2O = baselineDrivePressure_cmH2O - m_CentralPressureDelta_cmH2O - m_PeripheralPressureDelta_cmH2O;
 
-  if (m_data.GetState() < EngineState::AtSecondaryStableState) {
-    nextDrivePressure_cmH2O = baselineDrivePressure_cmH2O - dPressure_c - dPressure_p;
-    m_data.GetRespiratory().GetRespirationMusclePressure().SetValue(nextDrivePressure_cmH2O, PressureUnit::cmH2O);
-    m_Patient->GetRespiratoryDriverAmplitudeBaseline().SetValue(nextDrivePressure_cmH2O, PressureUnit::cmH2O);
-  } else {
-    m_ChemoreceptorFiringRate_Hz += dFiringRate;
-    if (m_ChemoreceptorFiringRate_Hz < 0) {
-      m_ChemoreceptorFiringRate_Hz = 0.0;
-    }
-    m_CentralFrequencyDelta_Per_min += dFrequency_c;
-    m_CentralPressureDelta_cmH2O += dPressure_c;
-    m_PeripheralFrequencyDelta_Per_min += dFrequency_p;
-    m_PeripheralPressureDelta_cmH2O += dPressure_p;
-
-    nextRespirationRate_Per_min = baselineRespirationRate_Per_min + m_CentralFrequencyDelta_Per_min + m_PeripheralFrequencyDelta_Per_min;
-    nextDrivePressure_cmH2O = baselineDrivePressure_cmH2O - m_CentralPressureDelta_cmH2O - m_PeripheralPressureDelta_cmH2O;
-
-    //This tuning of CNS modifier was done so that standard Fentanyl and Morphine runs approximately match main engine baselines.  
-    if (drugCNSModifier > ZERO_APPROX) {
-      for (auto drug : m_data.GetSubstances().GetActiveDrugs()) {
-        if (drug->GetClassification() == CDM::enumSubstanceClass::Opioid) {
-          nextRespirationRate_Per_min *= (1.0 - drugCNSModifier / 5.0);
-          nextDrivePressure_cmH2O *= (1.0 - drugCNSModifier / 2.0);
-          break; //Don't evaluate more than once if for some reason we give someone morphine and fentanyl
-        }
+  //This tuning of CNS modifier was done so that standard Fentanyl and Morphine runs approximately match main engine baselines.
+  if (drugCNSModifier > ZERO_APPROX) {
+    for (auto drug : m_data.GetSubstances().GetActiveDrugs()) {
+      if (drug->GetClassification() == CDM::enumSubstanceClass::Opioid) {
+        nextRespirationRate_Per_min *= (1.0 - drugCNSModifier / 5.0);
+        nextDrivePressure_cmH2O *= (1.0 - drugCNSModifier / 2.0);
+        break; //Don't evaluate more than once if for some reason we give someone morphine and fentanyl
       }
     }
-
-    m_data.GetRespiratory().GetRespirationDriverFrequency().SetValue(nextRespirationRate_Per_min, FrequencyUnit::Per_min);
-    m_data.GetRespiratory().GetRespirationMusclePressure().SetValue(nextDrivePressure_cmH2O, PressureUnit::cmH2O);
   }
+  //Apply metabolic effects. The modifier is tuned to achieve the correct respiratory response for near maximal exercise.
+  //A linear relationship is assumed for the respiratory effects due to increased metabolic exertion
+  //Old driver multiplied a target ventilation by the metabolic modifier.  Since Vent (L/min) = RR(/min) * TV(L) and
+  //relationship between driver pressure and TV is approx linear (e.g. 10% change in pressure -> 10% change in TV),
+  //, we should be able to maintain this assumption to achieve desired effect
+  const double TMR_W = m_data.GetEnergy().GetTotalMetabolicRate(PowerUnit::W);
+  const double BMR_W = m_data.GetPatient().GetBasalMetabolicRate(PowerUnit::W);
+  const double metabolicFraction = TMR_W / BMR_W;
+  const double tunedVolumeMetabolicSlope = 0.2;
+  const double metabolicModifier = 1.0 + tunedVolumeMetabolicSlope * (metabolicFraction - 1.0);
+  nextRespirationRate_Per_min *= metabolicModifier;
+  nextDrivePressure_cmH2O *= metabolicModifier;
 
+  if (m_data.GetState() < EngineState::AtInitialStableState) {
+    const double upperTolerance = baselineRespirationRate_Per_min * 1.05;
+    const double lowerTolerance = baselineRespirationRate_Per_min * 0.95;
+    if (nextRespirationRate_Per_min < upperTolerance && nextRespirationRate_Per_min > lowerTolerance) {
+      m_data.GetRespiratory().GetRespirationDriverFrequency().SetValue(nextRespirationRate_Per_min, FrequencyUnit::Per_min);
+    }
+  } else {
+    m_data.GetRespiratory().GetRespirationDriverFrequency().SetValue(nextRespirationRate_Per_min, FrequencyUnit::Per_min);
+  }
+  //Driver pressure is always updated
+  m_data.GetRespiratory().GetRespirationDriverPressure().SetValue(nextDrivePressure_cmH2O, PressureUnit::cmH2O);
 
   //-----Cardiovascular Feedback:  This functionality is currently only active after stabilization.
   if (!m_FeedbackActive)

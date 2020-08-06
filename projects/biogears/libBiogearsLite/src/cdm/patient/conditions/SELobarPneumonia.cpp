@@ -18,8 +18,7 @@ SELobarPneumonia::SELobarPneumonia()
   : SEPatientCondition()
 {
   m_Severity = nullptr;
-  m_LeftLungAffected = nullptr;
-  m_RightLungAffected = nullptr;
+  m_LungAffectedFraction = nullptr;
 }
 //-----------------------------------------------------------------------------
 SELobarPneumonia::~SELobarPneumonia()
@@ -31,21 +30,19 @@ void SELobarPneumonia::Clear()
 {
   SEPatientCondition::Clear();
   SAFE_DELETE(m_Severity);
-  SAFE_DELETE(m_LeftLungAffected);
-  SAFE_DELETE(m_RightLungAffected);
+  SAFE_DELETE(m_LungAffectedFraction);
 }
 //-----------------------------------------------------------------------------
 bool SELobarPneumonia::IsValid() const
 {
-  return SEPatientCondition::IsValid() && HasSeverity() && HasLeftLungAffected() && HasRightLungAffected();
+  return SEPatientCondition::IsValid() && HasSeverity() && HasLungAffectedFraction();
 }
 //-----------------------------------------------------------------------------
 bool SELobarPneumonia::Load(const CDM::LobarPneumoniaData& in)
 {
   SEPatientCondition::Load(in);
   GetSeverity().Load(in.Severity());
-  GetLeftLungAffected().Load(in.LeftLungAffected());
-  GetRightLungAffected().Load(in.RightLungAffected());
+  GetLungAffectedFraction().Load(in.LungAffectedFraction());
   return true;
 }
 //-----------------------------------------------------------------------------
@@ -61,10 +58,8 @@ void SELobarPneumonia::Unload(CDM::LobarPneumoniaData& data) const
   SEPatientCondition::Unload(data);
   if (m_Severity != nullptr)
     data.Severity(std::unique_ptr<CDM::Scalar0To1Data>(m_Severity->Unload()));
-  if (m_LeftLungAffected != nullptr)
-    data.LeftLungAffected(std::unique_ptr<CDM::Scalar0To1Data>(m_LeftLungAffected->Unload()));
-  if (m_RightLungAffected != nullptr)
-    data.RightLungAffected(std::unique_ptr<CDM::Scalar0To1Data>(m_RightLungAffected->Unload()));
+  if (m_LungAffectedFraction != nullptr)
+    data.LungAffectedFraction(std::unique_ptr<CDM::Scalar0To1Data>(m_LungAffectedFraction->Unload()));
 }
 //-----------------------------------------------------------------------------
 bool SELobarPneumonia::HasSeverity() const
@@ -79,28 +74,16 @@ SEScalar0To1& SELobarPneumonia::GetSeverity()
   return *m_Severity;
 }
 //-----------------------------------------------------------------------------
-bool SELobarPneumonia::HasLeftLungAffected() const
+bool SELobarPneumonia::HasLungAffectedFraction() const
 {
-  return m_LeftLungAffected == nullptr ? false : m_LeftLungAffected->IsValid();
+  return m_LungAffectedFraction == nullptr ? false : m_LungAffectedFraction->IsValid();
 }
 //-----------------------------------------------------------------------------
-SEScalar0To1& SELobarPneumonia::GetLeftLungAffected()
+SEScalar0To1& SELobarPneumonia::GetLungAffectedFraction()
 {
-  if (m_LeftLungAffected == nullptr)
-    m_LeftLungAffected = new SEScalar0To1();
-  return *m_LeftLungAffected;
-}
-//-----------------------------------------------------------------------------
-bool SELobarPneumonia::HasRightLungAffected() const
-{
-  return m_RightLungAffected == nullptr ? false : m_RightLungAffected->IsValid();
-}
-//-----------------------------------------------------------------------------
-SEScalar0To1& SELobarPneumonia::GetRightLungAffected()
-{
-  if (m_RightLungAffected == nullptr)
-    m_RightLungAffected = new SEScalar0To1();
-  return *m_RightLungAffected;
+  if (m_LungAffectedFraction == nullptr)
+    m_LungAffectedFraction = new SEScalar0To1();
+  return *m_LungAffectedFraction;
 }
 //-----------------------------------------------------------------------------
 void SELobarPneumonia::ToString(std::ostream& str) const
@@ -110,10 +93,8 @@ void SELobarPneumonia::ToString(std::ostream& str) const
     str << "\n\tComment: " << m_Comment;
   str << "\n\tSeverity: ";
   HasSeverity() ? str << *m_Severity : str << "NaN";
-  str << "\n\tLeftLungAffected: ";
-  HasLeftLungAffected() ? str << *m_LeftLungAffected : str << "NaN";
-  str << "\n\tRightLungAffected: ";
-  HasRightLungAffected() ? str << *m_RightLungAffected : str << "NaN";
+  str << "\n\tLungAffectedFraction: ";
+  HasLungAffectedFraction() ? str << *m_LungAffectedFraction : str << "NaN";
   str << std::flush;
 }
 //-----------------------------------------------------------------------------

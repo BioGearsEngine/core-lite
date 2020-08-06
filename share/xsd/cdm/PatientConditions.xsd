@@ -132,8 +132,7 @@ specific language governing permissions and limitations under the License.
 			<xs:extension base="PatientConditionData">
 				<xs:sequence>
 					<xs:element name="Severity" type="Scalar0To1Data" minOccurs="1" maxOccurs="1"/><!--<< @brief -->					
-					<xs:element name="LeftLungAffected" type="Scalar0To1Data" minOccurs="1" maxOccurs="1"/><!--<< @brief Fraction of the Left Lung Affected-->
-					<xs:element name="RightLungAffected" type="Scalar0To1Data" minOccurs="1" maxOccurs="1"/><!--<< @brief Fraction of the Left Lung Affected -->
+					<xs:element name="LungAffectedFraction" type="Scalar0To1Data" minOccurs="1" maxOccurs="1"/><!--<< @brief Fraction of the Left Lung Affected-->
 				</xs:sequence>				
 			</xs:extension>
 		</xs:complexContent>

@@ -88,8 +88,6 @@ void Respiratory::Clear()
   m_RespiratoryCircuit = nullptr;
 
   m_DriverPressurePath = nullptr;
-  m_RightPulmonaryCapillary = nullptr;
-  m_LeftPulmonaryCapillary = nullptr;
   m_ConnectionToMouth = nullptr;
   m_GroundToConnection = nullptr;
 
@@ -335,10 +333,6 @@ void Respiratory::SetUp()
   m_ConnectionToMouth = m_data.GetCircuits().GetRespiratoryAndMechanicalVentilatorCircuit().GetPath(BGE::MechanicalVentilatorPath::ConnectionToMouth);
   m_GroundToConnection = m_data.GetCircuits().GetRespiratoryAndMechanicalVentilatorCircuit().GetPath(BGE::MechanicalVentilatorPath::GroundToConnection);
 
-  /// \todo figure out how to modify these resistances without getting the cv circuit - maybe add a parameter, like baroreceptors does
-  m_RightPulmonaryCapillary = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularPath::RightPulmonaryCapillariesToRightPulmonaryVeins);
-  m_LeftPulmonaryCapillary = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularPath::LeftPulmonaryCapillariesToLeftPulmonaryVeins);
-
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //The variables below are not used currently in biogears lite but they have been left here in the event we support lite aerosol or lite ventilator.
   m_MechanicalVentilatorConnection = m_data.GetCompartments().GetGasCompartment(BGE::MechanicalVentilatorCompartment::Connection);
@@ -401,6 +395,14 @@ void Respiratory::AtSteadyState()
   Info(ss);
   ss << typeString << "Patient inspiratory capacity = " << inspiratoryCapacity_L << " L.";
   Info(ss);
+
+  if (m_data.GetState() == EngineState::AtInitialStableState) { // At Resting State, apply conditions if we have them
+    COPD();
+    LobarPneumonia();
+    //These conditions stack effects
+    //If combined, it will be a fraction of the already affected alveolar surface area
+    ImpairedAlveolarExchange();
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -418,10 +420,9 @@ void Respiratory::PreProcess()
 {
   AirwayObstruction();
   UpdateObstructiveResistance();
-  m_data.GetDataTrack().Probe("ResistanceFactor", m_ObstructiveResistanceScale);
   BronchoConstriction();
   Pneumothorax();
-  RespiratoryDriverLite();
+  RespiratoryDriver();
   //ProcessAerosolSubstances();
   //ConsciousRespiration();
   //MechanicalVentilation();
@@ -705,7 +706,7 @@ void Respiratory::MechanicalVentilation()
 /// Calculates the muscle pressure source pressure by using the chemical stimuli as feedback control mechanism.
 /// The method reads the arterial O2 and CO2 partial pressures
 //--------------------------------------------------------------------------------------------------
-void Respiratory::RespiratoryDriverLite()
+void Respiratory::RespiratoryDriver()
 {
   ///\ToDo:  Running averages were mostly used for chemoreceptors that have been moved to Nervous.
   /// ToDo:  However, they are still used in some calculations in CalculateVitals.  Should we move/consolidate these?
@@ -949,7 +950,7 @@ void Respiratory::Pneumothorax()
 {
   if (m_PatientActions->HasTensionPneumothorax()) {
     // Minimum flow resistance for the chest cavity or alveoli leak
-    double dPneumoMinFlowResistance_cmH2O_s_Per_L = 3.5;    //Output is very sensitive to this min value.  <3.5 and respiration rate oscillates like crazy at severity = 1.  But if it's much higher than 4 or 5, respiration rate does not change much.
+    double dPneumoMinFlowResistance_cmH2O_s_Per_L = 3.5; //Output is very sensitive to this min value.  <3.5 and respiration rate oscillates like crazy at severity = 1.  But if it's much higher than 4 or 5, respiration rate does not change much.
     // Maximum flow resistance for the chest cavity or alveoli leak
     double dPneumoMaxFlowResistance_cmH2O_s_Per_L = m_dDefaultOpenResistance_cmH2O_s_Per_L;
     // Flow resistance for the decompression needle, if used
@@ -963,7 +964,7 @@ void Respiratory::Pneumothorax()
     venousResistanceModifier = std::max(1.0, venousResistanceModifier);
     nextVenousResistance *= venousResistanceModifier;
     venousReturn->GetNextResistance().SetValue(nextVenousResistance, FlowResistanceUnit::mmHg_s_Per_mL);
-  
+
     if (m_PatientActions->HasClosedTensionPneumothorax()) {
       // Scale the flow resistance through the chest opening based on severity
       double severity = m_PatientActions->GetClosedTensionPneumothorax()->GetSeverity().GetValue();
@@ -976,7 +977,7 @@ void Respiratory::Pneumothorax()
       if (severity == 0) {
         m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::AlveoliToAlveoliLeak)->SetNextValve(CDM::enumOpenClosed::Open);
       }
-      if (m_PatientActions->HasNeedleDecompression() ) {
+      if (m_PatientActions->HasNeedleDecompression()) {
         double dScalingFactor = 0.5; //Tuning parameter to allow gas flow due to needle decompression using lung resistance as reference
         double dFlowResistanceLeftNeedle = dScalingFactor * dNeedleFlowResistance_cmH2O_s_Per_L;
         m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::PleuralToEnvironment)->GetNextResistance().SetValue(dFlowResistanceLeftNeedle, FlowResistanceUnit::cmH2O_s_Per_L);
@@ -1016,6 +1017,113 @@ void Respiratory::Pneumothorax()
       m_PatientActions->RemoveChestOcclusiveDressing();
       return;
     }
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+/// \brief
+/// Chronic Obstructive Pulmonary Disease (COPD)
+///
+/// \param  None
+///
+/// \return void
+///
+/// \details
+/// This method handles the COPD condition. It determines if the patient has COPD, and if so,
+/// calculates a set of multipliers to model the various symptoms. This method should only
+/// run once per simulation. Note that the bronchitis symptom (airway obstruction) is handled by
+/// another method that is called every time-step in pre-process.
+//--------------------------------------------------------------------------------------------------
+void Respiratory::COPD()
+{
+  if (m_data.GetConditions().HasChronicObstructivePulmonaryDisease()) {
+    double dBronchitisSeverity = m_data.GetConditions().GetChronicObstructivePulmonaryDisease()->GetBronchitisSeverity().GetValue();
+    double dEmphysemaSeverity = m_data.GetConditions().GetChronicObstructivePulmonaryDisease()->GetEmphysemaSeverity().GetValue();
+    double dLungFraction = 1.0;
+
+    // Calculate Pulmonary Capillary Resistance Multiplier based on severities
+    double dMaxSeverity = std::max(dBronchitisSeverity, dEmphysemaSeverity);
+    // Resistance is based on a a simple linear regression, with maximum of 3x the pulmonary resistance baseline
+    double dPulmonaryResistanceMultiplier = GeneralMath::LinearInterpolator(0.0, 1.0, 1.0, 3, dMaxSeverity);
+    // Call UpdatePulmonaryCapillaryResistance
+    UpdatePulmonaryCapillaryResistance(dPulmonaryResistanceMultiplier, dLungFraction);
+
+    // Calculate Alveoli Compliance Multiplier based on severities.  Setting both lung fractions to 1 (as above) will have large impact on
+    // compliances, so we don't need to make the severity too high to get the changes we want.  Scale from 0 to 0.35
+    double dCompilanceScalingFactor = GeneralMath::LinearInterpolator(0, 1.0, 0, 0.15, dEmphysemaSeverity);
+    // Call UpdateAlveoliCompliance
+    UpdateAlveoliCompliance(dCompilanceScalingFactor, dLungFraction);
+
+    // Calculate Gas Diffusion Surface Area scaling factor in the same ways as alveoli compliance
+    double dGasDiffScalingFactor = GeneralMath::LinearInterpolator(0, 1.0, 0, 0.3, dEmphysemaSeverity);
+    // Call UpdateGasDiffusionSurfaceArea
+    UpdateGasDiffusionSurfaceArea(dGasDiffScalingFactor, dLungFraction);
+  }
+}
+//--------------------------------------------------------------------------------------------------
+/// \brief
+/// Impaired Alveolar Exchange
+///
+/// \param  None
+///
+/// \return void
+///
+/// \details
+/// This method handles the Impaired Alveolar Exchange condition.
+//--------------------------------------------------------------------------------------------------
+void Respiratory::ImpairedAlveolarExchange()
+{
+  if (!m_data.GetConditions().HasImpairedAlveolarExchange()) {
+    return;
+  }
+
+  if (!m_data.GetConditions().GetImpairedAlveolarExchange()->HasImpairedSurfaceArea() && !m_data.GetConditions().GetImpairedAlveolarExchange()->HasImpairedFraction()) {
+    /// \error Fatal: The Impaired Alveolar Exchange action must include either a surface area of fraction.
+    Fatal("The Impaired Alveolar Exchange action must include either a surface area of fraction.");
+  }
+
+  double alveoliDiffusionArea_cm2 = m_Patient->GetAlveoliSurfaceArea(AreaUnit::cm2);
+  if (m_data.GetConditions().GetImpairedAlveolarExchange()->HasImpairedSurfaceArea() && m_data.GetConditions().GetImpairedAlveolarExchange()->HasImpairedFraction()) {
+    /// \error Error: The Impaired Alveolar Exchange action cannot have both an impaired surface area and impaired fraction defined. Defaulting to the surface area value.
+    Warning("The Impaired Alveolar Exchange action cannot have both an impaired surface area and impaired fraction defined. Defaulting to the surface area value.");
+    alveoliDiffusionArea_cm2 = alveoliDiffusionArea_cm2 - m_data.GetConditions().GetImpairedAlveolarExchange()->GetImpairedSurfaceArea(AreaUnit::cm2);
+  } else if (m_data.GetConditions().GetImpairedAlveolarExchange()->HasImpairedSurfaceArea()) {
+    alveoliDiffusionArea_cm2 = alveoliDiffusionArea_cm2 - m_data.GetConditions().GetImpairedAlveolarExchange()->GetImpairedSurfaceArea(AreaUnit::cm2);
+  } else if (m_data.GetConditions().GetImpairedAlveolarExchange()->HasImpairedFraction()) {
+    alveoliDiffusionArea_cm2 = (1.0 - m_data.GetConditions().GetImpairedAlveolarExchange()->GetImpairedFraction().GetValue()) * alveoliDiffusionArea_cm2;
+  }
+
+  //This is a conditions, so we change it pertinently
+  m_Patient->GetAlveoliSurfaceArea().SetValue(alveoliDiffusionArea_cm2, AreaUnit::cm2);
+}
+
+//--------------------------------------------------------------------------------------------------
+/// \brief
+/// Lobar Pneumonia
+///
+/// \param  None
+///
+/// \return void
+///
+/// \details
+/// This method handles the lobar pneumonia condition. It determines if the patient has lobar pneumonia and
+/// calculates a set of multipliers to model the various symptoms. This method should only run once per simulation.
+//--------------------------------------------------------------------------------------------------
+void Respiratory::LobarPneumonia()
+{
+  // Check to see if we have Lobar Pneumonia
+  if (m_data.GetConditions().HasLobarPneumonia()) {
+    // Get Lobar Pneumonia Severity
+    double dLobarPneumoniaSeverity = m_data.GetConditions().GetLobarPneumonia()->GetSeverity().GetValue();
+
+    // Get lung fractions
+    double dLungFraction = m_data.GetConditions().GetLobarPneumonia()->GetLungAffectedFraction().GetValue();
+
+    // Call UpdateAlveoliCompliance -- the interaction of severity and lung fraction is accounted for in this function
+    UpdateAlveoliCompliance(dLobarPneumoniaSeverity, dLungFraction);
+
+    // Call UpdateGasDiffusionSurfaceArea -- the interaction of severity and lung fraction is accounted for in this function
+   // UpdateGasDiffusionSurfaceArea(dLobarPneumoniaSeverity, dLungFraction);
   }
 }
 
@@ -1195,7 +1303,7 @@ void Respiratory::CalculateVitalSignsLite()
   double dMeanPleuralPressure = 0.1 * (-meanPleuralPressure_cmH2O + (dPleuralPressure_cmH2O - dEnvironmentPressure));
   meanPleuralPressure_cmH2O += dMeanPleuralPressure * m_dt_s;
   GetMeanPleuralPressure().SetValue(meanPleuralPressure_cmH2O, PressureUnit::cmH2O);
-  
+
   /// \event Patient: Start of exhale/inhale
   if (m_Patient->IsEventActive(CDM::enumPatientEvent::StartOfExhale))
     m_Patient->SetEvent(CDM::enumPatientEvent::StartOfExhale, false, m_data.GetSimulationTime());
@@ -1412,7 +1520,7 @@ void Respiratory::UpdateObstructiveResistance()
     // Resistance function: Base = 10, Min = 10, Max = 1750 (increasing with severity)
     double targetResistanceScalingFactor = GeneralMath::ResistanceFunction(10.0, 1000.0, 40.0, dSeverity);
     double scaleUp = 1.0e-3;
-    m_ObstructiveResistanceScale += scaleUp * (targetResistanceScalingFactor - m_ObstructiveResistanceScale); //Gradually ramp up to target.  Rapid changes to circuit cause instabilities 
+    m_ObstructiveResistanceScale += scaleUp * (targetResistanceScalingFactor - m_ObstructiveResistanceScale); //Gradually ramp up to target.  Rapid changes to circuit cause instabilities
     m_ObstructiveResistanceScale = std::min(m_ObstructiveResistanceScale, targetResistanceScalingFactor); //Make sure we don't exceed target
     // Increase in pleural pressure restricts blood return to heart.  Model this by increasing vena cava->right heart resistance
     SEFluidCircuitPath* venousReturn = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularPath::VenaCavaToRightHeart2);
@@ -1423,16 +1531,19 @@ void Respiratory::UpdateObstructiveResistance()
     nextVenousResistance *= venousResistanceModifier;
     venousReturn->GetNextResistance().SetValue(nextVenousResistance, FlowResistanceUnit::mmHg_s_Per_mL);
   } else {
-   if (m_ObstructiveResistanceScale > 1.05) {
-      //This block is entered when an airway obstruction action has been deactivated.
+    if (m_ObstructiveResistanceScale > 1.05 && !m_data.GetConditions().HasChronicObstructivePulmonaryDisease()) {
+      //This block is entered when asthma has been deactivated and there is no COPD condition competing that will override obstructive resistance scale.
       //We need to gradually scale back resistances--returning to baseline in one time step causes from high severities circuit instabilities.
       //Since other functions use these resistors (like Aerosol Deposition), we check to make sure that an obstruction
       //was previously active so that we don't overwrite a different action's circuit changes
       const double scaleDown = 1.0e-4;
       m_ObstructiveResistanceScale += scaleDown * (1.0 - m_ObstructiveResistanceScale); //move scale back towards 1.0
-      m_ObstructiveResistanceScale = std::max(1.0, m_ObstructiveResistanceScale);   //make sure we don't go below 1 (baseline)
+      m_ObstructiveResistanceScale = std::max(1.0, m_ObstructiveResistanceScale); //make sure we don't go below 1 (baseline)
     }
   }
+  //Note: COPD used to use this function as well.  However, engine would not stabilize with COPD changes to obstructive resistance and the outputs
+  // for COPD without making changes here seem consistent with engine baselines from core anyway.
+
   double bronchiResistance = tracheaToBronchi->GetNextResistance().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
   bronchiResistance *= m_ObstructiveResistanceScale;
   tracheaToBronchi->GetNextResistance().SetValue(bronchiResistance, FlowResistanceUnit::cmH2O_s_Per_L);
@@ -1457,7 +1568,20 @@ void Respiratory::UpdateIERatio()
   if (m_PatientActions->HasAsthmaAttack()) {
     combinedSeverity = m_PatientActions->GetAsthmaAttack()->GetSeverity().GetValue();
   }
-
+  if (m_data.GetConditions().HasChronicObstructivePulmonaryDisease()) {
+    double dBronchitisSeverity = m_data.GetConditions().GetChronicObstructivePulmonaryDisease()->GetBronchitisSeverity().GetValue();
+    double dEmphysemaSeverity = m_data.GetConditions().GetChronicObstructivePulmonaryDisease()->GetEmphysemaSeverity().GetValue();
+    combinedSeverity = std::max(combinedSeverity, dEmphysemaSeverity);
+    combinedSeverity = std::max(combinedSeverity, dBronchitisSeverity);
+  }
+  if (m_data.GetConditions().HasLobarPneumonia()) {
+    double severity = m_data.GetConditions().GetLobarPneumonia()->GetSeverity().GetValue();
+    // Get lung fractions
+    double dLungFraction = m_data.GetConditions().GetLobarPneumonia()->GetLungAffectedFraction().GetValue();
+   
+    double dLP_ScaledSeverity = severity * dLungFraction + 0.75 * severity;
+    combinedSeverity = std::max(combinedSeverity, dLP_ScaledSeverity);
+  }
   if (combinedSeverity > 0.0) {
     //The respiratory driver is very sensitive to the IEScaleFactor.  It does not take to decrease output IE Ratio significanlty.  Found that
     //bounding at 0.85 worked well.
@@ -1470,7 +1594,92 @@ void Respiratory::UpdateIERatio()
     m_IEscaleFactor = LIMIT(m_IEscaleFactor, 0.1, 1.0);
   }
 }
+//--------------------------------------------------------------------------------------------------
+/// \brief
+/// Update Alveoli Compliance
+///
+/// \param  dScalingFactor      Multiplier based on the severity of the condition (lobar pneumonia, COPD, etc)
+/// \param  dLeftLungFraction     Fraction of lungs affected by change in surface area (0 to 1)
+///
+/// \return void
+///
+/// \details
+/// This method takes a scaling factor and lung percentage as input variables
+/// The scaling factor and lung percentage are combined to produce a measure of deviation from compliance baseline.
+/// The Alveoli to Pleural compliances are updated to model alveolus membrane damage orchanges to alveolus fluid content
+//--------------------------------------------------------------------------------------------------
+void Respiratory::UpdateAlveoliCompliance(double dScalingFactor, double dLungFraction)
+{
+  //Testing shows that patient will die of extreme hypercapnia in most cases when the sum of the lung fractions and scaling factor is greater
+  //than 2.35.  While not a perfect cut off (i.e. severity = 1.0, Left = Right = 0.675 does not produce exact same result as severity = 0.35,
+  //Left = Right = 0.35), it allows for extreme scenarios (RR > 35, PaO2 < 40) without crashing engine.
+  if (dScalingFactor + dLungFraction > 1.0) {
+    dScalingFactor = 0.5;
+    dLungFraction = 0.5;
+  }
+  //Path
+  SEFluidCircuitPath* alveoliToPleural = m_RespiratoryCircuit->GetPath(BGE::RespiratoryPath::AlveoliToPleuralConnection);
+  // Get path compliance
+  double AlveoliBaselineCompliance = alveoliToPleural->GetComplianceBaseline().GetValue(FlowComplianceUnit::L_Per_cmH2O);
+  // Scale compliance
+  double dComplianceScale = GeneralMath::ResistanceFunction(10, 1.000, 0.005, 1.0 - dScalingFactor * dLungFraction);
+  AlveoliBaselineCompliance *= dComplianceScale;
+  alveoliToPleural->GetComplianceBaseline().SetValue(AlveoliBaselineCompliance, FlowComplianceUnit::L_Per_cmH2O);
+}
 
+//--------------------------------------------------------------------------------------------------
+/// \brief
+/// Update Pulmonary Capillary Resistance
+///
+/// \param  dResistanceScalingFactor  Pulmonary capillary resistance multiplier
+/// \param  dLungFraction     Total fraction of lung affected by change in surface area (0 to 1)
+/// \return void
+///
+/// \details
+/// This method takes a resistance scaling factor and lung fractions as input
+/// variables.  It updates the pulmonary capillary to pulmonary vein resistance in order to model the
+/// destruction of capillaries in the alveolus membrane.
+//--------------------------------------------------------------------------------------------------
+void Respiratory::UpdatePulmonaryCapillaryResistance(double dResistanceScalingFactor, double dLungFraction)
+{
+  // Resistance path
+  SEFluidCircuitPath* leftPulmonaryCapillaries = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularPath::LeftPulmonaryCapillariesToLeftPulmonaryVeins);
+  SEFluidCircuitPath* rightPulmonaryCapillaries = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularPath::RightPulmonaryCapillariesToRightPulmonaryVeins);
+  // Get path resistances
+  double dRightPulmonaryCapillaryResistance = rightPulmonaryCapillaries->GetResistanceBaseline().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
+  double dLeftPulmonaryCapillaryResistance = leftPulmonaryCapillaries->GetResistanceBaseline().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
+
+  dLeftPulmonaryCapillaryResistance = (dLeftPulmonaryCapillaryResistance * (1.0 - dLungFraction)) + (dLeftPulmonaryCapillaryResistance * dResistanceScalingFactor * dLungFraction);
+  leftPulmonaryCapillaries->GetResistanceBaseline().SetValue(dLeftPulmonaryCapillaryResistance, FlowResistanceUnit::cmH2O_s_Per_L);
+  dRightPulmonaryCapillaryResistance = (dRightPulmonaryCapillaryResistance * (1.0 - dLungFraction)) + (dRightPulmonaryCapillaryResistance * dResistanceScalingFactor * dLungFraction);
+  rightPulmonaryCapillaries->GetResistanceBaseline().SetValue(dRightPulmonaryCapillaryResistance, FlowResistanceUnit::cmH2O_s_Per_L);
+}
+
+//--------------------------------------------------------------------------------------------------
+/// \brief
+/// Update Gas Diffusion Surface Area
+///
+/// \param  dFractionArea   Fractional change in gas diffusion surface area (0 to 1)
+/// \param  dLeftLungFraction Fraction of left lung affected by change in surface area (0 to 1)
+/// \param  dRightLungFraction  Fraction of right lung affected by change in surface area (0 to 1)
+///
+/// \return void
+///
+/// \details
+/// This method takes a percent valve and lung percentages (left and right) as input
+/// variables.  It updates the gas diffusion surface area in the lungs in order to model the
+/// destruction of alveoli membranes and/or lung consolidation.
+//--------------------------------------------------------------------------------------------------
+void Respiratory::UpdateGasDiffusionSurfaceArea(double dFractionArea, double dLungFraction)
+{
+  double AlveoliDiffusionArea_cm2 = m_Patient->GetAlveoliSurfaceArea(AreaUnit::cm2);
+  double dScaleFactor = GeneralMath::ResistanceFunction(10, 0.15, 1.0, dFractionArea * dLungFraction);
+
+  // Calculate the total surface area
+  AlveoliDiffusionArea_cm2 = dScaleFactor * AlveoliDiffusionArea_cm2;
+
+  m_Patient->GetAlveoliSurfaceArea().SetValue(AlveoliDiffusionArea_cm2, AreaUnit::cm2);
+}
 //--------------------------------------------------------------------------------------------------
 /// \brief
 /// Populate the Pulmonary Function Test Assessment
