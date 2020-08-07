@@ -17,6 +17,7 @@ SEPainStimulus::SEPainStimulus()
   : SEPatientAction()
 {
   m_Severity = nullptr;
+  m_HalfLife = nullptr;
   m_Location = "";
 }
 //-----------------------------------------------------------------------------
@@ -30,6 +31,7 @@ void SEPainStimulus::Clear()
 
   SEPatientAction::Clear();
   SAFE_DELETE(m_Severity);
+  SAFE_DELETE(m_HalfLife);
   m_Location.clear();
 }
 //-----------------------------------------------------------------------------
@@ -47,6 +49,11 @@ bool SEPainStimulus::Load(const CDM::PainStimulusData& in)
 {
   SEPatientAction::Load(in);
   GetSeverity().Load(in.Severity());
+  if (in.HalfLife().present()) {
+    GetHalfLife().Load(in.HalfLife().get());
+  } else {
+    GetHalfLife().Invalidate();
+  }
   m_Location = in.Location();
   return true;
 }
@@ -63,6 +70,8 @@ void SEPainStimulus::Unload(CDM::PainStimulusData& data) const
   SEPatientAction::Unload(data);
   if (m_Severity != nullptr)
     data.Severity(std::unique_ptr<CDM::Scalar0To1Data>(m_Severity->Unload()));
+  if (HasHalfLife())
+    data.HalfLife(std::unique_ptr<CDM::ScalarTimeData>(m_HalfLife->Unload()));
   if (HasLocation())
     data.Location(m_Location);
 }
@@ -77,6 +86,18 @@ SEScalar0To1& SEPainStimulus::GetSeverity()
   if (m_Severity == nullptr)
     m_Severity = new SEScalar0To1();
   return *m_Severity;
+}
+//-----------------------------------------------------------------------------
+bool SEPainStimulus::HasHalfLife() const
+{
+  return m_HalfLife == nullptr ? false : m_HalfLife->IsValid();
+}
+//-----------------------------------------------------------------------------
+SEScalarTime& SEPainStimulus::GetHalfLife()
+{
+  if (m_HalfLife == nullptr)
+    m_HalfLife = new SEScalarTime();
+  return *m_HalfLife;
 }
 //-----------------------------------------------------------------------------
 std::string SEPainStimulus::GetLocation() const
@@ -121,6 +142,9 @@ void SEPainStimulus::ToString(std::ostream& str) const
     str << *m_Severity;
     str << "\n\tLocation: ";
     HasLocation() ? str << GetLocation() : str << "No Location Set";
+    if (HasHalfLife()) {
+      str << "\n\tHalfLife: " << m_HalfLife;
+    }
     str << std::flush;
   }
 }

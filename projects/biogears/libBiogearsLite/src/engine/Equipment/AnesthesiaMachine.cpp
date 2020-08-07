@@ -81,15 +81,24 @@ void AnesthesiaMachine::Initialize()
 {
   BioGearsSystem::Initialize();
 
+  m_nVentilator->GetPressure().SetValue(1033.23, PressureUnit::cmH2O);
+  m_nVentilator->GetNextPressure().SetValue(1033.23, PressureUnit::cmH2O);
+  m_nVentilator->GetVolume().SetValue(1.0, VolumeUnit::L);
+  m_nVentilator->GetNextVolume().SetValue(1.0, VolumeUnit::L);
+  //m_nSelector->GetPressure().SetValue(1033.23, PressureUnit::cmH2O);
+  //m_nSelector->GetNextPressure().SetValue(1033.23, PressureUnit::cmH2O);
+  //m_nSelector->GetVolume().SetValue(0.1, VolumeUnit::L);
+  //m_nSelector->GetNextVolume().SetValue(0.1, VolumeUnit::L);
+
   SetConnection(CDM::enumAnesthesiaMachineConnection::Off);
   GetInletFlow().SetValue(5.0, VolumePerTimeUnit::L_Per_min);
   GetRespiratoryRate().SetValue(12.0, FrequencyUnit::Per_min);
-  GetPositiveEndExpiredPressure().SetValue(3.0, PressureUnit::cmH2O);
+  GetPositiveEndExpiredPressure().SetValue(1.0, PressureUnit::cmH2O);
   GetInspiratoryExpiratoryRatio().SetValue(0.5);
   GetOxygenFraction().SetValue(0.5);
   SetOxygenSource(CDM::enumAnesthesiaMachineOxygenSource::Wall);
   SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Nitrogen);
-  GetVentilatorPressure().SetValue(15.0, PressureUnit::cmH2O);
+  GetVentilatorPressure().SetValue(12.0, PressureUnit::cmH2O);
   GetOxygenBottleOne().GetVolume().SetValue(660.0, VolumeUnit::L);
   GetOxygenBottleTwo().GetVolume().SetValue(660.0, VolumeUnit::L);
   GetReliefValvePressure().SetValue(100.0, PressureUnit::cmH2O);
@@ -101,6 +110,23 @@ void AnesthesiaMachine::Initialize()
   m_currentbreathingCycleTime.SetValue(0.0, TimeUnit::s);
 
   StateChange();
+
+  //The combined respiratory/AM circuit must be brought to a steady state before it can be used.  Otherwise, the first few patient breaths go to charging the ventilator compliance
+  //element, which negatively affects the lung volume.  Run through five cycles to be safe.
+  SEFluidCircuitCalculator AmCalculator(FlowComplianceUnit::L_Per_cmH2O, VolumePerTimeUnit::L_Per_s, FlowInertanceUnit::cmH2O_s2_Per_L, PressureUnit::cmH2O, VolumeUnit::L, FlowResistanceUnit::cmH2O_s_Per_L, GetLogger());
+  SEFluidCircuit& RespiratoryAnesthesiaCombined = m_data.GetCircuits().GetRespiratoryAndAnesthesiaMachineCircuit();
+ /* for (unsigned int loops = 0; loops < static_cast<unsigned int>(60.0 / m_dt_s); loops++) {
+    CalculateCyclePhase();
+    CalculateValveResistances();
+    CalculateVentilator();
+    AmCalculator.Process(RespiratoryAnesthesiaCombined, m_dt_s);
+    AmCalculator.PostProcess(RespiratoryAnesthesiaCombined);
+  }
+  //Restore cycle tracking parameters to their initial values
+  m_inhaling = true;
+  m_inspirationTime.SetValue(0.0, TimeUnit::s);
+  m_totalBreathingCycleTime.SetValue(0.0, TimeUnit::s);
+  m_currentbreathingCycleTime.SetValue(0.0, TimeUnit::s);*/
 }
 
 bool AnesthesiaMachine::Load(const CDM::BioGearsAnesthesiaMachineData& in)
@@ -291,6 +317,9 @@ void AnesthesiaMachine::SetConnection()
 void AnesthesiaMachine::PreProcess()
 {
   if (m_data.GetActions().GetAnesthesiaMachineActions().HasConfiguration()) {
+    if (m_data.GetRespiratory().GetExpiratoryFlow(VolumePerTimeUnit::L_Per_s) > ZERO_APPROX) {
+      return;
+    }
     ProcessConfiguration(*m_data.GetActions().GetAnesthesiaMachineActions().GetConfiguration());
     m_data.GetActions().GetAnesthesiaMachineActions().RemoveConfiguration();
   }
@@ -647,7 +676,7 @@ void AnesthesiaMachine::CalculateValveResistances()
 void AnesthesiaMachine::CalculateVentilator()
 {
   //Calculate the driver pressure
-  double dDriverPressure = 0.0;
+  double dDriverPressure = 1033.23;
   if (m_inhaling) {
     dDriverPressure = GetVentilatorPressure(PressureUnit::cmH2O);
   } else {

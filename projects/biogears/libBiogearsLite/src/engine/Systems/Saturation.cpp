@@ -127,6 +127,7 @@ void SaturationCalculator::CalculateSaturation(SELiquidCompartment& cmpt)
   double normalSID_mM = cmpt.GetStrongIonDifferenceBaseline().GetValue(AmountPerVolumeUnit::mmol_Per_L);
   double deltaBufferBase_mM = strongIonDifference_mM - normalSID_mM;
   double bufferBase_mM = NormalBB_mM + deltaBufferBase_mM;
+  bufferBase_mM = std::max(bufferBase_mM, 0.0);   //Exercise can give extreme, unrealistic latcate (and very low SID values).  Make sure this stays positive
 
   //Constants for pH model
   double b2 = bufferBase_mM;

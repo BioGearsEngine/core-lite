@@ -754,7 +754,7 @@ void Respiratory::RespiratoryDriver()
     }
 
     if (m_BreathingCycleTime_s > TotalBreathingCycleTime_s) {
-      m_PeakRespiratoryDrivePressure_cmH2O = GetRespirationMusclePressure(PressureUnit::cmH2O);
+      m_PeakRespiratoryDrivePressure_cmH2O = GetRespirationDriverPressure(PressureUnit::cmH2O);
       m_VentilationFrequency_Per_min = GetRespirationDriverFrequency(FrequencyUnit::Per_min);
 
       //Determine effects of actions on target driver pressure and frequency
@@ -795,7 +795,7 @@ void Respiratory::RespiratoryDriver()
       m_VentilationFrequency_Per_min += DrugRRChange_Per_min;
 
       //Bound peak driver pressure and frequency
-      m_PeakRespiratoryDrivePressure_cmH2O = std::max(m_PeakRespiratoryDrivePressure_cmH2O, m_MaxDriverPressure_cmH2O); //"Max" somewhat of a misnomer, since driver pressures are negative
+     // m_PeakRespiratoryDrivePressure_cmH2O = std::max(m_PeakRespiratoryDrivePressure_cmH2O, m_MaxDriverPressure_cmH2O); //"Max" somewhat of a misnomer, since driver pressures are negative
       double maximumVentilationFrequency_Per_min = m_data.GetConfiguration().GetPulmonaryVentilationRateMaximum(VolumePerTimeUnit::L_Per_min) / (m_Patient->GetVitalCapacity(VolumeUnit::L) / 2.0);
       m_VentilationFrequency_Per_min = BLIM(m_VentilationFrequency_Per_min, 0.0, maximumVentilationFrequency_Per_min);
 
@@ -820,9 +820,18 @@ void Respiratory::RespiratoryDriver()
     }
 
     Apnea();
+
+    if (m_data.GetAirwayMode() == CDM::enumBioGearsAirwayMode::AnesthesiaMachine || m_data.GetAirwayMode() == CDM::enumBioGearsAirwayMode::MechanicalVentilator) {
+      m_DriverPressure_cmH2O = m_DefaultDrivePressure_cmH2O;
+      m_BreathingCycleTime_s = m_ElapsedBreathingCycleTime_min * 60.0; //Set driver cycle to match elapsed cycle (dictated by ventilator) so that when we turn machine off we re-start spontaneous breathing in a good place
+    }
+    if (m_bNotBreathing) {
+      m_DriverPressure_cmH2O = m_DefaultDrivePressure_cmH2O;
+    }
   }
   //Push Driving Data to the Circuit -------------------------------------------------------------------------------
   m_DriverPressurePath->GetNextPressureSource().SetValue(m_DriverPressure_cmH2O, PressureUnit::cmH2O);
+  m_data.GetDataTrack().Probe("PeakPressureActual", m_PeakRespiratoryDrivePressure_cmH2O);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1306,8 +1315,7 @@ void Respiratory::CalculateVitalSignsLite()
 
   GetTranspulmonaryPressure().SetValue(dAlveolarPressure - dPleuralPressure_cmH2O, PressureUnit::cmH2O);
 
-  GetRespirationDriverPressure().SetValue(nRespiratoryMuscle->GetNextPressure(PressureUnit::cmH2O) - m_Ambient->GetPressure(PressureUnit::cmH2O), PressureUnit::cmH2O);
-  //GetRespirationMusclePressure().Set(nRespiratoryMuscle->GetNextPressure());
+  GetRespirationMusclePressure().SetValue(nRespiratoryMuscle->GetNextPressure(PressureUnit::cmH2O) - m_Ambient->GetPressure(PressureUnit::cmH2O), PressureUnit::cmH2O);
 
   double avgAlveoliO2PP_mmHg = cAlveoli->GetSubstanceQuantity(O2)->GetPartialPressure(PressureUnit::mmHg);
   GetAlveolarArterialGradient().SetValue(avgAlveoliO2PP_mmHg - m_AortaO2->GetPartialPressure(PressureUnit::mmHg), PressureUnit::mmHg);

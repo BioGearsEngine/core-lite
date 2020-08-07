@@ -237,8 +237,7 @@ void Nervous::BaroreceptorFeedback()
   double nu = m_data.GetConfiguration().GetResponseSlope();
   double meanArterialPressure_mmHg = m_data.GetCardiovascular().GetMeanArterialPressure(PressureUnit::mmHg);
   //Adjusting the mean arterial pressure set-point to account for cardiovascular drug effects
-  double meanArterialPressureSetPoint_mmHg = m_data.GetPatient().GetMeanArterialPressureBaseline(PressureUnit::mmHg) //m_MeanArterialPressureNoFeedbackBaseline_mmHg
-    + m_data.GetEnergy().GetExerciseMeanArterialPressureDelta(PressureUnit::mmHg);
+  double meanArterialPressureSetPoint_mmHg = m_data.GetPatient().GetMeanArterialPressureBaseline(PressureUnit::mmHg) + m_data.GetEnergy().GetExerciseMeanArterialPressureDelta(PressureUnit::mmHg);
 
   //Adjust the MAP set-point for baroreceptors for anesthetics, opioids, and sedatives.  Other drugs should leave set-point as is.
   for (SESubstance* sub : m_data.GetCompartments().GetLiquidCompartmentSubstances()) {
@@ -251,23 +250,7 @@ void Nervous::BaroreceptorFeedback()
       ///\TODO:  Look into a better way to implement drug classification search
     }
   }
-  //Sepsis effects
-  if (m_data.GetActions().GetPatientActions().HasSepsis()) {
-    if (m_data.GetPatient().IsEventActive(CDM::enumPatientEvent::SevereSepsis)) {
-      double severeSepsisDuration_hr = m_data.GetPatient().GetEventDuration(CDM::enumPatientEvent::SevereSepsis, TimeUnit::hr);
-      double newAlphaResistance = m_data.GetConfiguration().GetNormalizedResistanceSympatheticSlope() * std::exp(-severeSepsisDuration_hr);
-      //This check is done in the event that the Severe Sepsis event toggles on/off quickly.  When this happens, the new resistance will suddenly reset to the baseline configuration
-      //(because severeSepsisDuration_hr resets to 0).
-      if (newAlphaResistance < m_normalizedAlphaResistance) {
-        m_normalizedAlphaResistance = newAlphaResistance;
-      }
-    } else {
-      //Very slowly restore resistance gain to its original state.  This should not happen all at once
-      double restoringFactor = 1e-6;
-      m_normalizedAlphaResistance += restoringFactor * (m_data.GetConfiguration().GetNormalizedResistanceSympatheticSlope() - m_normalizedAlphaResistance);
-    }
-  }
-
+  
   //Neurological effects of pain action
   if (m_data.GetActions().GetPatientActions().HasPainStimulus()) {
     double painVAS = GetPainVisualAnalogueScale().GetValue();
@@ -338,6 +321,7 @@ void Nervous::CheckPainStimulus()
   double patientSusceptability = m_Patient->GetPainSusceptibility().GetValue();
   double susceptabilityMapping = GeneralMath::LinearInterpolator(-1.0, 1.0, 0.0, 2.0, patientSusceptability); //mapping [-1,1] -> [0, 2] for scaling the pain stimulus
   double severity = 0.0;
+  double halfLife_s = 0.0;
   double painVASMapping = 0.0; //for each location map the [0,1] severity to the [0,10] VAS scale
   double tempPainVAS = 0.0; //sum, scale and store the patient score
   double CNSPainBuffer = 1.0;
@@ -355,17 +339,16 @@ void Nervous::CheckPainStimulus()
     CNSPainBuffer = exp(-CNSModifier * NervousScalar);
   }
 
-  //determine pain response from inflammation caused by burn trauma
-  if (m_data.GetActions().GetPatientActions().HasBurnWound()) {
-    double traumaPain = m_data.GetActions().GetPatientActions().GetBurnWound()->GetTotalBodySurfaceArea().GetValue();
-    traumaPain *= 20.0; //25% TBSA burn will give pain scale = 5, 40% TBSA will give pain scale = 8.0
-    tempPainVAS += (traumaPain * susceptabilityMapping * CNSPainBuffer) / (1 + exp(-m_painStimulusDuration_s + 4.0));
-  }
-
   //iterate over all locations to get a cumulative stimulus and buffer them
   for (auto pain : pains) {
     p = pain.second;
     severity = p->GetSeverity().GetValue();
+    if (p->HasHalfLife()) {
+      halfLife_s = p->GetHalfLife().GetValue(TimeUnit::s);
+      if (halfLife_s > 0.0) {
+        severity = severity * (std::pow(0.5, (m_painStimulusDuration_s / halfLife_s)));
+      }
+    }
     painVASMapping = 10.0 * severity;
 
     tempPainVAS += (painVASMapping * susceptabilityMapping * CNSPainBuffer) / (1 + exp(-m_painStimulusDuration_s + 4.0)); //temp time will increase so long as a stimulus is present
@@ -577,6 +560,9 @@ void Nervous::ChemoreceptorFeedback()
   const double metabolicModifier = 1.0 + tunedVolumeMetabolicSlope * (metabolicFraction - 1.0);
   nextRespirationRate_Per_min *= metabolicModifier;
   nextDrivePressure_cmH2O *= metabolicModifier;
+
+  m_data.GetDataTrack().Probe("MetabolicModifier", metabolicModifier);
+  m_data.GetDataTrack().Probe("TargetDrivePressure", nextDrivePressure_cmH2O);
 
   if (m_data.GetState() < EngineState::AtInitialStableState) {
     const double upperTolerance = baselineRespirationRate_Per_min * 1.05;

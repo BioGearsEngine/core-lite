@@ -77,8 +77,6 @@ public:
 
 protected:
   void CheckBloodSubstanceLevels();
-  void Sepsis();
-  void AcuteInflammatoryResponse();
 
   //Override
   void ProcessOverride();

@@ -17,7 +17,6 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/patient/actions/SEAsthmaAttack.h>
 #include <biogears/cdm/patient/actions/SEBrainInjury.h>
 #include <biogears/cdm/patient/actions/SEBronchoconstriction.h>
-#include <biogears/cdm/patient/actions/SEBurnWound.h>
 #include <biogears/cdm/patient/actions/SECardiacArrest.h>
 #include <biogears/cdm/patient/actions/SEChestCompression.h>
 #include <biogears/cdm/patient/actions/SEChestCompressionForce.h>
@@ -32,7 +31,6 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/patient/actions/SENeedleDecompression.h>
 #include <biogears/cdm/patient/actions/SEPainStimulus.h>
 #include <biogears/cdm/patient/actions/SEPatientAssessmentRequest.h>
-#include <biogears/cdm/patient/actions/SESepsis.h>
 #include <biogears/cdm/patient/actions/SESubstanceBolus.h>
 #include <biogears/cdm/patient/actions/SESubstanceCompoundInfusion.h>
 #include <biogears/cdm/patient/actions/SESubstanceInfusion.h>
@@ -163,13 +161,6 @@ SEAction* SEAction::newFromBind(const CDM::ActionData& data, SESubstanceManager&
       return a;
     }
 
-    CDM::BurnWoundData* burnData = dynamic_cast<CDM::BurnWoundData*>(action);
-    if (burnData != nullptr) {
-      SEBurnWound* burn = new SEBurnWound();
-      burn->Load(*burnData);
-      return burn;
-    }
-
     CDM::BronchoconstrictionData* bconData = dynamic_cast<CDM::BronchoconstrictionData*>(action);
     if (bconData != nullptr) {
       SEBronchoconstriction* a = new SEBronchoconstriction();
@@ -275,13 +266,6 @@ SEAction* SEAction::newFromBind(const CDM::ActionData& data, SESubstanceManager&
       SEPainStimulus* a = new SEPainStimulus();
       a->Load(*painData);
       return a;
-    }
-
-    CDM::SepsisData* sepData = dynamic_cast<CDM::SepsisData*>(action);
-    if (sepData != nullptr) {
-      SESepsis* sep = new SESepsis();
-      sep->Load(*sepData);
-      return sep;
     }
 
     CDM::TensionPneumothoraxData* pneumoData = dynamic_cast<CDM::TensionPneumothoraxData*>(action);

@@ -178,8 +178,9 @@ void Endocrine::PostProcess()
 void Endocrine::SynthesizeInsulin()
 {
   double bloodGlucoseConcentration_g_Per_L = m_aortaGlucose->GetConcentration(MassPerVolumeUnit::g_Per_L);
-
   double diabetesScale = 1;
+  double insulinSynthesisRate_pmol_Per_min = 0.0;
+  double insulinMolConversion = 6.67;
 
   //In type 1 diabetes, the ability to produce insulin is lessened
   if (m_data.GetConditions().HasDiabetesType1()) {
@@ -212,9 +213,11 @@ void Endocrine::SynthesizeInsulin()
   // Because of this, we won't capture insulin behavior for very high glucose concentrations in non-diabetics, see Guyton p 991
   // Also, since we only key off of the instantaneous aorta glucose, we miss out on any parasympathetic
   // signals that affect Beta cells, meaning if we implement stress response, we might also see hyperinsulinemia (see Boron p 1222)
-  double insulinSynthesisRate_pmol_Per_min = diabetesScale * 6.67 * 65.421 / (1.0 + exp((2.0 - 2.0 * bloodGlucoseConcentration_g_Per_L) / 0.3));
-
-  //m_data.GetDataTrack().Probe("DiabetesScalePercent", diabetesScale * 100);
+  if (bloodGlucoseConcentration_g_Per_L < 0.9) {
+    insulinSynthesisRate_pmol_Per_min = diabetesScale * insulinMolConversion * (23.421 / (1.0 + exp((2.0 - 3.0 * (bloodGlucoseConcentration_g_Per_L + 0.4)) / 0.3)));
+  } else {
+    insulinSynthesisRate_pmol_Per_min = diabetesScale *  insulinMolConversion * (23.4 + (37.0 / (1.0 + exp((2.0 - 5.0 * (bloodGlucoseConcentration_g_Per_L - 1.2)) / 0.3))));
+  }
 
   GetInsulinSynthesisRate().SetValue(insulinSynthesisRate_pmol_Per_min, AmountPerTimeUnit::pmol_Per_min);
 
@@ -239,7 +242,14 @@ void Endocrine::SynthesizeGlucagon()
   //https://www.wolframalpha.com/input/?i=y%3D21.3-(21.3%2F(1%2Bexp((2-2x)%2F.3)))+from+.8%3Cx%3C1.2+and+0%3Cy%3C16
 
   double bloodGlucoseConcentration_g_Per_L = m_aortaGlucose->GetConcentration(MassPerVolumeUnit::g_Per_L);
-  double glucagonSynthesisRate_pmol_Per_min = 21.3 - (21.3 / (1.0 + exp((2 - 2 * bloodGlucoseConcentration_g_Per_L) / .3))); //should be ~14.07 pmol/min at .9 blood glucose (normal)
+  double glucagonSynthesisRate_pmol_Per_min = 0.0;
+
+  //check to see which curve we are on:
+  if (bloodGlucoseConcentration_g_Per_L < 0.75) {
+    glucagonSynthesisRate_pmol_Per_min = 14.07 + (1.97 / (0.14 + exp(-1.0 + 9.4 * (bloodGlucoseConcentration_g_Per_L - 2.0))));
+  } else {
+    glucagonSynthesisRate_pmol_Per_min = 1.97 / (0.14 + exp(-1.0 + 9.7 * (bloodGlucoseConcentration_g_Per_L - 2.0)));
+  }
 
   //Diabetic patients see glucagon abnormalities chronically, but even in short time-scales we expect to see glucagon levels
   //of ~40 ng/L, so we need to make sure glucagon is being produced even if blood sugar gets very high \cite brown2008too

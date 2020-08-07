@@ -26,7 +26,6 @@ SEPatientActionCollection::SEPatientActionCollection(SESubstanceManager& substan
   m_AsthmaAttack = nullptr;
   m_BrainInjury = nullptr;
   m_Bronchoconstriction = nullptr;
-  m_BurnWound = nullptr;
   m_CardiacArrest = nullptr;
   m_ChestCompression = nullptr;
   m_ConsciousRespiration = nullptr;
@@ -36,7 +35,6 @@ SEPatientActionCollection::SEPatientActionCollection(SESubstanceManager& substan
   m_Intubation = nullptr;
   m_MechanicalVentilation = nullptr;
   m_NeedleDecompression = nullptr;
-  m_Sepsis = nullptr;
   m_OpenTensionPneumothorax = nullptr;
   m_ClosedTensionPneumothorax = nullptr;
   m_Urinate = nullptr;
@@ -56,7 +54,6 @@ void SEPatientActionCollection::Clear()
   RemoveAsthmaAttack();
   RemoveBrainInjury();
   RemoveBronchoconstriction();
-  RemoveBurnWound();
   RemoveChestCompression();
   RemoveCardiacArrest();
   RemoveConsciousRespiration();
@@ -68,7 +65,6 @@ void SEPatientActionCollection::Clear()
   RemoveNeedleDecompression();
   RemoveOpenTensionPneumothorax();
   RemoveClosedTensionPneumothorax();
-  RemoveSepsis();
   RemoveUrinate();
   RemoveOverride();
 
@@ -93,8 +89,6 @@ void SEPatientActionCollection::Unload(std::vector<CDM::ActionData*>& to)
     to.push_back(GetBrainInjury()->Unload());
   if (HasBronchoconstriction())
     to.push_back(GetBronchoconstriction()->Unload());
-  if (HasBurnWound())
-    to.push_back(GetBurnWound()->Unload());
   if (HasCardiacArrest())
     to.push_back(GetCardiacArrest()->Unload());
   if (HasChestCompressionForce())
@@ -127,8 +121,6 @@ void SEPatientActionCollection::Unload(std::vector<CDM::ActionData*>& to)
     to.push_back(GetClosedTensionPneumothorax()->Unload());
   if (HasOpenTensionPneumothorax())
     to.push_back(GetOpenTensionPneumothorax()->Unload());
-  if (HasSepsis())
-    to.push_back(GetSepsis()->Unload());
   for (auto itr : GetSubstanceBoluses())
     to.push_back(itr.second->Unload());
   for (auto itr : GetSubstanceInfusions())
@@ -244,18 +236,6 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
       return true;
     }
     return IsValid(*m_Bronchoconstriction);
-  }
-
-  const CDM::BurnWoundData* burn = dynamic_cast<const CDM::BurnWoundData*>(&action);
-  if (burn != nullptr) {
-    if (m_BurnWound == nullptr)
-      m_BurnWound = new SEBurnWound();
-    m_BurnWound->Load(*burn);
-    if (!m_BurnWound->IsActive()) {
-      RemoveBurnWound();
-      return true;
-    }
-    return IsValid(*m_BurnWound);
   }
 
   const CDM::CardiacArrestData* cardiacarrest = dynamic_cast<const CDM::CardiacArrestData*>(&action);
@@ -424,18 +404,6 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
     return AdministerSubstance(*admin);
   }
 
-  const CDM::SepsisData* sepsisAction = dynamic_cast<const CDM::SepsisData*>(&action);
-  if (sepsisAction != nullptr) {
-    if (m_Sepsis == nullptr)
-      m_Sepsis = new SESepsis();
-    m_Sepsis->Load(*sepsisAction);
-    if (!m_Sepsis->IsActive()) {
-      RemoveSepsis();
-      return true;
-    }
-    return IsValid(*m_Sepsis);
-  }
-
   const CDM::TensionPneumothoraxData* pneumo = dynamic_cast<const CDM::TensionPneumothoraxData*>(&action);
   if (pneumo != nullptr) {
     if (pneumo->Type() == CDM::enumPneumothoraxType::Open) {
@@ -586,21 +554,6 @@ SEBronchoconstriction* SEPatientActionCollection::GetBronchoconstriction() const
 void SEPatientActionCollection::RemoveBronchoconstriction()
 {
   SAFE_DELETE(m_Bronchoconstriction);
-}
-//-------------------------------------------------------------------------------
-bool SEPatientActionCollection::HasBurnWound() const
-{
-  return m_BurnWound == nullptr ? false : true;
-}
-//-------------------------------------------------------------------------------
-SEBurnWound* SEPatientActionCollection::GetBurnWound() const
-{
-  return m_BurnWound;
-}
-//-------------------------------------------------------------------------------
-void SEPatientActionCollection::RemoveBurnWound()
-{
-  SAFE_DELETE(m_BurnWound);
 }
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasCardiacArrest() const
@@ -795,21 +748,6 @@ void SEPatientActionCollection::RemovePainStimulus(const std::string& cmpt)
   SEPainStimulus* p = m_PainStimuli[cmpt];
   m_PainStimuli.erase(cmpt);
   SAFE_DELETE(p);
-}
-//-------------------------------------------------------------------------------
-bool SEPatientActionCollection::HasSepsis() const
-{
-  return m_Sepsis == nullptr ? false : true;
-}
-//-------------------------------------------------------------------------------
-SESepsis* SEPatientActionCollection::GetSepsis() const
-{
-  return m_Sepsis;
-}
-//-------------------------------------------------------------------------------
-void SEPatientActionCollection::RemoveSepsis()
-{
-  SAFE_DELETE(m_Sepsis);
 }
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasTensionPneumothorax() const

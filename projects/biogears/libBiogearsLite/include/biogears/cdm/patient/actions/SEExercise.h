@@ -40,13 +40,10 @@ protected:
 public:
   virtual bool HasIntensity() const;
   virtual SEScalar0To1& GetIntensity();
-  virtual bool HasDesiredWorkRate() const;
-  virtual SEScalar& GetDesiredWorkRate();
 
   virtual void ToString(std::ostream& str) const override;
 
 protected:
   SEScalar0To1* m_Intensity;
-  SEScalar* m_DesiredWorkRate;
 };
 }

@@ -20,7 +20,6 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/patient/actions/SEAsthmaAttack.h>
 #include <biogears/cdm/patient/actions/SEBrainInjury.h>
 #include <biogears/cdm/patient/actions/SEBronchoconstriction.h>
-#include <biogears/cdm/patient/actions/SEBurnWound.h>
 #include <biogears/cdm/patient/actions/SECardiacArrest.h>
 #include <biogears/cdm/patient/actions/SEChestCompressionForce.h>
 #include <biogears/cdm/patient/actions/SEChestCompressionForceScale.h>
@@ -35,7 +34,6 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/patient/actions/SEOverride.h>
 #include <biogears/cdm/patient/actions/SEPainStimulus.h>
 #include <biogears/cdm/patient/actions/SEPatientAssessmentRequest.h>
-#include <biogears/cdm/patient/actions/SESepsis.h>
 #include <biogears/cdm/patient/actions/SESubstanceBolus.h>
 #include <biogears/cdm/patient/actions/SESubstanceCompoundInfusion.h>
 #include <biogears/cdm/patient/actions/SESubstanceInfusion.h>
@@ -81,10 +79,6 @@ public:
   SEBronchoconstriction* GetBronchoconstriction() const;
   void RemoveBronchoconstriction();
 
-  bool HasBurnWound() const;
-  SEBurnWound* GetBurnWound() const;
-  void RemoveBurnWound();
-  
   bool HasCardiacArrest() const;
   SECardiacArrest* GetCardiacArrest() const;
   void RemoveCardiacArrest();
@@ -143,10 +137,6 @@ public:
   SETensionPneumothorax* GetOpenTensionPneumothorax() const;
   void RemoveOpenTensionPneumothorax();
 
-  bool HasSepsis() const;
-  SESepsis* GetSepsis() const;
-  void RemoveSepsis();
-
   const std::map<const SESubstance*, SESubstanceBolus*>& GetSubstanceBoluses() const;
   void RemoveSubstanceBolus(const SESubstance& sub);
 
@@ -173,7 +163,6 @@ protected:
   SEAsthmaAttack* m_AsthmaAttack;
   SEBrainInjury* m_BrainInjury;
   SEBronchoconstriction* m_Bronchoconstriction;
-  SEBurnWound* m_BurnWound;
   SECardiacArrest* m_CardiacArrest;
   SEChestCompression* m_ChestCompression;
   SEChestOcclusiveDressing* m_ChestOcclusiveDressing;
@@ -183,7 +172,6 @@ protected:
   SEIntubation* m_Intubation;
   SEMechanicalVentilation* m_MechanicalVentilation;
   SENeedleDecompression* m_NeedleDecompression;
-  SESepsis* m_Sepsis;
   SETensionPneumothorax* m_ClosedTensionPneumothorax;
   SETensionPneumothorax* m_OpenTensionPneumothorax;
   SEUrinate* m_Urinate;

@@ -646,7 +646,7 @@ void Tissue::CalculateMetabolicConsumptionAndProduction(double time_s)
   double TAG_CellularEfficiency = energyPerMolATP_kcal * ATP_Per_TAG / (7554.0); //Palmitic acid free energy is 2340 kcal, glycerol is similar to glucose, so assume 686 \cite voet2013fundamentals
   double AA_CellularEfficiency = energyPerMolATP_kcal * ATP_Per_AA / 387.189; //Alanine heat of combustion is 1.62 MJ/mol \cite livesey1984energy
   double ketones_CellularEfficiency = glucose_CellularEfficiency; //Assuming the same as glucose
-  double mandatoryMuscleAnaerobicFraction = .1; //There is always some anaerobic consumption in the body, particularly in muscle fibers with few mitochondria \cite boron2012medical
+  double mandatoryMuscleAnaerobicFraction = 0.025; //There is always some anaerobic consumption in the body, particularly in muscle fibers with few mitochondria \cite boron2012medical
   double hypoperfusedFraction = 0.0; //This value represents the proportion of a tissue that is not receiving sufficient oxygen due to hypoperfusion (i.e. during sepsis)
   double kcal_Per_day_Per_Watt = 20.6362855;
   double maxWorkRate_W = 1200; //see Energy::Exercise
@@ -654,17 +654,6 @@ void Tissue::CalculateMetabolicConsumptionAndProduction(double time_s)
   //Patients with COPD show higher levels of anaerobic metabolism \cite mathur1999cerebral \cite engelen2000factors
   if (m_data.GetConditions().HasChronicObstructivePulmonaryDisease()) {
     mandatoryMuscleAnaerobicFraction *= 1.5; //50% increase
-  }
-  //Patients with sepsis have elevated lactate levels (i.e. increased anaerobic activity) because of poor oxygen perfusion to tissues
-  //Assume that the muscles are most effected by this deficit and increase the anaerobic fraction as a function of sepsis progression
-  if (m_PatientActions->HasSepsis()) {
-    //Making this so that highest severity increases levels by 50% like the COPD function above, time scale seems about right.  Lower increases for lower severities because those
-    //scenarios will have more time to accumulate lactate
-    mandatoryMuscleAnaerobicFraction *= (1.0 + m_PatientActions->GetSepsis()->GetSeverity().GetValue() / 2.0);
-    //If we get to severe sepsis but do not have lactic acidosis yet, ramp up fraction another 50% (theoretical max = 0.1 * (1.5)^2 = 0.225)
-    if (m_Patient->IsEventActive(CDM::enumPatientEvent::SevereSepsis) && !m_Patient->IsEventActive(CDM::enumPatientEvent::LacticAcidosis)) {
-      mandatoryMuscleAnaerobicFraction *= 1.5;
-    }
   }
 
   if (m_PatientActions->HasHemorrhage()) {
@@ -852,13 +841,17 @@ void Tissue::CalculateMetabolicConsumptionAndProduction(double time_s)
     //Additionally, the muscles perform all of the additional work from exercise
     double tissueNeededEnergy_kcal = nonbrainNeededEnergy_kcal * BloodFlowFraction;
     double muscleMandatoryAnaerobicNeededEnergy_kcal = 0;
+    const double muscleExerciseFraction = 0.8;
+    const double fatExerciseFraction = 0.2;
     if (tissue == m_MuscleTissue) {
       muscleMandatoryAnaerobicNeededEnergy_kcal = mandatoryMuscleAnaerobicFraction * tissueNeededEnergy_kcal;
       tissueNeededEnergy_kcal -= muscleMandatoryAnaerobicNeededEnergy_kcal;
-      tissueNeededEnergy_kcal += exerciseEnergyRequested_kcal;
-
+      tissueNeededEnergy_kcal += (muscleExerciseFraction * exerciseEnergyRequested_kcal);
       double creatinineProductionRate_mg_Per_s = 2.0e-5; /// \todo Creatinine production rate should be a function of muscle mass.
       intracellular.GetSubstanceQuantity(*m_Creatinine)->GetMass().IncrementValue(creatinineProductionRate_mg_Per_s * m_Dt_s, MassUnit::mg);
+    }
+    if (tissue->GetName() == BGE::TissueCompartment::Fat) {
+      tissueNeededEnergy_kcal += (fatExerciseFraction * exerciseEnergyRequested_kcal);
     }
 
     totalEnergyRequested_kcal_check += (tissueNeededEnergy_kcal + muscleMandatoryAnaerobicNeededEnergy_kcal);
@@ -1107,10 +1100,12 @@ void Tissue::CalculateMetabolicConsumptionAndProduction(double time_s)
     //Since this metabolic pathway doesn't have the inefficiency of oxidative phosphorylation and citric acid cycle, we won't use the efficiency value
     //This means we won't generate heat, which is probably not accurate
     totalEnergyAsTissueIntracellularGlucose_kcal = (TissueGlucose->GetMolarity(AmountPerVolumeUnit::mol_Per_L) * TissueVolume_L) * anaerobic_ATP_Per_Glucose * energyPerMolATP_kcal;
+    double PH = m_TissueToVascular[tissue]->GetPH().GetValue();
+    double pHInhibition = GeneralMath::LinearInterpolator(7.4, 6.1, 1.0, 0.0, PH);
 
     //If we have enough intracellular glucose to meet the request
     if (tissueNeededEnergy_kcal > 0 && totalEnergyAsTissueIntracellularGlucose_kcal >= tissueNeededEnergy_kcal) {
-      double glucoseToConsume_mol = tissueNeededEnergy_kcal / energyPerMolATP_kcal / anaerobic_ATP_Per_Glucose;
+      double glucoseToConsume_mol = pHInhibition * tissueNeededEnergy_kcal / energyPerMolATP_kcal / anaerobic_ATP_Per_Glucose;
       TissueGlucose->GetMass().IncrementValue(-glucoseToConsume_mol * m_Glucose->GetMolarMass(MassPerAmountUnit::g_Per_mol), MassUnit::g);
       TissueLactate->GetMass().IncrementValue(glucoseToConsume_mol * lactate_Per_Glucose * m_Lactate->GetMolarMass(MassPerAmountUnit::g_Per_mol), MassUnit::g);
       tissueNeededEnergy_kcal = 0;
@@ -1120,7 +1115,7 @@ void Tissue::CalculateMetabolicConsumptionAndProduction(double time_s)
     }
     //If we'll use up all the glucose
     else if (tissueNeededEnergy_kcal > 0) {
-      double glucoseToConsume_mol = totalEnergyAsTissueIntracellularGlucose_kcal / energyPerMolATP_kcal / anaerobic_ATP_Per_Glucose;
+      double glucoseToConsume_mol = pHInhibition * totalEnergyAsTissueIntracellularGlucose_kcal / energyPerMolATP_kcal / anaerobic_ATP_Per_Glucose;
       TissueGlucose->GetMass().SetValue(0, MassUnit::g);
       TissueLactate->GetMass().IncrementValue(glucoseToConsume_mol * lactate_Per_Glucose * m_Lactate->GetMolarMass(MassPerAmountUnit::g_Per_mol), MassUnit::g);
       tissueNeededEnergy_kcal -= glucoseToConsume_mol * anaerobic_ATP_Per_Glucose * energyPerMolATP_kcal;
@@ -1133,10 +1128,11 @@ void Tissue::CalculateMetabolicConsumptionAndProduction(double time_s)
     //Note anaerobic glycolysis is limited by low pH, a feedback mechanism that isn't modeled here at this time
     if ((tissueNeededEnergy_kcal > 0 || muscleMandatoryAnaerobicNeededEnergy_kcal > 0) && tissue == m_MuscleTissue) {
       double energyAsMuscleGlycogen_kcal = (GetMuscleGlycogen(MassUnit::g) / m_Glucose->GetMolarMass(MassPerAmountUnit::g_Per_mol)) * anaerobic_ATP_Per_Glycogen * energyPerMolATP_kcal;
-
+      
       //If we have enough
-      if (energyAsMuscleGlycogen_kcal >= (tissueNeededEnergy_kcal + muscleMandatoryAnaerobicNeededEnergy_kcal)) {
-        double glycogenConsumed_g = ((tissueNeededEnergy_kcal + muscleMandatoryAnaerobicNeededEnergy_kcal) / energyAsMuscleGlycogen_kcal) * GetMuscleGlycogen(MassUnit::g);
+      if (energyAsMuscleGlycogen_kcal >= (tissueNeededEnergy_kcal + muscleMandatoryAnaerobicNeededEnergy_kcal))
+      {
+        double glycogenConsumed_g = pHInhibition * ((tissueNeededEnergy_kcal + muscleMandatoryAnaerobicNeededEnergy_kcal) / energyAsMuscleGlycogen_kcal) * GetMuscleGlycogen(MassUnit::g);
         double glycogenConsumed_mol = glycogenConsumed_g / m_Glucose->GetMolarMass(MassPerAmountUnit::g_Per_mol);
         GetMuscleGlycogen().IncrementValue(-glycogenConsumed_g, MassUnit::g);
         TissueLactate->GetMass().IncrementValue(glycogenConsumed_mol * lactate_Per_Glycogen * m_Lactate->GetMolarMass(MassPerAmountUnit::g_Per_mol), MassUnit::g);
@@ -1147,8 +1143,9 @@ void Tissue::CalculateMetabolicConsumptionAndProduction(double time_s)
         tissueNeededEnergy_kcal = 0;
       }
       //If we still can't meet the energy request, we have an energy deficit
-      else {
-        double glycogenConsumed_mol = GetMuscleGlycogen(MassUnit::g) / m_Glucose->GetMolarMass(MassPerAmountUnit::g_Per_mol);
+      else
+      {
+        double glycogenConsumed_mol = pHInhibition * GetMuscleGlycogen(MassUnit::g) / m_Glucose->GetMolarMass(MassPerAmountUnit::g_Per_mol);
         GetMuscleGlycogen().SetValue(0, MassUnit::g);
         TissueLactate->GetMass().IncrementValue(glycogenConsumed_mol * lactate_Per_Glycogen * m_Lactate->GetMolarMass(MassPerAmountUnit::g_Per_mol), MassUnit::g);
         tissueNeededEnergy_kcal -= glycogenConsumed_mol * anaerobic_ATP_Per_Glycogen * energyPerMolATP_kcal;
@@ -2170,26 +2167,6 @@ void Tissue::CalculateTissueFluidFluxes()
 
     osmoticFlow->GetNextFlowSource().SetValue(hydraulicConductivity_mL_Per_min_mM * (mOsmIntra - mOsmExtra), VolumePerTimeUnit::mL_Per_min);
   }
-
-  if (m_data.GetActions().GetPatientActions().HasBurnWound()) {
-    for (auto t : m_data.GetCompartments().GetTissueCompartments()) {
-      SEFluidCircuitPath* res = m_EndothelialResistancePaths[t];
-      double resistanceModifier = m_data.GetBloodChemistry().GetAcuteInflammatoryResponse().GetTissueIntegrity().GetValue();
-      if (t->GetName() != BGE::TissueCompartment::Brain) {
-        res->GetNextResistance().SetValue(res->GetResistanceBaseline(FlowResistanceUnit::mmHg_min_Per_mL) * resistanceModifier, FlowResistanceUnit::mmHg_min_Per_mL);
-      }
-    }
-  }
-  if (m_data.GetActions().GetPatientActions().HasSepsis()) {
-    for (auto t : m_data.GetCompartments().GetTissueCompartments()) {
-      SEFluidCircuitPath* res = m_EndothelialResistancePaths[t];
-      double resistanceModifier = m_data.GetBloodChemistry().GetAcuteInflammatoryResponse().GetTissueIntegrity().GetValue();
-      if (t->GetName() != BGE::TissueCompartment::Brain) {
-        res->GetNextResistance().SetValue(res->GetResistanceBaseline(FlowResistanceUnit::mmHg_min_Per_mL) * resistanceModifier, FlowResistanceUnit::mmHg_min_Per_mL);
-      }
-    }
-  }
-  ///\ToDo:  Use derivative of P-V relationship in Himeno2015Mechanisms to update lymph compliance as volume changes
 }
 
 /// --------------------------------------------------------------------------------------------------
