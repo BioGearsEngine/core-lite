@@ -877,19 +877,19 @@ void Cardiovascular::RecordAndResetCardiacCycle()
   m_CardiacCycleSkinFlow_mL_Per_s.Reset();
 
   // Computed systemic Vascular Resistance
-  double cardiacOutput_mL_Per_min = GetCardiacOutput().GetValue(VolumePerTimeUnit::mL_Per_s);
+  double cardiacOutput_mL_Per_s = GetCardiacOutput().GetValue(VolumePerTimeUnit::mL_Per_s);
   double systemicVascularResistance_mmHg_s_Per_mL = 0.0;
-  if (cardiacOutput_mL_Per_min > ZERO_APPROX)
-    systemicVascularResistance_mmHg_s_Per_mL = (GetMeanArterialPressure().GetValue(PressureUnit::mmHg) - GetMeanCentralVenousPressure().GetValue(PressureUnit::mmHg)) / cardiacOutput_mL_Per_min;
+  if (cardiacOutput_mL_Per_s > ZERO_APPROX)
+    systemicVascularResistance_mmHg_s_Per_mL = (GetMeanArterialPressure().GetValue(PressureUnit::mmHg) - GetMeanCentralVenousPressure().GetValue(PressureUnit::mmHg)) / cardiacOutput_mL_Per_s;
   GetSystemicVascularResistance().SetValue(systemicVascularResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
 
   // Computed pulmonary Vascular Resistances
-  if (cardiacOutput_mL_Per_min == 0.0) {
+  if (cardiacOutput_mL_Per_s == 0.0) {
     GetPulmonaryVascularResistance().SetValue(0.0, FlowResistanceUnit::mmHg_min_Per_mL);
     GetPulmonaryVascularResistanceIndex().SetValue(0.0, PressureTimePerVolumeAreaUnit::mmHg_min_Per_mL_m2);
   } else {
-    GetPulmonaryVascularResistance().SetValue((m_MainPulmonaryArteries->GetNextPressure(PressureUnit::mmHg) - m_LeftHeart2->GetNextPressure(PressureUnit::mmHg)) / cardiacOutput_mL_Per_min, FlowResistanceUnit::mmHg_min_Per_mL);
-    GetPulmonaryVascularResistanceIndex().SetValue(GetPulmonaryVascularResistance(FlowResistanceUnit::mmHg_min_Per_mL) / m_patient->GetSkinSurfaceArea(AreaUnit::m2), PressureTimePerVolumeAreaUnit::mmHg_min_Per_mL_m2);
+    GetPulmonaryVascularResistance().SetValue((m_MainPulmonaryArteries->GetNextPressure(PressureUnit::mmHg) - m_LeftHeart2->GetNextPressure(PressureUnit::mmHg)) / cardiacOutput_mL_Per_s, FlowResistanceUnit::mmHg_s_Per_mL);
+    GetPulmonaryVascularResistanceIndex().SetValue(GetPulmonaryVascularResistance(FlowResistanceUnit::mmHg_min_Per_mL) / m_patient->GetSkinSurfaceArea(AreaUnit::m2), PressureTimePerVolumeAreaUnit::mmHg_s_Per_mL_m2);
   }
 
   m_CardiacCycleAortaPressureHigh_mmHg = 0.0;
@@ -944,7 +944,7 @@ void Cardiovascular::TraumaticBrainInjury()
   //These multipliers are chosen to result in ICP > 25 mmHg and CBF < 1.8 mL/s
   //The commented out values are from the unit test; not sure why they have to be scaled by .5 in engine to get good response
   //double usMult = GeneralMath::LinearInterpolator(0, 1, 1, 4.87814, severity);
-  double usMult = GeneralMath::LinearInterpolator(0, 1, 1, 2.4, severity); //2.43907
+  double usMult = GeneralMath::LinearInterpolator(0, 1, 1, 1.75, severity); //2.43907
   //double dsMult = GeneralMath::LinearInterpolator(0, 1, 1, 30.7993, severity);
   double dsMult = GeneralMath::LinearInterpolator(0, 1, 1, 15.0, severity); //15.3997
 
@@ -1415,7 +1415,6 @@ void Cardiovascular::TuneCircuit()
 {
   DataTrack circuitTrk;
   std::ofstream circuitFile;
-  double test;
   bool success = false;
   double systolicTarget_mmHg = m_patient->GetSystolicArterialPressureBaseline(PressureUnit::mmHg);
   double diastolicTarget_mmHg = m_patient->GetDiastolicArterialPressureBaseline(PressureUnit::mmHg);
@@ -1451,7 +1450,6 @@ void Cardiovascular::TuneCircuit()
     stable = false;
     stableTime_s = 0;
     while (!stable) {
-      test = m_VenaCava->GetVolume().GetValue(VolumeUnit::mL);
       HeartDriver();
       m_circuitCalculator.Process(*m_CirculatoryCircuit, m_dT_s);
       CalculateVitalSigns();
@@ -1552,7 +1550,6 @@ void Cardiovascular::TuneCircuit()
     double aortaComplianceScale = 1;
     double rightHeartResistanceScale = 1;
     double venaCavaComplianceScale = 1;
-    test = m_VenaCava->GetVolume().GetValue(VolumeUnit::mL);
     if ((systolicError_mmHg > 0 && diastolicError_mmHg > 0) || (systolicError_mmHg < 0 && diastolicError_mmHg < 0)) // Same direction
     {
       if (cardiacOutput_mL_Per_min > 4000.0) {
