@@ -18,22 +18,27 @@ specific language governing permissions and limitations under the License.
 #include <biogears/schema/biogears/BioGearsPhysiology.hxx>
 
 namespace biogears {
+class SEScalar;
 class SEScalarFraction;
 class SEScalarMass;
 class MassUnit;
+class SEScalarTemperature;
+class TemperatureUnit;
 class SEScalarPressure;
 class PressureUnit;
 class SEScalarFrequency;
 class FrequencyUnit;
 class SEScalarVolume;
 class VolumeUnit;
+class SEScalarVolumePerTime;
+
 class BIOGEARS_API SEDrugSystem : public SESystem {
 public:
   SEDrugSystem(Logger* logger);
   ~SEDrugSystem() override;
 
-  static size_t TypeHash() { return reinterpret_cast<size_t>(&TypeHash); }  //! Hopefully this returns a unique ID for every type
-  static constexpr char const * const  TypeTag() { return "SEDrugSystem"; }
+  static size_t TypeHash() { return reinterpret_cast<size_t>(&TypeHash); }
+  static constexpr char const* const TypeTag() { return "SEDrugSystem"; }
   const char* classname() const override { return TypeTag(); }
   size_t hash_code() const override { return TypeHash(); }
 
@@ -46,6 +51,7 @@ public:
   CDM::DrugSystemData* Unload() const override;
 
   Tree<const char*> GetPhysiologyRequestGraph() const override;
+
 protected:
   void Unload(CDM::DrugSystemData& data) const;
 
@@ -54,9 +60,17 @@ public:
   SEScalarFraction& GetBronchodilationLevel();
   double GetBronchodilationLevel() const;
 
+  bool HasFeverChange() const;
+  SEScalarTemperature& GetFeverChange();
+  double GetFeverChange(const TemperatureUnit& unit) const;
+
   bool HasHeartRateChange() const;
   SEScalarFrequency& GetHeartRateChange();
   double GetHeartRateChange(const FrequencyUnit& unit) const;
+
+  bool HasHemorrhageChange() const;
+  SEScalarFraction& GetHemorrhageChange();
+  double GetHemorrhageChange() const;
 
   bool HasMeanBloodPressureChange() const;
   SEScalarPressure& GetMeanBloodPressureChange();
@@ -66,14 +80,13 @@ public:
   SEScalarFraction& GetNeuromuscularBlockLevel();
   double GetNeuromuscularBlockLevel() const;
 
+  bool HasPainToleranceChange() const;
+  SEScalarFraction& GetPainToleranceChange();
+  double GetPainToleranceChange() const;
+
   bool HasPulsePressureChange() const;
   SEScalarPressure& GetPulsePressureChange();
   double GetPulsePressureChange(const PressureUnit& unit) const;
-
-  bool HasPupillaryResponse() const;
-  SEPupillaryResponse& GetPupillaryResponse();
-  const SEPupillaryResponse* GetPupillaryResponse() const;
-  void RemovePupillaryResponse();
 
   bool HasRespirationRateChange() const;
   SEScalarFrequency& GetRespirationRateChange();
@@ -97,11 +110,13 @@ public:
 
 protected:
   SEScalarFraction* m_BronchodilationLevel;
+  SEScalarTemperature* m_FeverChange;
   SEScalarFrequency* m_HeartRateChange;
+  SEScalarFraction* m_HemorrhageChange;
   SEScalarPressure* m_MeanBloodPressureChange;
   SEScalarFraction* m_NeuromuscularBlockLevel;
+  SEScalarFraction* m_PainToleranceChange;
   SEScalarPressure* m_PulsePressureChange;
-  SEPupillaryResponse* m_PupillaryResponse;
   SEScalarFrequency* m_RespirationRateChange;
   SEScalarFraction* m_SedationLevel;
   SEScalarVolume* m_TidalVolumeChange;

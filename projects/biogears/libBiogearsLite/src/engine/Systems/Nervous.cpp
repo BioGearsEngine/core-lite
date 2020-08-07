@@ -310,7 +310,7 @@ void Nervous::BaroreceptorFeedback()
 void Nervous::CheckPainStimulus()
 {
   //Screen for both external pain stimulus and presence of inflammation
-  if (!m_data.GetActions().GetPatientActions().HasPainStimulus() && !m_data.GetBloodChemistry().GetAcuteInflammatoryResponse().HasInflammationSources()) {
+  if (!m_data.GetActions().GetPatientActions().HasPainStimulus()) {
     GetPainVisualAnalogueScale().SetValue(0.0);
     return;
   }
@@ -324,20 +324,12 @@ void Nervous::CheckPainStimulus()
   double halfLife_s = 0.0;
   double painVASMapping = 0.0; //for each location map the [0,1] severity to the [0,10] VAS scale
   double tempPainVAS = 0.0; //sum, scale and store the patient score
-  double CNSPainBuffer = 1.0;
 
   m_painVAS = GetPainVisualAnalogueScale().GetValue();
 
   //reset duration if VAS falls below approx zero
   if (m_painVAS == 0.0)
     m_painStimulusDuration_s = 0.0;
-
-  //grab drug effects if there are in the body
-  if (m_data.GetDrugs().HasCentralNervousResponse()) {
-    double NervousScalar = 10.0;
-    double CNSModifier = m_data.GetDrugs().GetCentralNervousResponse().GetValue();
-    CNSPainBuffer = exp(-CNSModifier * NervousScalar);
-  }
 
   //iterate over all locations to get a cumulative stimulus and buffer them
   for (auto pain : pains) {
@@ -351,7 +343,14 @@ void Nervous::CheckPainStimulus()
     }
     painVASMapping = 10.0 * severity;
 
-    tempPainVAS += (painVASMapping * susceptabilityMapping * CNSPainBuffer) / (1 + exp(-m_painStimulusDuration_s + 4.0)); //temp time will increase so long as a stimulus is present
+    tempPainVAS += (painVASMapping * susceptabilityMapping) / (1.0 + exp(-m_painStimulusDuration_s + 4.0)); //temp time will increase so long as a stimulus is present
+  }
+
+   //apply effects of pain medication
+  if (m_data.GetDrugs().HasPainToleranceChange()) {
+    double PainModifier = 10.0 * m_data.GetDrugs().GetPainToleranceChange().GetValue();
+    tempPainVAS += -PainModifier;
+    tempPainVAS = std::max(tempPainVAS, 0.0);
   }
 
   //advance time over the duration of the stimulus
@@ -404,6 +403,15 @@ void Nervous::CheckNervousStatus()
     /// \event Patient: End Intracranial Hypotension. The intracranial pressure has risen above 7.5 mmHg.
     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::IntracranialHypertension, false, m_data.GetSimulationTime());
   }
+
+  //---Check Sedatation / Agitation State and output a Richmond Agitation Sedation Scale (RASS) score
+  const double painVAS = GetPainVisualAnalogueScale().GetValue();
+  const double maxSedationLevel = 0.75;
+  const double sedationLevel = std::min(m_data.GetDrugs().GetSedationLevel().GetValue(), maxSedationLevel);
+  const double sedationTerm = -std::floor(sedationLevel / 0.15);
+  const double agitationTerm = std::ceil((std::pow(5.0, painVAS / 10.0) - 1.0) * (1.0 - sedationLevel / maxSedationLevel));
+  const double rassScore = sedationTerm + agitationTerm;
+  GetRichmondAgitationSedationScale().SetValue(rassScore);
 
   //------Fasciculations:-------------------------------------------
 
@@ -637,9 +645,8 @@ void Nervous::ChemoreceptorFeedback()
 //--------------------------------------------------------------------------------------------------
 void Nervous::SetPupilEffects()
 {
-  // Get modifiers from Drugs
-  double leftPupilSizeResponseLevel = m_data.GetDrugs().GetPupillaryResponse().GetSizeModifier().GetValue();
-  double leftPupilReactivityResponseLevel = m_data.GetDrugs().GetPupillaryResponse().GetReactivityModifier().GetValue();
+  double leftPupilSizeResponseLevel = 0.0;
+  double leftPupilReactivityResponseLevel = 0.0;
   double rightPupilSizeResponseLevel = leftPupilSizeResponseLevel;
   double rightPupilReactivityResponseLevel = leftPupilReactivityResponseLevel;
 

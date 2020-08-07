@@ -841,4 +841,165 @@ void Gastrointestinal::Process()
 void Gastrointestinal::PostProcess()
 {
 }
+
+//----------------------------------------------------------------------------------------------------
+/// \brief
+/// Compartment Absorption Transit (CAT) model for drug dissolution and transport through the gastrointestinal system
+///
+/// \details
+/// This CAT model tracks a drugs progress from the stomach through the small intestine to the large intestine.
+/// The model accounts for both solid and dissolved drug in each compartment.  The stomach is the first compartment
+/// in the model.  The small intestine is divided in to seven compartments to generate an estimate of spatial resolution.
+/// Each small intestine compartment (not the stomach) communicates with an enterocyte layer--this is the intestinal lining
+/// that drugs must pass through in which many drugs are subjected to intestinal metabolism.  Currently, the degree of
+/// metabolism is a substance specific tuning modifier.  Drug in the enterocyte layer diffuses in to the portal vein.
+/// This model is based on the work in Yang2016Application and most parameters are derived from this source.
+void Gastrointestinal::ProcessDrugCAT()
+{
+  std::map<const SESubstance*, SEDrugTransitState*> catMap = GetDrugTransitStates();
+  if (catMap.empty()) {
+    return;
+  }
+  const SESubstance* sub;
+  SEDrugTransitState* cat;
+  for (auto catState : catMap) {
+    sub = catState.first;
+    cat = catState.second;
+
+    //-----------------------------Model Parameters----------------------------------------
+    //GI
+    const double villousBloodFlow_mL_Per_s = 5.0;
+    const double fBlood = 1.0 / 8.0;
+    const double bodyMass_g = m_data.GetPatient().GetWeight(MassUnit::g); //Used to estimate enterocyte volume, assuming density 1.0 g/mL
+    //Physiochemical data
+    const SESubstancePhysicochemicals* subData = sub->GetPK()->GetPhysicochemicals();
+    const CDM::enumSubstanceIonicState ionState = sub->GetPK()->GetPhysicochemicals()->GetIonicState();
+    const double hydrogenBondCount = subData->GetHydrogenBondCount();
+    const double polarSurfaceArea = subData->GetPolarSurfaceArea();
+    const double logP = subData->GetLogP();
+    const double pKa = subData->GetAcidDissociationConstant();
+    double pKa2 = 0; //Only used for Zwitterions--can't set const because we need to reset it in switch/case below
+    const double molarMass_g_Per_mol = sub->GetMolarMass(MassPerAmountUnit::g_Per_mol);
+    double gutKP = 1.0; //First time step, we won't have the tissue kinetics defined yet
+    if (sub->GetPK()->HasTissueKinetics()) {
+      if (sub->GetPK()->GetTissueKinetics(BGE::TissueCompartment::Gut)->HasPartitionCoefficient()) {
+        gutKP = sub->GetPK()->GetTissueKinetics(BGE::TissueCompartment::Gut)->GetPartitionCoefficient();
+      }
+    }
+    double fMetabolized = 0.0;
+    if (sub->GetName() == "Fentanyl") {
+      fMetabolized = 0.20; //If more drugs needs this we can think about adding it to substance clearance schema
+    }
+    //Dissolution data
+    const double particleRadius_cm = 5.0e-4; //default for now
+    const double subDensity_g_Per_mL = 1.0; //default for now
+    const double diffCoeff_cm2_Per_s = 9.9e-5 * std::pow(molarMass_g_Per_mol, -0.453); //Ando2015New
+    const double diffusionLayer_cm = 30.0e-4;
+    const double dissolutionCoeff_mL_Per_s_ug = 3.0 * diffCoeff_cm2_Per_s / (subDensity_g_Per_mL * particleRadius_cm * diffusionLayer_cm) * 1.e-6; //Noyes-Whitney coefficient, 1e-6 factor converts g to ug basis
+    //Permeability and solubility--Use relationship from Wolk2019Segmental (perm) and Yang2016Appliation (sol)
+    const double A = 3.67e-5, B = 3.45e-5, C = -1.04e-7, D = -5.48e-6, E = -2.3e-8, F = 1.46e-4; //Permeability constants
+    const double constTerms = A * logP + C * molarMass_g_Per_mol + D * hydrogenBondCount + E * polarSurfaceArea + F; //This part of permeability equation is constant across small intestine
+    const double solWaterStd_ug_Per_mL = 5.0e3; //Tuned do that dissolution of moxifloxacin happens in ~15 min
+    const double solubilityRatio = std::pow(10.0, 0.606 * logP + 2.234); //Yang2016Application
+    std::vector<double> fracUnionized; //fraction of drug un-ionized in each GI compartment
+    std::vector<double> permeability_cm_Per_s; //drug permeability in each GI compartment
+    std::vector<double> solubility_ug_Per_mL;
+    double fUnionized = 0.0;
+    double solWaterAdjusted_ug_Per_mL = 0.0;
+    double solBileSalts_ug_Per_mL = 0.0;
+    double solubilityCapacity = 0.0;
+    double ionTerm = 0.0;
+    //Zwitterion constant--our only Zwitterion is Moxifloxacin.  If this changes, we need to make these values substance specific!  See Langlois2004 for microconstant data
+    double logk11 = -7.46;
+
+    //------------------------------Calculate location specific ionization, permeability, and solubility-----------------------
+    std::vector<double>::iterator phIt;
+    std::vector<double>::iterator solIt;
+    for (phIt = m_TransitPH.begin(), solIt = m_TransitBileSalts_mM.begin(); phIt != m_TransitPH.end() && solIt != m_TransitBileSalts_mM.end(); ++phIt, ++solIt) {
+      //Permeability
+      switch (ionState) {
+      case CDM::enumSubstanceIonicState::Acid:
+        ionTerm = 1.0 + std::pow(10.0, *phIt - pKa);
+        break;
+      case CDM::enumSubstanceIonicState::WeakBase:
+        //Intentionally blank w/o break statement-->this way weak base and base flow to same place (same equation used)
+      case CDM::enumSubstanceIonicState::Base:
+        ionTerm = 1.0 + std::pow(10.0, pKa - *phIt);
+        break;
+      default:
+        ionTerm = 1.0;
+      }
+      fracUnionized.push_back(1.0 / ionTerm);
+      permeability_cm_Per_s.push_back(constTerms + B * std::log10(1.0 / ionTerm)); //Note that this gives us a "stomach permeability" that we do not use
+      //Solubility--could look at Ando2015New for this as well
+      solWaterAdjusted_ug_Per_mL = std::pow(10.0, std::log10(solWaterStd_ug_Per_mL) + std::log10(ionTerm));
+      //Using std sol instead of adjusting because there are some weird pH effects going on that need to be investigated further
+      solubilityCapacity = solWaterStd_ug_Per_mL * (18.0 / molarMass_g_Per_mol) * 1.0e-6;
+      solBileSalts_ug_Per_mL = solubilityRatio * solubilityCapacity * molarMass_g_Per_mol * (*solIt);
+      solubility_ug_Per_mL.push_back(solWaterStd_ug_Per_mL + solBileSalts_ug_Per_mL);
+    }
+
+    //-----------------------------Previous state and set-up----------------------------
+    std::vector<double> lumenSolidMasses_ug = cat->GetLumenSolidMasses(MassUnit::ug);
+    std::vector<double> lumenDissolvedMasses_ug = cat->GetLumenDissolvedMasses(MassUnit::ug);
+    std::vector<double> enterocyteMasses_ug = cat->GetEnterocyteMasses(MassUnit::ug);
+    double gutVasculatureConcentration_ug_Per_mL = 0.0;
+    if (m_vSmallIntestine->HasSubstanceQuantity(*sub))
+      gutVasculatureConcentration_ug_Per_mL = m_vSmallIntestine->GetSubstanceQuantity(*sub)->GetConcentration(MassPerVolumeUnit::ug_Per_mL);
+    //Differential containers
+    std::vector<double> dLumenSolidMass_ug_Per_s(lumenSolidMasses_ug.size());
+    std::vector<double> dLumenDissolvedMass_ug_Per_s(lumenDissolvedMasses_ug.size());
+    std::vector<double> dEnterocyteMass_ug_Per_s(enterocyteMasses_ug.size());
+    //Intermediate values
+    double solidDissolutionRate_ug_Per_s = 0.0;
+    double permeationToEnterocyte_ug_Per_s = 0.0;
+    double enterocyteToPortal_ug_Per_s = 0.0;
+    double portalToEnterocyte_ug_Per_s = 0.0;
+    double massMetabolized_ug_Per_s = 0.0;
+    double totalEffluxToPortal_ug_Per_s = 0.0;
+    double totalMetabolized_ug_Per_s = 0.0;
+
+    //---------------------------------State Equations-------------------------------
+    //Stomach--format of equations is different so needs to be separate
+    solidDissolutionRate_ug_Per_s = dissolutionCoeff_mL_Per_s_ug * lumenSolidMasses_ug[0] * (solubility_ug_Per_mL[0] - lumenDissolvedMasses_ug[0] / m_TransitVolume_mL[0]);
+    dLumenSolidMass_ug_Per_s[0] = -solidDissolutionRate_ug_Per_s - m_TransitRate_Per_s[0] * lumenSolidMasses_ug[0];
+    dLumenDissolvedMass_ug_Per_s[0] = solidDissolutionRate_ug_Per_s - m_TransitRate_Per_s[0] * lumenDissolvedMasses_ug[0];
+    //Equations for all other compartments are identical, can be looped
+    size_t lumenPos; //Position in lumen compartment vectors: Start at 1 because we already did the stomach (element 0 in lumen vector)
+    size_t entPos; //Position in enterocyte vectors:  Will start at 0 because it has no stomach component, it starts at duodenum
+    for (lumenPos = 1, entPos = 0; lumenPos < lumenSolidMasses_ug.size() && entPos < enterocyteMasses_ug.size(); ++lumenPos, ++entPos) {
+      solidDissolutionRate_ug_Per_s = dissolutionCoeff_mL_Per_s_ug * lumenSolidMasses_ug[lumenPos] * (solubility_ug_Per_mL[lumenPos] - lumenDissolvedMasses_ug[lumenPos] / m_TransitVolume_mL[lumenPos]);
+      permeationToEnterocyte_ug_Per_s = permeability_cm_Per_s[lumenPos] * m_TransitSurfaceArea_cm2[lumenPos] * fracUnionized[lumenPos] * (lumenDissolvedMasses_ug[lumenPos] / m_TransitVolume_mL[lumenPos] - enterocyteMasses_ug[entPos] / (m_EnterocyteVolumeFraction[entPos] * bodyMass_g));
+      enterocyteToPortal_ug_Per_s = fBlood * villousBloodFlow_mL_Per_s * (enterocyteMasses_ug[entPos] / (m_EnterocyteVolumeFraction[entPos] * bodyMass_g) * (1. / gutKP));
+      portalToEnterocyte_ug_Per_s = fBlood * villousBloodFlow_mL_Per_s * gutVasculatureConcentration_ug_Per_mL;
+      massMetabolized_ug_Per_s = fMetabolized / (1.0 - fMetabolized) * enterocyteToPortal_ug_Per_s;
+
+      totalMetabolized_ug_Per_s += massMetabolized_ug_Per_s;
+      totalEffluxToPortal_ug_Per_s += (enterocyteToPortal_ug_Per_s - portalToEnterocyte_ug_Per_s);
+
+      //For solids:  deltaM = rate influx from previous cmpt - rate efflux - rate solid dissolution
+      dLumenSolidMass_ug_Per_s[lumenPos] = lumenSolidMasses_ug[lumenPos - 1] * m_TransitRate_Per_s[lumenPos - 1] - lumenSolidMasses_ug[lumenPos] * m_TransitRate_Per_s[lumenPos] - solidDissolutionRate_ug_Per_s;
+      //For dissolved: deltaM = rate influx from previous compt + rate solid dissolution - rate efflux - rate permeated to enterocytes
+      dLumenDissolvedMass_ug_Per_s[lumenPos] = lumenDissolvedMasses_ug[lumenPos - 1] * m_TransitRate_Per_s[lumenPos - 1] + solidDissolutionRate_ug_Per_s - lumenDissolvedMasses_ug[lumenPos] * m_TransitRate_Per_s[lumenPos] - permeationToEnterocyte_ug_Per_s;
+      //For enterocyte: deltaM = rate permeation from lumen + rate influx from portal - rate efflux to portal - rate metabolized
+      dEnterocyteMass_ug_Per_s[entPos] = permeationToEnterocyte_ug_Per_s + portalToEnterocyte_ug_Per_s - enterocyteToPortal_ug_Per_s - massMetabolized_ug_Per_s;
+    }
+
+    //Update states
+    const double dT_s = m_data.GetTimeStep().GetValue(TimeUnit::s);
+    for (lumenPos = 0; lumenPos < lumenSolidMasses_ug.size(); ++lumenPos) {
+      lumenSolidMasses_ug[lumenPos] += dLumenSolidMass_ug_Per_s[lumenPos] * dT_s;
+      lumenDissolvedMasses_ug[lumenPos] += dLumenDissolvedMass_ug_Per_s[lumenPos] * dT_s;
+    }
+    for (entPos = 0; entPos < enterocyteMasses_ug.size(); ++entPos) {
+      enterocyteMasses_ug[entPos] += dEnterocyteMass_ug_Per_s[entPos] * dT_s;
+    }
+    cat->SetLumenSolidMasses(lumenSolidMasses_ug, MassUnit::ug);
+    cat->SetLumenDissolvedMasses(lumenDissolvedMasses_ug, MassUnit::ug);
+    cat->SetEnterocyteMasses(enterocyteMasses_ug, MassUnit::ug);
+    cat->GetTotalMassMetabolized().IncrementValue(totalMetabolized_ug_Per_s * dT_s, MassUnit::ug);
+    cat->GetTotalMassExcreted().IncrementValue((lumenSolidMasses_ug[8] + lumenDissolvedMasses_ug[8]) * m_TransitRate_Per_s[8] * dT_s, MassUnit::ug);
+    m_vSmallIntestine->GetSubstanceQuantity(*sub)->GetMass().IncrementValue(totalEffluxToPortal_ug_Per_s * dT_s, MassUnit::ug);
+  }
+}
 }

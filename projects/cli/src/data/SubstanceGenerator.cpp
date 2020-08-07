@@ -57,10 +57,10 @@ bool SubstanceGenerator::parse()
       lineItr += 11;
     } else if ("Pharmacokinetics (all or none)" == lineItr->first) {
       rValue &= process_pharmacokinetics(++lineItr);
-      lineItr += 5;
+      lineItr += 7;
     } else if ("Pharmacodynamics (all or none)" == lineItr->first) {
       rValue &= process_pharmacodynamics(++lineItr);
-      lineItr += 14;
+      lineItr += 16;
     } else if ( lineItr->first.find("Tissue Pharmacokinetics") != std::string::npos) {
       rValue &= process_tissues(lineItr);
       lineItr += 1;
@@ -454,6 +454,9 @@ bool SubstanceGenerator::process_pharmacokinetics(CSV_RowItr itr)
         phys_type.IonicState(value);
         value = (itr + 5)->second[index];
         phys_type.LogP(std::stod(value));
+        phys_type.HydrogenBondCount(std::stod(value));
+        value = (itr + 7)->second[index];
+        phys_type.PolarSurfaceArea(std::stod(value));
 
         data.Physicochemicals(phys_type);
         substance.Pharmacokinetics(data);
@@ -487,48 +490,44 @@ bool SubstanceGenerator::process_pharmacodynamics(CSV_RowItr itr)
     if (!value.empty()) {
       try {
         size_t pos = 0;
+        CDM::PharmacodynamicModifierData pdMod;
 
-        data.Bronchodilation(std::stod(value));
-        value = (itr + 1)->second[index];
-        data.DiastolicPressureModifier(std::stod(value));
-        value = (itr + 2)->second[index];
-        CDM::SubstanceData::Pharmacodynamics_type::EC50_type ec50_data;
-        ec50_data.value(std::stod(value, &pos));
-        ec50_data.unit(trim(value.substr(pos)));
-        data.EC50(ec50_data);
-        value = (itr + 3)->second[index];
-        data.EMaxShapeParameter(std::stod(value));
-        value = (itr + 4)->second[index];
-        data.HeartRateModifier(std::stod(value));
-        value = (itr + 5)->second[index];
-        data.NeuromuscularBlock(std::stod(value));
-        //PupillaryResponse
-        CDM::SubstanceData::Pharmacodynamics_type::PupillaryResponse_type pr_data;
-        value = (itr + 6)->second[index];
-        pr_data.ReactivityModifier(std::stod(value));
-        value = (itr + 7)->second[index];
-        pr_data.SizeModifier(std::stod(value));
-        data.PupillaryResponse(pr_data);
-
-        value = (itr + 8)->second[index];
-        data.RespirationRateModifier(std::stod(value));
-        value = (itr + 9)->second[index];
-        data.Sedation(std::stod(value));
-        value = (itr + 10)->second[index];
-        data.SystolicPressureModifier(std::stod(value));
-        value = (itr + 11)->second[index];
-        data.TidalVolumeModifier(std::stod(value));
-        value = (itr + 12)->second[index];
-        data.TubularPermeabilityModifier(std::stod(value));
-        value = (itr + 13)->second[index];
-        data.CentralNervousModifier(std::stod(value));
-        value = (itr + 14)->second[index];
         CDM::SubstanceData::Pharmacodynamics_type::EffectSiteRateConstant_type esrc_type;
         esrc_type.value(std::stod(value, &pos));
         esrc_type.unit(trim(value.substr(pos)));
         data.EffectSiteRateConstant(esrc_type);
-
-        substance.Pharmacodynamics(data);
+        value = (itr + 1)->second[index];
+        data.EMaxShapeParameter(std::stod(value));
+        value = (itr + 2)->second[index];
+        data.Bronchodilation(set_PDModifier(pdMod, value));
+        value = (itr + 3)->second[index];
+        data.CentralNervousModifier(set_PDModifier(pdMod, value));
+        value = (itr + 4)->second[index];
+        data.DiastolicPressureModifier(set_PDModifier(pdMod, value));
+        value = (itr + 5)->second[index];
+        data.FeverModifier(set_PDModifier(pdMod, value));
+        value = (itr + 6)->second[index];
+        data.HeartRateModifier(set_PDModifier(pdMod, value));
+        value = (itr + 7)->second[index];
+        data.HemorrhageModifier(set_PDModifier(pdMod, value));
+        value = (itr + 8)->second[index];
+        data.NeuromuscularBlock(set_PDModifier(pdMod, value));
+        value = (itr + 9)->second[index];
+        data.PainModifier(set_PDModifier(pdMod, value));
+        value = (itr + 10)->second[index];
+        data.PupilReactivityModifier(set_PDModifier(pdMod, value));
+        value = (itr + 11)->second[index];
+        data.PupilSizeModifier(set_PDModifier(pdMod, value));
+        value = (itr + 12)->second[index];
+        data.RespirationRateModifier(set_PDModifier(pdMod, value));
+        value = (itr + 13)->second[index];
+        data.Sedation(set_PDModifier(pdMod, value));
+        value = (itr + 14)->second[index];
+        data.SystolicPressureModifier(set_PDModifier(pdMod, value));
+        value = (itr + 15)->second[index];
+        data.TidalVolumeModifier(set_PDModifier(pdMod, value));
+        value = (itr + 16)->second[index];
+        data.TubularPermeabilityModifier(set_PDModifier(pdMod, value));
       } catch (std::exception e) {
         rValue = false;
       }
@@ -580,5 +579,27 @@ bool SubstanceGenerator::process_tissues(CSV_RowItr itr)
     ++index;
   }
   return rValue;
+}
+
+using PDMod_Type = mil::tatrc::physiology::datamodel::PharmacodynamicModifierData;
+PDMod_Type SubstanceGenerator::set_PDModifier(PDMod_Type modifier, std::string value)
+{
+  namespace CDM = mil::tatrc::physiology::datamodel;
+  //PD Modifier value has format "[EMax;EC50]"    EC50 has a value and a unit (ScalarMassPerVolume)
+  //Get rid of leading and trailing braces
+  value.erase(value.begin());
+  value.erase(value.end() - 1);
+  //Split string at token (;)
+  auto modifier_data = split(value, ';');
+  //Set EMax to first element
+  modifier.EMax(std::stod(modifier_data[0]));
+  //Set EC50 value and unit
+  CDM::ScalarMassPerVolumeData ec50;
+  size_t pos = 0;
+  ec50.value(std::stod(trim(modifier_data[1]), &pos));
+  ec50.unit(trim(modifier_data[1].substr(pos)));
+  modifier.EC50(ec50);
+
+  return modifier;
 }
 }

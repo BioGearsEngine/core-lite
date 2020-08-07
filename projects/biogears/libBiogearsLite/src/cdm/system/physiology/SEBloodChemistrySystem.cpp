@@ -54,7 +54,6 @@ namespace biogears {
   constexpr char idVenousCarbonDioxidePressure[] = "VenousCarbonDioxidePressure";
   constexpr char idVenousOxygenPressure[] = "VenousOxygenPressure";
   constexpr char idSepsisInfectionState[] = "SepsisInfectionState";
-  constexpr char idAcuteInflammatoryResponse[] = "AcuteInflammatoryResponse";
 
 SEBloodChemistrySystem::SEBloodChemistrySystem(Logger* logger)
   : SESystem(logger)
@@ -93,7 +92,6 @@ SEBloodChemistrySystem::SEBloodChemistrySystem(Logger* logger)
   m_PulmonaryVenousOxygenPressure = nullptr;
   m_VenousCarbonDioxidePressure = nullptr;
   m_VenousOxygenPressure = nullptr;
-  m_AcuteInflammatoryResponse = nullptr;
 }
 //-------------------------------------------------------------------------------
 
@@ -139,7 +137,6 @@ void SEBloodChemistrySystem::Clear()
   SAFE_DELETE(m_VenousOxygenPressure);
   SAFE_DELETE(m_ArterialCarbonDioxidePressure);
   SAFE_DELETE(m_VenousCarbonDioxidePressure);
-  SAFE_DELETE(m_AcuteInflammatoryResponse);
 }
 //-------------------------------------------------------------------------------
 const SEScalar* SEBloodChemistrySystem::GetScalar(const char* name)
@@ -212,16 +209,6 @@ const SEScalar* SEBloodChemistrySystem::GetScalar(const std::string& name)
   if (name == idVenousOxygenPressure)
     return &GetVenousOxygenPressure();
 
-  //This applies to InflammationState values, as they are defined AcuteInflammatoryResponse-Pathogen, e.g.
-  size_t split = name.find('-');
-  if (split != name.npos) {
-    std::string prop = name.substr(split + 1, name.npos); //Get property that follows dash
-    std::string parent = name.substr(0, split);
-    if (parent == idAcuteInflammatoryResponse) {
-      return GetAcuteInflammatoryResponse().GetScalar(prop);
-    }
-  }
-
   return nullptr;
 }
 //-------------------------------------------------------------------------------
@@ -293,8 +280,6 @@ bool SEBloodChemistrySystem::Load(const CDM::BloodChemistrySystemData& in)
     GetVenousCarbonDioxidePressure().Load(in.VenousCarbonDioxidePressure().get());
   if (in.VenousOxygenPressure().present())
     GetVenousOxygenPressure().Load(in.VenousOxygenPressure().get());
-  if (in.AcuteInflammatoryResponse().present())
-    GetAcuteInflammatoryResponse().Load(in.AcuteInflammatoryResponse().get());
   return true;
 }
 //-------------------------------------------------------------------------------
@@ -374,8 +359,6 @@ void SEBloodChemistrySystem::Unload(CDM::BloodChemistrySystemData& data) const
     data.VenousBloodPH(std::unique_ptr<CDM::ScalarData>(m_VenousBloodPH->Unload()));
   if (m_VenousOxygenPressure != nullptr)
     data.VenousOxygenPressure(std::unique_ptr<CDM::ScalarPressureData>(m_VenousOxygenPressure->Unload()));
-  if (m_AcuteInflammatoryResponse != nullptr)
-    data.AcuteInflammatoryResponse(std::unique_ptr<CDM::InflammationStateData>(m_AcuteInflammatoryResponse->Unload()));
 }
 //-------------------------------------------------------------------------------
 
@@ -997,18 +980,6 @@ double SEBloodChemistrySystem::GetVenousCarbonDioxidePressure(const PressureUnit
   return m_VenousCarbonDioxidePressure->GetValue(unit);
 }
 //-------------------------------------------------------------------------------
-bool SEBloodChemistrySystem::HasAcuteInflammatoryResponse() const
-{
-  return m_AcuteInflammatoryResponse == nullptr ? false : m_AcuteInflammatoryResponse->IsValid();
-}
-//-------------------------------------------------------------------------------
-SEInflammationState& SEBloodChemistrySystem::GetAcuteInflammatoryResponse()
-{
-  if (m_AcuteInflammatoryResponse == nullptr)
-    m_AcuteInflammatoryResponse = new SEInflammationState();
-  return *m_AcuteInflammatoryResponse;
-}
-//-------------------------------------------------------------------------------
 Tree<const char*> SEBloodChemistrySystem::GetPhysiologyRequestGraph() const
 {
   return Tree<const char*>{classname()}
@@ -1044,7 +1015,6 @@ Tree<const char*> SEBloodChemistrySystem::GetPhysiologyRequestGraph() const
     .emplace_back(idVenousCarbonDioxidePressure)
     .emplace_back(idVenousOxygenPressure)
     .emplace_back(idSepsisInfectionState)
-    .emplace_back(idAcuteInflammatoryResponse)
     ;
 }
 }

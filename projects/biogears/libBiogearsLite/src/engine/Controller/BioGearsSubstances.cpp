@@ -851,14 +851,16 @@ bool BioGearsSubstances::LoadSubstanceDirectory()
   if (m_urea == nullptr)
     Error("Urea Definition not found");
   // These metabolites will be activated in initialization
-
-  // Check that drugs have what we need
+  
   for (SESubstance* sub : m_Substances) {
     if (sub->HasPD()) {
-      if (sub->GetPD().GetEC50().IsZero() || sub->GetPD().GetEC50().IsNegative()) {
-        std::stringstream ss;
-        ss << sub->GetName() << " cannot have EC50 <= 0";
-        Fatal(ss);
+      for (auto pdMod : sub->GetPD().GetPharmacodynamicModifiers()) {
+        if (pdMod.second->GetEC50().IsNegative()) {
+          std::stringstream ss;
+          ss << sub->GetName() << ": " << pdMod.first << " cannot have EC50 < 0";
+          Fatal(ss);
+          return false;
+        }
       }
     }
   }

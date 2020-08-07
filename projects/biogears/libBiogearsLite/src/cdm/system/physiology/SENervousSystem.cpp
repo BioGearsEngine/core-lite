@@ -25,6 +25,7 @@ namespace biogears {
   constexpr char idChemoreceptorHeartRateScale[] = "ChemoreceptorHeartRateScale";
   constexpr char idChemoreceptorHeartElastanceScale[] = "ChemoreceptorHeartElastanceScale";
   constexpr char idPainVisualAnalogueScale[] = "PainVisualAnalogueScale";
+  constexpr char idRichmondAgitationSedationScale[] = "RichmondAgitationSedationScale";
   constexpr char idLeftEyePupillaryResponse[] = "LeftEyePupillaryResponse";
   constexpr char idRightEyePupillaryResponse[] = "RightEyePupillaryResponse";
 
@@ -40,6 +41,7 @@ SENervousSystem::SENervousSystem(Logger* logger)
   m_LeftEyePupillaryResponse = nullptr;
   m_RightEyePupillaryResponse = nullptr;
   m_PainVisualAnalogueScale = nullptr;
+  m_RichmondAgitationSedationScale = nullptr;
 }
 //-------------------------------------------------------------------------------
 
@@ -61,6 +63,7 @@ void SENervousSystem::Clear()
   SAFE_DELETE(m_LeftEyePupillaryResponse);
   SAFE_DELETE(m_RightEyePupillaryResponse);
   SAFE_DELETE(m_PainVisualAnalogueScale);
+  SAFE_DELETE(m_RichmondAgitationSedationScale);
 }
 //-------------------------------------------------------------------------------
 const SEScalar* SENervousSystem::GetScalar(const char* name)
@@ -84,6 +87,8 @@ const SEScalar* SENervousSystem::GetScalar(const std::string& name)
     return &GetChemoreceptorHeartElastanceScale();
   if (name == idPainVisualAnalogueScale)
     return &GetPainVisualAnalogueScale();
+  if (name == idRichmondAgitationSedationScale)
+    return &GetRichmondAgitationSedationScale();
 
   size_t split = name.find('-');
   if (split != name.npos) {
@@ -115,6 +120,8 @@ bool SENervousSystem::Load(const CDM::NervousSystemData& in)
     GetChemoreceptorHeartElastanceScale().Load(in.ChemoreceptorHeartElastanceScale().get());
   if (in.PainVisualAnalogueScale().present())
     GetPainVisualAnalogueScale().Load(in.PainVisualAnalogueScale().get());
+  if (in.RichmondAgitationSedationScale().present())
+    GetRichmondAgitationSedationScale().Load(in.RichmondAgitationSedationScale().get());
   if (in.LeftEyePupillaryResponse().present())
     GetLeftEyePupillaryResponse().Load(in.LeftEyePupillaryResponse().get());
   if (in.RightEyePupillaryResponse().present())
@@ -148,6 +155,8 @@ void SENervousSystem::Unload(CDM::NervousSystemData& data) const
     data.ChemoreceptorHeartElastanceScale(std::unique_ptr<CDM::ScalarData>(m_ChemoreceptorHeartElastanceScale->Unload()));
   if (m_PainVisualAnalogueScale != nullptr)
     data.PainVisualAnalogueScale(std::unique_ptr<CDM::ScalarData>(m_PainVisualAnalogueScale->Unload()));
+  if (m_RichmondAgitationSedationScale != nullptr)
+    data.RichmondAgitationSedationScale(std::unique_ptr<CDM::ScalarData>(m_RichmondAgitationSedationScale->Unload()));
   if (m_LeftEyePupillaryResponse != nullptr)
     data.LeftEyePupillaryResponse(std::unique_ptr<CDM::PupillaryResponseData>(m_LeftEyePupillaryResponse->Unload()));
   if (m_RightEyePupillaryResponse != nullptr)
@@ -294,7 +303,25 @@ double SENervousSystem::GetPainVisualAnalogueScale() const
   return m_PainVisualAnalogueScale->GetValue();
 }
 //-------------------------------------------------------------------------------
-
+bool SENervousSystem::HasRichmondAgitationSedationScale() const
+{
+  return m_RichmondAgitationSedationScale == nullptr ? false : m_RichmondAgitationSedationScale->IsValid();
+}
+//-------------------------------------------------------------------------------
+SEScalar& SENervousSystem::GetRichmondAgitationSedationScale()
+{
+  if (m_RichmondAgitationSedationScale == nullptr)
+    m_RichmondAgitationSedationScale = new SEScalar();
+  return *m_RichmondAgitationSedationScale;
+}
+//-------------------------------------------------------------------------------
+double SENervousSystem::GetRichmondAgitationSedationScale() const
+{
+  if (m_RichmondAgitationSedationScale == nullptr)
+    return SEScalar::dNaN();
+  return m_RichmondAgitationSedationScale->GetValue();
+}
+//-------------------------------------------------------------------------------
 bool SENervousSystem::HasLeftEyePupillaryResponse() const
 {
   return (m_LeftEyePupillaryResponse != nullptr);
@@ -350,6 +377,7 @@ Tree<const char*> SENervousSystem::GetPhysiologyRequestGraph() const
     .emplace_back(idChemoreceptorHeartRateScale)
     .emplace_back(idChemoreceptorHeartElastanceScale)
     .emplace_back(idPainVisualAnalogueScale)
+    .emplace_back(idRichmondAgitationSedationScale)
     .emplace_back(idLeftEyePupillaryResponse)
     .emplace_back(idRightEyePupillaryResponse)
   ;

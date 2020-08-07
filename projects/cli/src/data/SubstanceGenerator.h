@@ -38,6 +38,10 @@ protected:
   bool process_pharmacokinetics(CSV_RowItr);
   bool process_pharmacodynamics(CSV_RowItr);
   bool process_tissues(CSV_RowItr);
+
+  using PDMod_Type = mil::tatrc::physiology::datamodel::PharmacodynamicModifierData;
+  PDMod_Type set_PDModifier(PDMod_Type modifier, std::string value);
+
 private:
   std::vector<XSD_Type> _substances;
 };

@@ -72,7 +72,9 @@ void SEPatientActionCollection::Clear()
   DELETE_MAP_SECOND(m_PainStimuli);
   DELETE_MAP_SECOND(m_SubstanceBolus);
   DELETE_MAP_SECOND(m_SubstanceInfusions);
+  DELETE_MAP_SECOND(m_SubstanceOralDoses);
   DELETE_MAP_SECOND(m_SubstanceCompoundInfusions);
+  DELETE_MAP_SECOND(m_Tourniquets);
 }
 //-------------------------------------------------------------------------------
 void SEPatientActionCollection::Unload(std::vector<CDM::ActionData*>& to)
@@ -121,12 +123,23 @@ void SEPatientActionCollection::Unload(std::vector<CDM::ActionData*>& to)
     to.push_back(GetClosedTensionPneumothorax()->Unload());
   if (HasOpenTensionPneumothorax())
     to.push_back(GetOpenTensionPneumothorax()->Unload());
-  for (auto itr : GetSubstanceBoluses())
+  for (auto itr : GetSubstanceBoluses()) {
     to.push_back(itr.second->Unload());
-  for (auto itr : GetSubstanceInfusions())
+  }
+  for (auto itr : GetSubstanceInfusions()) {
     to.push_back(itr.second->Unload());
-  for (auto itr : GetSubstanceCompoundInfusions())
+  }
+  for (auto itr : GetSubstanceOralDoses()) {
     to.push_back(itr.second->Unload());
+  }
+  for (auto itr : GetSubstanceCompoundInfusions()) {
+    to.push_back(itr.second->Unload());
+  }
+  if (HasTourniquet()) {
+    for (auto itr : GetTourniquets()) {
+      to.push_back(itr.second->Unload());
+    }
+  }
   if (HasUrinate())
     to.push_back(GetUrinate()->Unload());
   if (HasOverride())
@@ -426,6 +439,48 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
       return IsValid(*m_ClosedTensionPneumothorax);
     } 
     return false; // Duno what this is...
+  }
+
+  const CDM::TourniquetData* tournData = dynamic_cast<const CDM::TourniquetData*>(&action);
+  if (tournData != nullptr) {
+    auto tItr = m_Tourniquets.find(tournData->Compartment());
+
+    bool matchingHem = false;
+    bool validCmpt = false;
+    std::stringstream warn;
+    if (m_Hemorrhages.find(tournData->Compartment()) != m_Hemorrhages.end()) {
+      matchingHem = true;
+      SETourniquet* tourniquet = std::make_unique<SETourniquet>().release();
+      if (tItr != m_Tourniquets.end()) {
+        tourniquet = m_Tourniquets[tournData->Compartment()];
+        tourniquet->Load(*tournData);
+        validCmpt = true;
+      } else {
+        tourniquet->Load(*tournData);
+        if (tourniquet->IsValid()) {
+          m_Tourniquets[tournData->Compartment()] = tourniquet;
+          tItr = m_Tourniquets.find(tournData->Compartment());
+          validCmpt = true;
+        } else {
+          tourniquet->Clear();
+          warn << "\t Invalid tourniquet location:  Valid options are Arm, Leg" << std::endl;
+        }
+      }
+    } else {
+      warn << "\n\t Tourniquet cannot be applied to a compartment without a hemorrhage" << std::endl;
+    }
+    if (matchingHem && validCmpt) {
+      auto turniquet = tItr->second;
+      turniquet->Load(*tournData);
+      if (!turniquet->IsActive()) {
+        RemoveTourniquet(turniquet->GetCompartment());
+        return true;
+      }
+      return IsValid(*turniquet);
+    } else {
+      Warning(warn);
+      return false;
+    }
   }
 
   const CDM::UrinateData* urinate = dynamic_cast<const CDM::UrinateData*>(&action);
@@ -801,6 +856,18 @@ void SEPatientActionCollection::RemoveSubstanceBolus(const SESubstance& sub)
   SAFE_DELETE(b);
 }
 //-------------------------------------------------------------------------------
+const std::map<const SESubstance*, SESubstanceOralDose*>& SEPatientActionCollection::GetSubstanceOralDoses() const
+{
+  return m_SubstanceOralDoses;
+}
+//-------------------------------------------------------------------------------
+void SEPatientActionCollection::RemoveSubstanceOralDose(const SESubstance& sub)
+{
+  SESubstanceOralDose* od = m_SubstanceOralDoses[&sub];
+  m_SubstanceOralDoses.erase(&sub);
+  SAFE_DELETE(od);
+}
+//-------------------------------------------------------------------------------
 const std::map<const SESubstance*, SESubstanceInfusion*>& SEPatientActionCollection::GetSubstanceInfusions() const
 {
   return m_SubstanceInfusions;
@@ -871,6 +938,28 @@ bool SEPatientActionCollection::AdministerSubstance(const CDM::SubstanceAdminist
     return IsValid(*mySubInfuse);
   }
 
+  const CDM::SubstanceOralDoseData* oralDose = dynamic_cast<const CDM::SubstanceOralDoseData*>(&subAdmin);
+  if (oralDose != nullptr) {
+    SESubstance* sub = m_Substances.GetSubstance(oralDose->Substance());
+    if (sub == nullptr) {
+      m_ss << "Unknown substance : " << oralDose->Substance();
+      Error(m_ss);
+      return false;
+    }
+    SESubstanceOralDose* myOralDose = m_SubstanceOralDoses[sub];
+    if (myOralDose == nullptr) {
+      myOralDose = new SESubstanceOralDose(*sub);
+      m_SubstanceOralDoses[sub] = myOralDose;
+      m_Substances.AddActiveSubstance(*sub);
+    }
+    myOralDose->Load(*oralDose);
+    if (!myOralDose->IsActive()) {
+      RemoveSubstanceOralDose(*sub);
+      return true;
+    }
+    return IsValid(*myOralDose);
+  }
+
   const CDM::SubstanceCompoundInfusionData* cSubInfusion = dynamic_cast<const CDM::SubstanceCompoundInfusionData*>(&subAdmin);
   if (cSubInfusion != nullptr) {
     SESubstanceCompound* cmpd = m_Substances.GetCompound(cSubInfusion->SubstanceCompound());
@@ -898,6 +987,28 @@ bool SEPatientActionCollection::AdministerSubstance(const CDM::SubstanceAdminist
     return IsValid(*mySubCompInfuse);
   }
   return false;
+}
+//-------------------------------------------------------------------------------
+bool SEPatientActionCollection::HasTourniquet() const
+{
+  return !m_Tourniquets.empty();
+}
+//-------------------------------------------------------------------------------
+const std::map<std::string, SETourniquet*>& SEPatientActionCollection::GetTourniquets() const
+{
+  return m_Tourniquets;
+}
+//-------------------------------------------------------------------------------
+void SEPatientActionCollection::RemoveTourniquet(const char* cmpt)
+{
+  RemoveTourniquet(std::string { cmpt });
+}
+//-------------------------------------------------------------------------------
+void SEPatientActionCollection::RemoveTourniquet(const std::string& cmpt)
+{
+  SETourniquet* h = m_Tourniquets[cmpt];
+  m_Tourniquets.erase(cmpt);
+  SAFE_DELETE(h);
 }
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasUrinate() const

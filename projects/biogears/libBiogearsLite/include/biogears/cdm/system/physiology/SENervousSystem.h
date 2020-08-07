@@ -80,6 +80,10 @@ public:
   const SEPupillaryResponse* GetRightEyePupillaryResponse() const;
   void RemoveRightEyePupillaryResponse();
 
+  bool HasRichmondAgitationSedationScale() const;
+  SEScalar& GetRichmondAgitationSedationScale();
+  double GetRichmondAgitationSedationScale() const;
+
 protected:
   SEScalar* m_BaroreceptorHeartRateScale;
   SEScalar* m_BaroreceptorHeartElastanceScale;
@@ -88,6 +92,7 @@ protected:
   SEPupillaryResponse* m_LeftEyePupillaryResponse;
   SEPupillaryResponse* m_RightEyePupillaryResponse;
   SEScalar* m_PainVisualAnalogueScale;
+  SEScalar* m_RichmondAgitationSedationScale;
   SEScalar* m_ChemoreceptorHeartRateScale;
   SEScalar* m_ChemoreceptorHeartElastanceScale;
 };

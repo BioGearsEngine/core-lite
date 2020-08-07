@@ -979,8 +979,10 @@ void Cardiovascular::TraumaticBrainInjury()
 void Cardiovascular::Hemorrhage()
 {
   /// \todo Enforce limits and remove fatal errors.
-  SEHemorrhage* h;
+  SEHemorrhage* targetHemorrhage;
   SEFluidCircuitPath* targetPath = nullptr;
+  SETourniquet* tourniquet;
+  std::string tournCmpt;
 
   //Values for tracking physiological metrics
   double resistance = 0.0;
@@ -995,11 +997,12 @@ void Cardiovascular::Hemorrhage()
   double baselineBloodVolume_mL = m_patient->GetBloodVolumeBaseline(VolumeUnit::mL);
 
   const std::map<std::string, SEHemorrhage*>& hems = m_data.GetActions().GetPatientActions().GetHemorrhages();
+  const std::map<std::string, SETourniquet*>& tourniquets = m_data.GetActions().GetPatientActions().GetTourniquets();
   for (auto hem : hems) {
-    h = hem.second;
-    targetPath = m_CirculatoryCircuit->GetPath(h->GetCompartment() + "Bleed");
+    targetHemorrhage = hem.second;
+    targetPath = m_CirculatoryCircuit->GetPath(targetHemorrhage->GetCompartment() + "Bleed");
     locationPressure_mmHg = targetPath->GetSourceNode().GetPressure(PressureUnit::mmHg);
-    bleedRate_mL_Per_s = h->GetInitialRate().GetValue(VolumePerTimeUnit::mL_Per_s);
+    bleedRate_mL_Per_s = targetHemorrhage->GetInitialRate().GetValue(VolumePerTimeUnit::mL_Per_s);
 
     //enforce strict restictions on bleed rate for circuit stability
     if (bleedRate_mL_Per_s > m_data.GetCardiovascular().GetCardiacOutput(VolumePerTimeUnit::mL_Per_s)) {
@@ -1011,16 +1014,57 @@ void Cardiovascular::Hemorrhage()
       return;
     }
 
-    if (!h->HasBleedResistance()) {
-      h->GetBleedResistance().SetValue(locationPressure_mmHg / bleedRate_mL_Per_s, FlowResistanceUnit::mmHg_s_Per_mL);
+    if (!targetHemorrhage->HasBleedResistance()) {
+      if (targetHemorrhage->GetCompartment() == "Aorta") {
+        targetHemorrhage->GetBleedResistance().SetValue((locationPressure_mmHg / bleedRate_mL_Per_s) * 1.1, FlowResistanceUnit::mmHg_s_Per_mL);
+      } else {
+        targetHemorrhage->GetBleedResistance().SetValue((locationPressure_mmHg / bleedRate_mL_Per_s), FlowResistanceUnit::mmHg_s_Per_mL);
+      }
     }
 
-    resistance = h->GetBleedResistance().GetValue(FlowResistanceUnit::mmHg_s_Per_mL);
+    resistance = targetHemorrhage->GetBleedResistance().GetValue(FlowResistanceUnit::mmHg_s_Per_mL);
+    //Apply drug effect if TXA present
+    if (m_data.GetDrugs().GetHemorrhageChange().GetValue() > 0.0) {
+      resistance *= (1.0 - m_data.GetDrugs().GetHemorrhageChange().GetValue());
+      targetHemorrhage->GetBleedResistance().SetValue(resistance, FlowResistanceUnit::mmHg_s_Per_mL);
+    }
+
     targetPath->GetNextResistance().SetValue(resistance, FlowResistanceUnit::mmHg_s_Per_mL);
 
     TotalLossRate_mL_Per_s += targetPath->GetFlow(VolumePerTimeUnit::mL_Per_s);
     TotalLoss_mL += targetPath->GetFlow(VolumePerTimeUnit::mL_Per_s) * m_dT_s;
     bleedoutTime = (bloodVolume_mL - (0.5 * baselineBloodVolume_mL)) / TotalLossRate_mL_Per_s * (1.0 / 60.0);
+  }
+
+  //We already filtered tourniquet actions during Action Loading to make sure that we do not have a tourniquet that A) Aligns with a non-existent hemorrhage
+  //or B) refers to an incompatible compartments.  We are therefore safe to loop through this map without further checks.
+
+  for (auto tPair : tourniquets) {
+    tournCmpt = tPair.first;
+    tourniquet = tPair.second;
+    CDM::enumTourniquetApplicationLevel::value tLevel = tourniquet->GetTourniquetLevel();
+    //Take advantage of the fact that extremities are all named as Aorta1ToLeftArm1 and LeftArm1ToLeftArm2
+    std::string supplyPathName = "Aorta1To" + tournCmpt + "1";
+    std::string returnPathName = tournCmpt + "1To" + tournCmpt + "2";
+    SEFluidCircuitPath* supplyPath = m_CirculatoryCircuit->GetPath(supplyPathName);
+    const double supplyBaseResistance = supplyPath->GetResistanceBaseline(FlowResistanceUnit::mmHg_s_Per_mL);
+    SEFluidCircuitPath* returnPath = m_CirculatoryCircuit->GetPath(returnPathName);
+    const double returnBaseResistance = returnPath->GetResistanceBaseline(FlowResistanceUnit::mmHg_s_Per_mL);
+    double tResModifier;
+    switch (tLevel) {
+    case CDM::enumTourniquetApplicationLevel::Applied:
+      tResModifier = 100.0;
+      break;
+    case CDM::enumTourniquetApplicationLevel::Misapplied:
+      tResModifier = 3.0; //Slow blood flow, but don't stop entirely
+      break;
+    case CDM::enumTourniquetApplicationLevel::None:
+      //This case shouldn't get hit because "None" deactivates tourniquet, but account for it just in case
+    default:
+      tResModifier = 1.0;
+    }
+    supplyPath->GetNextResistance().SetValue(tResModifier * supplyBaseResistance, FlowResistanceUnit::mmHg_s_Per_mL);
+    returnPath->GetNextResistance().SetValue(tResModifier * returnBaseResistance, FlowResistanceUnit::mmHg_s_Per_mL);
   }
   /*
   Stub to try to calculate a probability of survival based on the bleeding rate and approximate time to bleed out.
@@ -1228,7 +1272,7 @@ void Cardiovascular::HeartDriver()
   if (!m_patient->IsEventActive(CDM::enumPatientEvent::CardiacArrest)) {
     if (m_CurrentCardiacCycleTime_s + m_dT_s > m_CardiacCyclePeriod_s) {
       m_StartSystole = true; // A new cardiac cycle will begin next time step
-      m_CurrentCardiacCycleDuration_s += (m_CardiacCyclePeriod_s - m_CurrentCardiacCycleTime_s);  //Add leftover time to current duration so CalculateHeartRate has an accurate notion of how long this cycle lasted.
+      m_CurrentCardiacCycleDuration_s += (m_CardiacCyclePeriod_s - m_CurrentCardiacCycleTime_s); //Add leftover time to current duration so CalculateHeartRate has an accurate notion of how long this cycle lasted.
     }
     AdjustVascularTone();
     CalculateHeartElastance();
@@ -1360,7 +1404,7 @@ void Cardiovascular::MetabolicToneResponse()
   if (metabolicFraction == 1.0)
     return;
 
- double coreTemp_degC = m_data.GetEnergy().GetCoreTemperature(TemperatureUnit::C); //Resting: 37.0 degC
+  double coreTemp_degC = m_data.GetEnergy().GetCoreTemperature(TemperatureUnit::C); //Resting: 37.0 degC
   double coreTempSet_degC = m_data.GetConfiguration().GetCoreTemperatureHigh(TemperatureUnit::C); //37.1 degC
   double coreTempDelta_degC = std::max(coreTemp_degC - coreTempSet_degC, 0.0);
   coreTempDelta_degC = std::min(coreTempDelta_degC, 1.0); //A 1 degree increase in core temperature is the where the cardiovascular response on resistances is capped

@@ -668,7 +668,7 @@ void Tissue::CalculateMetabolicConsumptionAndProduction(double time_s)
     double bleedingRate_mL_Per_min = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Ground)->GetInFlow(VolumePerTimeUnit::mL_Per_min);
     mandatoryMuscleAnaerobicFraction = 0.75 * bleedingRate_mL_Per_min / maxBleedingRate_mL_Per_min;
   }
-  m_data.GetDataTrack().Probe("EnergyDeficit_kcal", energyDeficit_kcal);
+
   totalEnergyRequested_kcal += energyDeficit_kcal;
 
   //Reusable values for looping
@@ -2236,12 +2236,6 @@ double Tissue::AlbuminTransport(SELiquidCompartment& vascular, SELiquidCompartme
   double reflectionCoefficientSmall = reflectionCoefficientSmallBase;
   double fluidFlux_mL_Per_min = m_InterstitialCopPaths[&tissue]->GetFlow(VolumePerTimeUnit::mL_Per_min);
   double tissueMass_kg = tissue.GetTotalMass(MassUnit::kg);
-
-  //We need to increase albumin permeability when there is inflammation
-  if (m_data.GetBloodChemistry().GetAcuteInflammatoryResponse().HasInflammationSources()) {
-    double tissueIntegrity = m_data.GetBloodChemistry().GetAcuteInflammatoryResponse().GetTissueIntegrity().GetValue();
-    reflectionCoefficientSmall = reflectionCoefficientSmallBase * tissueIntegrity;
-  }
 
   BLIM(reflectionCoefficientSmall, 0.0, 1.0);
   BLIM(reflectionCoefficientLarge, 0.0, 1.0);

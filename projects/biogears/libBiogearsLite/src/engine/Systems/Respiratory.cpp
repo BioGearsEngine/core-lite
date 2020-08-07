@@ -768,7 +768,6 @@ void Respiratory::RespiratoryDriver()
       double DrugRRChange_Per_min = Drugs.GetRespirationRateChange(FrequencyUnit::Per_min);
       double DrugsTVChange_L = Drugs.GetTidalVolumeChange(VolumeUnit::L);
       double NMBModifier = 1.0;
-      double SedationModifier = 1.0;
       if (Drugs.GetNeuromuscularBlockLevel().GetValue() > 0.135) {
         NMBModifier = 0.0;
         DrugRRChange_Per_min = 0.0;
@@ -777,11 +776,7 @@ void Respiratory::RespiratoryDriver()
         NMBModifier = 0.5;
         DrugRRChange_Per_min = 0.0;
         DrugsTVChange_L = 0.0;
-      } else if (Drugs.GetSedationLevel().GetValue() > 0.15 && std::abs(m_Patient->GetRespirationRateBaseline(FrequencyUnit::Per_min) + DrugRRChange_Per_min) < 1.0) {
-        SedationModifier = 0.0;
-        DrugRRChange_Per_min = 0.0;
-        DrugsTVChange_L = 0.0;
-      }
+      } 
       //Process Pain effects
       double painVAS = 0.1 * m_data.GetNervous().GetPainVisualAnalogueScale().GetValue(); //already processed pain score from nervous [0,10]
       double painModifier = 1.0 + 0.75 * (painVAS / (painVAS + 0.2));
@@ -791,7 +786,7 @@ void Respiratory::RespiratoryDriver()
       m_PeakRespiratoryDrivePressure_cmH2O *= (1.0 + DrugsTVChange_L / m_Patient->GetTidalVolumeBaseline(VolumeUnit::L));
       //Adjust frequency
       m_VentilationFrequency_Per_min *= painModifier;
-      m_VentilationFrequency_Per_min *= NMBModifier * SedationModifier;
+      m_VentilationFrequency_Per_min *= NMBModifier;
       m_VentilationFrequency_Per_min += DrugRRChange_Per_min;
 
       //Bound peak driver pressure and frequency
