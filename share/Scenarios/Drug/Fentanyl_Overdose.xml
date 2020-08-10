@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.3.0-beta" xsi:schemaLocation="">
-    <Name>Fentanyl</Name>
-    <Description>Inject standard patient with Fentanyl!</Description>
-    <InitialParameters><PatientFile>StandardMale.xml</PatientFile></InitialParameters>
+    <Name>Fentanyl1p5ug</Name>
+    <Description>Inject Nathan with Fentanyl!</Description>
+	<InitialParameters><PatientFile>Nathan.xml</PatientFile></InitialParameters>
     
 	<!-- Base system data required for all scenario verification -->
   <DataRequests SamplesPerSecond="50">
@@ -81,10 +81,10 @@
     <Action xsi:type="AdvanceTimeData">
         <Time value="30" unit="s"/>       
     </Action>
-	<!--Infuse 2.9ug/kg of fentanyl over 90 s.  Effects should be large--> 
+	<!--Infuse 7.1ug/kg of fentanyl over 90 s.  Patient should exhibit severe respiratory depression--> 
     <Action xsi:type="SubstanceInfusionData">
 		<Substance>Fentanyl</Substance>
-		<Concentration value="145" unit="ug/mL"/>
+		<Concentration value="355" unit="ug/mL"/>
 		<Rate value="1.0" unit="mL/min"/>
     </Action>
     <Action xsi:type="AdvanceTimeData">
@@ -96,7 +96,7 @@
 		<Concentration value="0" unit="ug/mL"/>
 		<Rate value="0" unit="mL/s"/>
     </Action>
-	<Action xsi:type="AdvanceTimeData">
+    <Action xsi:type="AdvanceTimeData">
         <Time value="30" unit="min"/>       
     </Action>
 </Scenario>
