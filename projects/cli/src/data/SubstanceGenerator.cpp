@@ -54,7 +54,7 @@ bool SubstanceGenerator::parse()
       lineItr += 2;
     } else if ("Clearance (all or none)" == lineItr->first) {
       rValue &= process_clearance(++lineItr);
-      lineItr += 10;
+      lineItr += 11;
     } else if ("Pharmacokinetics (all or none)" == lineItr->first) {
       rValue &= process_pharmacokinetics(++lineItr);
       lineItr += 7;
@@ -394,7 +394,7 @@ bool SubstanceGenerator::process_clearance(CSV_RowItr itr)
           regulation_data.FractionUnboundInPlasma(std::stod(value));
           value = (itr + 10)->second[index];
           regulation_data.ReabsorptionRatio(std::stod(value));
-
+          value = (itr + 11)->second[index];
           CDM::SubstanceClearanceData::RenalDynamics_type::Regulation_type::TransportMaximum_type transport_data;
           regulation_data.TransportMaximum(transport_data);
           regulation_data.TransportMaximum().value(std::stod(value, &pos));
