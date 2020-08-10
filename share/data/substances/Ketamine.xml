@@ -7,78 +7,89 @@
   <Clearance>
     <Systemic>
       <FractionExcretedInFeces readOnly="false" value="0.05"/>
-      <FractionUnboundInPlasma readOnly="false" value="0.77"/>
-      <IntrinsicClearance readOnly="false" unit="mL/min kg" value="5"/>
+      <FractionUnboundInPlasma readOnly="false" value="0.73"/>
+      <IntrinsicClearance readOnly="false" unit="mL/min kg" value="277"/>
       <RenalClearance readOnly="false" unit="mL/min kg" value="0"/>
-      <SystemicClearance readOnly="false" unit="mL/min kg" value="7"/>
+      <SystemicClearance readOnly="false" unit="mL/min kg" value="20"/>
     </Systemic>
     <RenalDynamics>
       <Clearance readOnly="false" unit="mL/min kg" value="0"/>
     </RenalDynamics>
   </Clearance>
   <Pharmacokinetics>
-    <TissueKinetics>
-      <Name>BoneTissue</Name>
-      <PartitionCoefficient readOnly="false" value="3.85366"/>
-    </TissueKinetics>
-    <TissueKinetics>
-      <Name>BrainTissue</Name>
-      <PartitionCoefficient readOnly="false" value="3.90406"/>
-    </TissueKinetics>
-    <TissueKinetics>
-      <Name>FatTissue</Name>
-      <PartitionCoefficient readOnly="false" value="2.6982"/>
-    </TissueKinetics>
-    <TissueKinetics>
-      <Name>GutTissue</Name>
-      <PartitionCoefficient readOnly="false" value="3.21087"/>
-    </TissueKinetics>
-    <TissueKinetics>
-      <Name>KidneyTissue</Name>
-      <PartitionCoefficient readOnly="false" value="1.91636"/>
-    </TissueKinetics>
-    <TissueKinetics>
-      <Name>LungTissue</Name>
-      <PartitionCoefficient readOnly="false" value="1.03544"/>
-    </TissueKinetics>
-    <TissueKinetics>
-      <Name>LiverTissue</Name>
-      <PartitionCoefficient readOnly="false" value="2.66741"/>
-    </TissueKinetics>
-    <TissueKinetics>
-      <Name>MuscleTissue</Name>
-      <PartitionCoefficient readOnly="false" value="1.91104"/>
-    </TissueKinetics>
-    <TissueKinetics>
-      <Name>MyocardiumTissue</Name>
-      <PartitionCoefficient readOnly="false" value="1.52201"/>
-    </TissueKinetics>
-    <TissueKinetics>
-      <Name>SkinTissue</Name>
-      <PartitionCoefficient readOnly="false" value="2.14176"/>
-    </TissueKinetics>
-    <TissueKinetics>
-      <Name>SpleenTissue</Name>
-      <PartitionCoefficient readOnly="false" value="1.991899"/>
-    </TissueKinetics>
+    <Physicochemicals>
+      <AcidDissociationConstant readOnly="false" value="7.5"/>
+      <BindingProtein>Albumin</BindingProtein>
+      <BloodPlasmaRatio readOnly="false" value="1.4"/>
+      <FractionUnboundInPlasma readOnly="false" value="0.73"/>
+      <IonicState>WeakBase</IonicState>
+      <LogP readOnly="false" value="3"/>
+      <HydrogenBondCount readOnly="false" value="3"/>
+      <PolarSurfaceArea readOnly="false" value="29"/>
+    </Physicochemicals>
   </Pharmacokinetics>
   <Pharmacodynamics>
-    <Bronchodilation readOnly="false" value="1"/>
-    <DiastolicPressureModifier readOnly="false" value="0.075"/>
-    <EC50 readOnly="false" unit="ug/mL" value="0.4319"/>
+    <EffectSiteRateConstant readOnly="false" unit="1/min" value="3"/>
     <EMaxShapeParameter readOnly="false" value="1"/>
-    <HeartRateModifier readOnly="false" value="0.075"/>
-    <NeuromuscularBlock readOnly="false" value="0"/>
-    <PupillaryResponse>
-      <ReactivityModifier readOnly="false" value="-0.5"/>
-      <SizeModifier readOnly="false" value="0"/>
-    </PupillaryResponse>
-    <RespirationRateModifier readOnly="false" value="0.0"/>
-    <Sedation readOnly="false" value="1"/>
-    <SystolicPressureModifier readOnly="false" value="0.25"/>
-    <TidalVolumeModifier readOnly="false" value="0"/>
-    <TubularPermeabilityModifier readOnly="false" value="0"/>
-    <CentralNervousModifier readOnly="false" value="0.75"/>
-    <EffectSiteRateConstant readOnly="false" unit="1/min" value="2.0"/>
+    <Bronchodilation>
+      <EMax readOnly="false" value="1"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0.4"/>
+    </Bronchodilation>
+    <CentralNervousModifier>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </CentralNervousModifier>
+    <DiastolicPressureModifier>
+      <EMax readOnly="false" value="0.1"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0.75"/>
+    </DiastolicPressureModifier>
+    <FeverModifier>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </FeverModifier>
+    <HeartRateModifier>
+      <EMax readOnly="false" value="0.25"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0.75"/>
+    </HeartRateModifier>
+    <HemorrhageModifier>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </HemorrhageModifier>
+    <NeuromuscularBlock>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </NeuromuscularBlock>
+    <PainModifier>
+      <EMax readOnly="false" value="0.6"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0.2"/>
+    </PainModifier>
+    <PupilReactivityModifier>
+      <EMax readOnly="false" value="-0.5"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0.4"/>
+    </PupilReactivityModifier>
+    <PupilSizeModifier>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0.4"/>
+    </PupilSizeModifier>
+    <RespirationRateModifier>
+      <EMax readOnly="false" value="-0.1"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0.5"/>
+    </RespirationRateModifier>
+    <Sedation>
+      <EMax readOnly="false" value="1"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0.4"/>
+    </Sedation>
+    <SystolicPressureModifier>
+      <EMax readOnly="false" value="0.4"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0.75"/>
+    </SystolicPressureModifier>
+    <TidalVolumeModifier>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </TidalVolumeModifier>
+    <TubularPermeabilityModifier>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </TubularPermeabilityModifier>
   </Pharmacodynamics>
 </Substance>

@@ -6,43 +6,90 @@
   <State>Liquid</State>
   <Clearance>
     <Systemic>
-      <FractionExcretedInFeces readOnly="false" value="0.02"/>
-      <FractionUnboundInPlasma readOnly="false" value="0.03"/>
-      <IntrinsicClearance readOnly="false" unit="mL/min kg" value="1.44"/>
-      <RenalClearance readOnly="false" unit="mL/min kg" value="1.3"/>
-      <SystemicClearance readOnly="false" unit="mL/min kg" value="3"/>
+      <FractionExcretedInFeces readOnly="false" value="0"/>
+      <FractionUnboundInPlasma readOnly="false" value="0.015"/>
+      <IntrinsicClearance readOnly="false" unit="mL/min kg" value="3350"/>
+      <RenalClearance readOnly="false" unit="mL/min kg" value="0"/>
+      <SystemicClearance readOnly="false" unit="mL/min kg" value="28"/>
     </Systemic>
     <RenalDynamics>
-      <Clearance readOnly="false" unit="mL/min kg" value="1.3"/>
+      <Clearance readOnly="false" unit="mL/min kg" value="0"/>
     </RenalDynamics>
   </Clearance>
   <Pharmacokinetics>
     <Physicochemicals>
       <AcidDissociationConstant readOnly="false" value="11.1"/>
       <BindingProtein>Albumin</BindingProtein>
-      <BloodPlasmaRatio readOnly="false" value="0.03"/>
-      <FractionUnboundInPlasma readOnly="false" value="0.03"/>
-      <IonicState>Acid</IonicState>
-      <LogP readOnly="false" value="3.79"/>
+      <BloodPlasmaRatio readOnly="false" value="1.15"/>
+      <FractionUnboundInPlasma readOnly="false" value="0.015"/>
+      <IonicState>Base</IonicState>
+      <LogP readOnly="false" value="3.83"/>
+      <HydrogenBondCount readOnly="false" value="0"/>
+      <PolarSurfaceArea readOnly="false" value="0"/>
     </Physicochemicals>
   </Pharmacokinetics>
   <Pharmacodynamics>
-    <Bronchodilation readOnly="false" value="0"/>
-    <DiastolicPressureModifier readOnly="false" value="-0.35"/>
-    <EC50 readOnly="false" unit="ug/mL" value="0.7649"/>
-    <EMaxShapeParameter readOnly="false" value="1"/>
-    <HeartRateModifier readOnly="false" value="0"/>
-    <NeuromuscularBlock readOnly="false" value="0"/>
-    <PupillaryResponse>
-      <ReactivityModifier readOnly="false" value="0.5"/>
-      <SizeModifier readOnly="false" value="0"/>
-    </PupillaryResponse>
-    <RespirationRateModifier readOnly="false" value="-1"/>
-    <Sedation readOnly="false" value="1"/>
-    <SystolicPressureModifier readOnly="false" value="-0.35"/>
-    <TidalVolumeModifier readOnly="false" value="-1"/>
-    <TubularPermeabilityModifier readOnly="false" value="0"/>
-    <CentralNervousModifier readOnly="false" value="0"/>
     <EffectSiteRateConstant readOnly="false" unit="1/min" value="0.4"/>
+    <EMaxShapeParameter readOnly="false" value="2"/>
+    <Bronchodilation>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </Bronchodilation>
+    <CentralNervousModifier>
+      <EMax readOnly="false" value="1"/>
+      <EC50 readOnly="false" unit="ug/mL" value="1.5"/>
+    </CentralNervousModifier>
+    <DiastolicPressureModifier>
+      <EMax readOnly="false" value="-0.25"/>
+      <EC50 readOnly="false" unit="ug/mL" value="1.5"/>
+    </DiastolicPressureModifier>
+    <FeverModifier>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </FeverModifier>
+    <HeartRateModifier>
+      <EMax readOnly="false" value="0.15"/>
+      <EC50 readOnly="false" unit="ug/mL" value="2"/>
+    </HeartRateModifier>
+    <HemorrhageModifier>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </HemorrhageModifier>
+    <NeuromuscularBlock>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </NeuromuscularBlock>
+    <PainModifier>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </PainModifier>
+    <PupilReactivityModifier>
+      <EMax readOnly="false" value="0.5"/>
+      <EC50 readOnly="false" unit="ug/mL" value="2"/>
+    </PupilReactivityModifier>
+    <PupilSizeModifier>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </PupilSizeModifier>
+    <RespirationRateModifier>
+      <EMax readOnly="false" value="-1"/>
+      <EC50 readOnly="false" unit="ug/mL" value="1.5"/>
+    </RespirationRateModifier>
+    <Sedation>
+      <EMax readOnly="false" value="1"/>
+      <EC50 readOnly="false" unit="ug/mL" value="1.2"/>
+    </Sedation>
+    <SystolicPressureModifier>
+      <EMax readOnly="false" value="-0.5"/>
+      <EC50 readOnly="false" unit="ug/mL" value="1.5"/>
+    </SystolicPressureModifier>
+    <TidalVolumeModifier>
+      <EMax readOnly="false" value="-0.75"/>
+      <EC50 readOnly="false" unit="ug/mL" value="1.5"/>
+    </TidalVolumeModifier>
+    <TubularPermeabilityModifier>
+      <EMax readOnly="false" value="0"/>
+      <EC50 readOnly="false" unit="ug/mL" value="0"/>
+    </TubularPermeabilityModifier>
   </Pharmacodynamics>
 </Substance>
