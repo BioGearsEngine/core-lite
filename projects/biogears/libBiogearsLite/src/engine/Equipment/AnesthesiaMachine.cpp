@@ -85,10 +85,6 @@ void AnesthesiaMachine::Initialize()
   m_nVentilator->GetNextPressure().SetValue(1033.23, PressureUnit::cmH2O);
   m_nVentilator->GetVolume().SetValue(1.0, VolumeUnit::L);
   m_nVentilator->GetNextVolume().SetValue(1.0, VolumeUnit::L);
-  //m_nSelector->GetPressure().SetValue(1033.23, PressureUnit::cmH2O);
-  //m_nSelector->GetNextPressure().SetValue(1033.23, PressureUnit::cmH2O);
-  //m_nSelector->GetVolume().SetValue(0.1, VolumeUnit::L);
-  //m_nSelector->GetNextVolume().SetValue(0.1, VolumeUnit::L);
 
   SetConnection(CDM::enumAnesthesiaMachineConnection::Off);
   GetInletFlow().SetValue(5.0, VolumePerTimeUnit::L_Per_min);

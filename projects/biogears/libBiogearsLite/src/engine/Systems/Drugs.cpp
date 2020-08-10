@@ -523,6 +523,17 @@ void Drugs::CalculatePartitionCoefficients()
   double EquationPartC = 0;
   double PartitionCoefficient = 0;
   double TissueToPlasmaProteinRatio = 0;
+  //Red blood cell constants for estimation of acidic phospholipid association constant (bases and zwitterions)
+  double rbcNeutralLipids = 0.0012;
+  double rbcNeutralPhospholipids = 0.0033;
+  double rbcIntracellularWater = 0.603;
+  double rbcAcidicPhospholipids = 0.57;
+  double rbcIntracellularPH = 7.2; //See Poulin2011Predictive:Part5
+  double rbcPHEffects = 0.0;
+  //Constansts for zwitterions
+  double hematocrit = m_data.GetBloodChemistry().GetHematocrit().GetValue();
+  double bloodPlasmaUnboundRatio = 0.0;
+  double AcidicPhospholipidAssociation = 0.0;
 
   //Loop over tissue nodes
   for (SETissueCompartment* tissue : m_data.GetCompartments().GetTissueLeafCompartments()) {
@@ -533,7 +544,7 @@ void Drugs::CalculatePartitionCoefficients()
     SELiquidCompartment& IntracellularFluid = m_data.GetCompartments().GetIntracellularFluid(*tissue);
 
     //Loop over substances
-    for (SESubstance* sub : m_data.GetSubstances().GetActiveDrugs()) {
+    for (SESubstance* sub : m_data.GetCompartments().GetLiquidCompartmentSubstances()) {
       if (!sub->HasPK())
         continue;
       if (!sub->GetPK().HasPhysicochemicals())
@@ -541,7 +552,8 @@ void Drugs::CalculatePartitionCoefficients()
 
       SESubstancePhysicochemicals& pk = sub->GetPK().GetPhysicochemicals();
       CDM::enumSubstanceIonicState::value IonicState = pk.GetIonicState();
-      double AcidDissociationConstant = pk.GetAcidDissociationConstant().GetValue();
+      double pKA1 = pk.GetAcidDissociationConstant().GetValue();
+      double pKA2 = 0.0; //Only for zwitterions
       double P = exp(log(10) * pk.GetLogP().GetValue()); //Getting P from logP value
       if (tissue == m_fatTissue) {
         P = 1.115 * pk.GetLogP().GetValue() - 1.35;
@@ -562,34 +574,55 @@ void Drugs::CalculatePartitionCoefficients()
         ss << tissue->GetName();
         Fatal(ss);
       }
-      //Based on the ionic state, the partition coefficient equation and/or pH effect equations are varied.
-      if (IonicState == CDM::enumSubstanceIonicState::Base) {
-        IntracellularPHEffects = std::pow(10.0, (AcidDissociationConstant - IntracellularPH));
-        PHEffectPower = PlasmaPH - AcidDissociationConstant;
+      //Choose correct set of equations to use given the ionic state of the drug
+      switch (IonicState) {
+      case CDM::enumSubstanceIonicState::Base:
+        PHEffectPower = pKA1 - IntracellularPH;
+        IntracellularPHEffects = 1.0 + std::pow(10.0, PHEffectPower);
+        PHEffectPower = pKA1 - PlasmaPH;
         PlasmaPHEffects = 1.0 + std::pow(10.0, PHEffectPower);
-        EquationPartA = 1.0 + IntracellularPHEffects * IntracellularFluid.GetWaterVolumeFraction().GetValue() / PlasmaPHEffects;
-        /// \todo How to support oral absorption - should I check if oral administration then use Oral absorption rate otherwise assume 1?
-        EquationPartB = tissue->GetAcidicPhospohlipidConcentration().GetValue(MassPerMassUnit::mg_Per_g) * IntracellularPHEffects / PlasmaPHEffects;
-        EquationPartC = P * tissue->GetNeutralLipidsVolumeFraction().GetValue() + (0.3 * P + 0.7) * tissue->GetNeutralPhospholipidsVolumeFraction().GetValue() / PlasmaPHEffects;
-      } else {
-        if (IonicState == CDM::enumSubstanceIonicState::Acid) {
-          PHEffectPower = IntracellularPH - AcidDissociationConstant;
-          IntracellularPHEffects = 1.0 + std::pow(10.0, PHEffectPower);
-          PHEffectPower = PlasmaPH - AcidDissociationConstant;
-          PlasmaPHEffects = 1.0 + std::pow(10.0, PHEffectPower);
-        } else if (IonicState == CDM::enumSubstanceIonicState::WeakBase) {
-          PHEffectPower = AcidDissociationConstant - IntracellularPH;
-          IntracellularPHEffects = 1.0 + std::pow(10.0, PHEffectPower);
-          PHEffectPower = AcidDissociationConstant - PlasmaPH;
-          PlasmaPHEffects = 1.0 + std::pow(10.0, PHEffectPower);
-        } else {
-          IntracellularPHEffects = 1.0;
-          PlasmaPHEffects = 1.0;
-        }
+        //Method of Rogers/Rowland requires an estimate for association constant of bases with acidic phospholipids.  This value can be estimated using blood/plasma_unbound partition coefficient
+        bloodPlasmaUnboundRatio = (pk.GetBloodPlasmaRatio().GetValue() - (1.0 - hematocrit)) / (hematocrit * pk.GetFractionUnboundInPlasma().GetValue()); //See Hinderling1997Red:  Kb/p = Ke/pu * fu * hematocrit + (1- hematocrit)
+        //Recycle equation part A,B,C for determination of acidic phospholipid association
+        rbcPHEffects = 1.0 + std::pow(10.0, (pKA1 - rbcIntracellularPH));
+        EquationPartA = (rbcPHEffects * rbcIntracellularWater) / PlasmaPHEffects;
+        EquationPartB = (P * rbcNeutralLipids + (0.3 * P + 0.7) * rbcNeutralPhospholipids) / PlasmaPHEffects;
+        EquationPartC = PlasmaPHEffects / (rbcAcidicPhospholipids * IntracellularPHEffects);
+        AcidicPhospholipidAssociation = (bloodPlasmaUnboundRatio - EquationPartA - EquationPartB) * EquationPartC;
+        LLIM(AcidicPhospholipidAssociation, 0.0); //Poulin2011Predictive:Part5 notes that in corner cases this value can become negative and should be set to 0
+        //Now calculate features of partition coefficient
+        EquationPartA = (IntracellularPHEffects * IntracellularFluid.GetWaterVolumeFraction().GetValue()) / PlasmaPHEffects;
+        EquationPartB = AcidicPhospholipidAssociation * tissue->GetAcidicPhospohlipidConcentration().GetValue(MassPerMassUnit::mg_Per_g) * IntracellularPHEffects / PlasmaPHEffects;
+        EquationPartC = (P * tissue->GetNeutralLipidsVolumeFraction().GetValue() + (0.3 * P + 0.7) * tissue->GetNeutralPhospholipidsVolumeFraction().GetValue()) / PlasmaPHEffects;
+        break;
+      case CDM::enumSubstanceIonicState::Acid:
+        PHEffectPower = IntracellularPH - pKA1;
+        IntracellularPHEffects = 1.0 + std::pow(10.0, PHEffectPower);
+        PHEffectPower = PlasmaPH - pKA1;
+        PlasmaPHEffects = 1.0 + std::pow(10.0, PHEffectPower);
         EquationPartA = IntracellularPHEffects * IntracellularFluid.GetWaterVolumeFraction().GetValue() / PlasmaPHEffects;
         EquationPartB = (P * tissue->GetNeutralLipidsVolumeFraction().GetValue() + (0.3 * P + 0.7) * tissue->GetNeutralPhospholipidsVolumeFraction().GetValue())
           / PlasmaPHEffects;
-        EquationPartC = ((1 / pk.GetFractionUnboundInPlasma().GetValue()) - 1.0 - ((P * NeutralLipidInPlasmaVolumeFraction + (0.3 * P + 0.7) * NeutralPhosphoLipidInPlasmaVolumeFraction) / PlasmaPHEffects)) * TissueToPlasmaProteinRatio;
+        EquationPartC = ((1.0 / pk.GetFractionUnboundInPlasma().GetValue()) - 1.0 - ((P * NeutralLipidInPlasmaVolumeFraction + (0.3 * P + 0.7) * NeutralPhosphoLipidInPlasmaVolumeFraction) / PlasmaPHEffects)) * TissueToPlasmaProteinRatio;
+        break;
+      case CDM::enumSubstanceIonicState::WeakBase:
+        PHEffectPower = pKA1 - IntracellularPH;
+        IntracellularPHEffects = 1.0 + std::pow(10.0, PHEffectPower);
+        PHEffectPower = pKA1 - PlasmaPH;
+        PlasmaPHEffects = 1.0 + std::pow(10.0, PHEffectPower);
+        EquationPartA = IntracellularPHEffects * IntracellularFluid.GetWaterVolumeFraction().GetValue() / PlasmaPHEffects;
+        EquationPartB = (P * tissue->GetNeutralLipidsVolumeFraction().GetValue() + (0.3 * P + 0.7) * tissue->GetNeutralPhospholipidsVolumeFraction().GetValue())
+          / PlasmaPHEffects;
+        EquationPartC = ((1.0 / pk.GetFractionUnboundInPlasma().GetValue()) - 1.0 - ((P * NeutralLipidInPlasmaVolumeFraction + (0.3 * P + 0.7) * NeutralPhosphoLipidInPlasmaVolumeFraction) / PlasmaPHEffects)) * TissueToPlasmaProteinRatio;
+        break;
+      default:
+        //Neutral ion
+        IntracellularPHEffects = 1.0;
+        PlasmaPHEffects = 1.0;
+        EquationPartA = IntracellularPHEffects * IntracellularFluid.GetWaterVolumeFraction().GetValue() / PlasmaPHEffects;
+        EquationPartB = (P * tissue->GetNeutralLipidsVolumeFraction().GetValue() + (0.3 * P + 0.7) * tissue->GetNeutralPhospholipidsVolumeFraction().GetValue())
+          / PlasmaPHEffects;
+        EquationPartC = ((1.0 / pk.GetFractionUnboundInPlasma().GetValue()) - 1.0 - ((P * NeutralLipidInPlasmaVolumeFraction + (0.3 * P + 0.7) * NeutralPhosphoLipidInPlasmaVolumeFraction) / PlasmaPHEffects)) * TissueToPlasmaProteinRatio;
       }
       //Calculate the partition coefficient and set it on the substance compartment effects
       PartitionCoefficient = EquationPartA + ExtracellularFluid.GetWaterVolumeFraction().GetValue() + EquationPartB + EquationPartC;

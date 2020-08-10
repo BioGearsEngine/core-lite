@@ -5,7 +5,7 @@
     <InitialParameters><PatientFile>StandardMale.xml</PatientFile></InitialParameters>
 	
 		<!-- Base system data required for all scenario verification -->
-  <DataRequests>
+  <DataRequests SamplesPerSecond="50">
   <DataRequest xsi:type="PatientDataRequestData"          Name="Weight"                            Unit="kg"           Precision="1"/>
   <DataRequest xsi:type="PhysiologyDataRequestData" Name="HeartRate"                         Unit="1/min"       Precision="2"/>
 	<DataRequest xsi:type="PhysiologyDataRequestData" Name="HeartStrokeVolume"                 Unit="mL"          Precision="1"/>
@@ -39,9 +39,6 @@
 	<DataRequest xsi:type="GasCompartmentDataRequestData" Compartment="Alveoli"                            Name="Pressure"        Unit="cmH2O" Precision="0"/>
 	<DataRequest xsi:type="GasCompartmentDataRequestData" Compartment="Alveoli"  Substance="Oxygen"        Name="PartialPressure" Unit="mmHg"  Precision="0"/>
 	<DataRequest xsi:type="GasCompartmentDataRequestData" Compartment="Alveoli"  Substance="CarbonDioxide" Name="PartialPressure" Unit="mmHg"  Precision="1"/>
-	
- 	
-	
 	<DataRequest xsi:type="GasCompartmentDataRequestData" Compartment="Trachea"       Substance="Oxygen"        Name="PartialPressure" Unit="cmH2O" Precision="0"/>
 	<DataRequest xsi:type="GasCompartmentDataRequestData" Compartment="Trachea"       Substance="CarbonDioxide" Name="PartialPressure" Unit="cmH2O" Precision="1"/>
 	
@@ -50,6 +47,8 @@
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"  Substance="Oxygen"        Name="PartialPressure" Unit="mmHg" Precision="1"/>
 	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="VenaCava"  Substance="CarbonDioxide" Name="PartialPressure" Unit="mmHg" Precision="1"/>
 	
+	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="RightTubules" Substance="Sodium"        Name="Concentration" Unit="g/L" Precision="2"/>
+	<DataRequest xsi:type="LiquidCompartmentDataRequestData" Compartment="LeftTubules"  Substance="Sodium"        Name="Concentration" Unit="g/L" Precision="2"/>
   
   <DataRequest xsi:type="SubstanceDataRequestData"  Substance="Oxygen"         Name="AlveolarTransfer" Unit="mL/s" Precision="2"/>
   <DataRequest xsi:type="SubstanceDataRequestData"  Substance="CarbonDioxide"  Name="AlveolarTransfer" Unit="mL/s" Precision="2"/>
@@ -76,23 +75,34 @@
     <Action xsi:type="AdvanceTimeData">
         <Time value="30" unit="s"/>       
     </Action>
+	<!--Propofol Induction Dose for general anesthesia and maintenance infusion-->
+	<Action xsi:type="SubstanceBolusData" AdminRoute="Intravenous">
+        <Substance>Propofol</Substance>
+        <Concentration value="10" unit="mg/mL"/>
+        <Dose value="14" unit="mL"/>
+		<AdminTime value="10" unit="s"/>
+    </Action>
+	<Action xsi:type="AdvanceTimeData">
+        <Time value="1" unit="min"/>       
+    </Action>
+	<Action xsi:type="SubstanceInfusionData">
+		<Substance>Propofol</Substance>
+		<Concentration value="10" unit="mg/mL"/>
+		<Rate value="1.1" unit="mL/min"/>
+    </Action>
+	<Action xsi:type="AdvanceTimeData">
+        <Time value="1" unit="min"/>       
+    </Action>
+	<!--Set up anesthesia machine-->
     <Action xsi:type="AnesthesiaMachineConfigurationData">
       <Configuration>
-          <Connection>Mask</Connection>
-        <InletFlow value="5.0" unit="L/min"/>
-        <InspiratoryExpiratoryRatio value="0.5"/>
-        <OxygenFraction value="0.23"/>
+        <Connection>Mask</Connection>
+		<InletFlow value="6.0" unit="L/min"/>
+        <OxygenFraction value="0.25"/>
         <OxygenSource>Wall</OxygenSource>
-        <PositiveEndExpiredPressure value="0.0" unit="cmH2O"/>
-        <PrimaryGas>Air</PrimaryGas>
-        <RespiratoryRate value="16.0" unit="1/min"/>
-        <VentilatorPressure value="0.0" unit="cmH2O"/>
-        <OxygenBottleOne>
-          <Volume value="660" unit="L"/>
-        </OxygenBottleOne>
-        <OxygenBottleTwo>
-          <Volume value="660" unit="L"/>
-        </OxygenBottleTwo>
+        <PositiveEndExpiredPressure value="1.0" unit="cmH2O"/>
+        <PrimaryGas>Nitrogen</PrimaryGas>
+        <VentilatorPressure value="10.0" unit="cmH2O"/>
       </Configuration>
     </Action>
     <Action xsi:type="AdvanceTimeData">
