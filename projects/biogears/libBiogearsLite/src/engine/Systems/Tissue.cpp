@@ -572,6 +572,13 @@ void Tissue::CalculatePulmonaryCapillarySubstanceTransfer()
 
   double StandardDiffusingCapacityOfOxygen_mLPersPermmHg = (DiffusionSurfaceArea_cm2 * Configuration.GetStandardOxygenDiffusionCoefficient(AreaPerTimePressureUnit::cm2_Per_s_mmHg)) / Configuration.GetStandardDiffusionDistance(LengthUnit::cm);
 
+  //Decrease the diffusing capacity of oxygen if patient has acute respiratory distress
+  if (m_PatientActions->HasAcuteRespiratoryDistress()) {
+    const double severity = m_PatientActions->GetAcuteRespiratoryDistress()->GetSeverity().GetValue();
+    const double diffusionCapacityReductionFactor = GeneralMath::LinearInterpolator(0.0, 1.0, 1.0, 15.0, severity);
+    StandardDiffusingCapacityOfOxygen_mLPersPermmHg *= (1.0 / diffusionCapacityReductionFactor);
+  }
+
   SEGasCompartment* liteAlveoli = m_data.GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Alveoli);
   SELiquidCompartment* pulmonaryCapillaries = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::PulmonaryCapillaries);
   for (SESubstance* sub : m_data.GetSubstances().GetActiveGases()) {

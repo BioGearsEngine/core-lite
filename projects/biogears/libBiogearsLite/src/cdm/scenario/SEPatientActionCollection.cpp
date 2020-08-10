@@ -20,6 +20,7 @@ SEPatientActionCollection::SEPatientActionCollection(SESubstanceManager& substan
   : Loggable(substances.GetLogger())
   , m_Substances(substances)
 {
+  m_AcuteRespiratoryDistress = nullptr;
   m_AcuteStress = nullptr;
   m_AirwayObstruction = nullptr;
   m_Apnea = nullptr;
@@ -48,6 +49,7 @@ SEPatientActionCollection::~SEPatientActionCollection()
 //-------------------------------------------------------------------------------
 void SEPatientActionCollection::Clear()
 {
+  RemoveAcuteRespiratoryDistress();
   RemoveAcuteStress();
   RemoveAirwayObstruction();
   RemoveApnea();
@@ -79,50 +81,71 @@ void SEPatientActionCollection::Clear()
 //-------------------------------------------------------------------------------
 void SEPatientActionCollection::Unload(std::vector<CDM::ActionData*>& to)
 {
-  if (HasAcuteStress())
+  if (HasAcuteRespiratoryDistress()) {
+    to.push_back(GetAcuteRespiratoryDistress()->Unload());
+  }
+  if (HasAcuteStress()) {
     to.push_back(GetAcuteStress()->Unload());
-  if (HasAirwayObstruction())
+  }
+  if (HasAirwayObstruction()) {
     to.push_back(GetAirwayObstruction()->Unload());
-  if (HasApnea())
+  }
+  if (HasApnea()) {
     to.push_back(GetApnea()->Unload());
-  if (HasAsthmaAttack())
+  }
+  if (HasAsthmaAttack()) {
     to.push_back(GetAsthmaAttack()->Unload());
-  if (HasBrainInjury())
+  }
+  if (HasBrainInjury()) {
     to.push_back(GetBrainInjury()->Unload());
-  if (HasBronchoconstriction())
+  }
+  if (HasBronchoconstriction()) {
     to.push_back(GetBronchoconstriction()->Unload());
-  if (HasCardiacArrest())
+  }
+  if (HasCardiacArrest()) {
     to.push_back(GetCardiacArrest()->Unload());
-  if (HasChestCompressionForce())
+  }
+  if (HasChestCompressionForce()) {
     to.push_back(GetChestCompressionForce()->Unload());
-  if (HasChestCompressionForceScale())
+  }
+  if (HasChestCompressionForceScale()) {
     to.push_back(GetChestCompressionForceScale()->Unload());
-  if (HasChestOcclusiveDressing())
+  }
+  if (HasChestOcclusiveDressing()) {
     to.push_back(GetChestOcclusiveDressing()->Unload());
-  if (HasConsciousRespiration())
+  }
+  if (HasConsciousRespiration()) {
     to.push_back(GetConsciousRespiration()->Unload());
-  if (HasConsumeNutrients())
+  }
+  if (HasConsumeNutrients()) {
     to.push_back(GetConsumeNutrients()->Unload());
-  if (HasExercise())
+  }
+  if (HasExercise()) {
     to.push_back(GetExercise()->Unload());
+  }
   if (HasHemorrhage()) {
     for (auto itr : GetHemorrhages())
       to.push_back(itr.second->Unload());
   }
-  if (HasIntubation())
+  if (HasIntubation()) {
     to.push_back(GetIntubation()->Unload());
-  if (HasMechanicalVentilation())
+  }
+  if (HasMechanicalVentilation()) {
     to.push_back(GetMechanicalVentilation()->Unload());
-  if (HasNeedleDecompression())
+  }
+  if (HasNeedleDecompression()) {
     to.push_back(GetNeedleDecompression()->Unload());
+  }
   if (HasPainStimulus()) {
     for (auto itr : GetPainStimuli())
       to.push_back(itr.second->Unload());
   }
-  if (HasClosedTensionPneumothorax())
+  if (HasClosedTensionPneumothorax()) {
     to.push_back(GetClosedTensionPneumothorax()->Unload());
-  if (HasOpenTensionPneumothorax())
+  }
+  if (HasOpenTensionPneumothorax()) {
     to.push_back(GetOpenTensionPneumothorax()->Unload());
+  }
   for (auto itr : GetSubstanceBoluses()) {
     to.push_back(itr.second->Unload());
   }
@@ -140,10 +163,12 @@ void SEPatientActionCollection::Unload(std::vector<CDM::ActionData*>& to)
       to.push_back(itr.second->Unload());
     }
   }
-  if (HasUrinate())
+  if (HasUrinate()) {
     to.push_back(GetUrinate()->Unload());
-  if (HasOverride())
+  }
+  if (HasOverride()) {
     to.push_back((GetOverride()->Unload()));
+  }
 }
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::ProcessAction(const SEPatientAction& action)
@@ -178,6 +203,19 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
   // certain compartment, we just update the single hemorrhage action associated
   // with that compartment.
   // SO, we make our own copy and manage that copy (i.e. by updating a single action)
+
+  const CDM::AcuteRespiratoryDistressData* ards = dynamic_cast<const CDM::AcuteRespiratoryDistressData*>(&action);
+  if (ards != nullptr) {
+    if (m_AcuteRespiratoryDistress == nullptr) {
+      m_AcuteRespiratoryDistress = new SEAcuteRespiratoryDistress();
+    }
+    m_AcuteRespiratoryDistress->Load(*ards);
+    if (!m_AcuteRespiratoryDistress->IsActive()) {
+      RemoveAcuteRespiratoryDistress();
+      return true;
+    }
+    return IsValid(*m_AcuteRespiratoryDistress);
+  }
 
   const CDM::AcuteStressData* aStress = dynamic_cast<const CDM::AcuteStressData*>(&action);
   if (aStress != nullptr) {
@@ -254,7 +292,7 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
   const CDM::CardiacArrestData* cardiacarrest = dynamic_cast<const CDM::CardiacArrestData*>(&action);
   if (cardiacarrest != nullptr) {
     if (m_CardiacArrest == nullptr && cardiacarrest->State() == CDM::enumOnOff::Off) {
-      return true;  //Ignore CardiacArrest::Off when no cardiac arrest event exists
+      return true; //Ignore CardiacArrest::Off when no cardiac arrest event exists
     }
     if (m_CardiacArrest == nullptr) {
       m_CardiacArrest = new SECardiacArrest();
@@ -437,7 +475,7 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
         return true;
       }
       return IsValid(*m_ClosedTensionPneumothorax);
-    } 
+    }
     return false; // Duno what this is...
   }
 
@@ -519,6 +557,21 @@ bool SEPatientActionCollection::IsValid(const SEPatientAction& action)
     return false;
   }
   return true;
+}
+//-------------------------------------------------------------------------------
+bool SEPatientActionCollection::HasAcuteRespiratoryDistress() const
+{
+  return m_AcuteRespiratoryDistress == nullptr ? false : true;
+}
+//-------------------------------------------------------------------------------
+SEAcuteRespiratoryDistress* SEPatientActionCollection::GetAcuteRespiratoryDistress() const
+{
+  return m_AcuteRespiratoryDistress;
+}
+//-------------------------------------------------------------------------------
+void SEPatientActionCollection::RemoveAcuteRespiratoryDistress()
+{
+  SAFE_DELETE(m_AcuteRespiratoryDistress);
 }
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasAcuteStress() const

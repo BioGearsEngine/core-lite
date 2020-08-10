@@ -11,6 +11,7 @@ specific language governing permissions and limitations under the License.
 **************************************************************************************/
 #include <biogears/cdm/scenario/SEAction.h>
 
+#include <biogears/cdm/patient/actions/SEAcuteRespiratoryDistress.h>
 #include <biogears/cdm/patient/actions/SEAcuteStress.h>
 #include <biogears/cdm/patient/actions/SEAirwayObstruction.h>
 #include <biogears/cdm/patient/actions/SEApnea.h>
@@ -133,6 +134,13 @@ SEAction* SEAction::newFromBind(const CDM::ActionData& data, SESubstanceManager&
       SEPatientAssessmentRequest* a = new SEPatientAssessmentRequest();
       a->Load(*(CDM::PatientAssessmentRequestData*)action);
       return a;
+    }
+
+    CDM::AcuteRespiratoryDistressData* ardsData = dynamic_cast<CDM::AcuteRespiratoryDistressData*>(action);
+    if (ardsData != nullptr) {
+      SEAcuteRespiratoryDistress* ards = new SEAcuteRespiratoryDistress();
+      ards->Load(*ardsData);
+      return ards;
     }
 
     CDM::AcuteStressData* aStressData = dynamic_cast<CDM::AcuteStressData*>(action);

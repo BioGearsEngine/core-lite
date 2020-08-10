@@ -25,6 +25,8 @@ specific language governing permissions and limitations under the License.
   <!-- @brief Enumeration for states the patient can enter and exit out of. -->
   <xs:simpleType name="enumPatientEvent">
     <xs:restriction base="xs:string">
+		<xs:enumeration value="AcuteLungInjury"/><!--<< @brief Moderate impairment of the alveoli, reducing gas exchange within the lungs. (CarricoIndex [200, 300] mmHg)-->
+      <xs:enumeration value="AcuteRespiratoryDistress"/><!--<< @brief Severe impairment of the alveoli, reducing gas exchange within the lungs. (Carrico Index [100, 200] mmHg)-->
       <xs:enumeration value="Antidiuresis"/><!--<< @brief Low urine flow. -->
       <xs:enumeration value="Asystole"/><!--<< @brief Represents no cardiac electrical activity. -->
       <xs:enumeration value="Bradycardia"/><!--<< @brief The heart rate is slowed to below 60 beats per minute. -->
@@ -64,8 +66,6 @@ specific language governing permissions and limitations under the License.
       <xs:enumeration value="MaximumPulmonaryVentilationRate"/><!--<< @brief The maximum pulmonary ventilation rate has been reached. -->
       <xs:enumeration value="MetabolicAcidosis"/><!--<< @brief A condition where the body is producing excess acids. (pH < 7.35). -->
       <xs:enumeration value="MetabolicAlkalosis"/><!--<< @brief A condition where the body is producing excess bases. (pH > 7.45). -->
-      <xs:enumeration value="MildAcuteRespiratoryDistress"/><!--<< @brief Mild impairment of the alveoli, reducing gas exchange within the lungs. (CarricoIndex [201,300] mmHg) -->
-      <xs:enumeration value="ModerateAcuteRespiratoryDistress"/><!--<< @brief Moderate impairment of the alveoli, reducing gas exchange within the lungs. (CarricoIndex [101,200] mmHg)-->
       <xs:enumeration value="MuscleCatabolism"/><!--<< @brief The temporary protein stores have been used, and the patient is now consuming their muscle tissue for protein. -->
       <xs:enumeration value="MuscleGlycogenDepleted"/><!--<< @brief The glycogen stored in the muscle tissue has been used up. -->
       <xs:enumeration value="MyocardiumOxygenDeficit"/><!--<< @brief The myocardium oxygen level has decreased below 5 mmHg. -->

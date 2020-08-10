@@ -99,6 +99,7 @@ private:
 
   //PreProcess
   //Actions
+  void AcuteRespiratoryDistress();
   void AirwayObstruction();
   void BronchoConstriction();
   void UpdateObstructiveResistance();

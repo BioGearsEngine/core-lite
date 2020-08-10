@@ -831,6 +831,33 @@ void Respiratory::RespiratoryDriver()
 
 //--------------------------------------------------------------------------------------------------
 /// \brief
+/// Acute respirtory distress
+///
+/// \details
+void Respiratory::AcuteRespiratoryDistress()
+{
+  if (!m_PatientActions->HasAcuteRespiratoryDistress()) {
+    return;
+  } else {
+    // Resistance path
+    SEFluidCircuitPath* leftPulmonaryCapillaries = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularPath::LeftPulmonaryCapillariesToLeftPulmonaryVeins);
+    SEFluidCircuitPath* rightPulmonaryCapillaries = m_data.GetCircuits().GetCardiovascularCircuit().GetPath(BGE::CardiovascularPath::RightPulmonaryCapillariesToRightPulmonaryVeins);
+    const double severity = m_PatientActions->GetAcuteRespiratoryDistress()->GetSeverity().GetValue();
+    const double resistanceMultiplier = GeneralMath::LinearInterpolator(0.0, 1.0, 1.0, 2.0, severity);
+    double rightCapillaryResistance = rightPulmonaryCapillaries->GetResistanceBaseline().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
+    double leftCapillaryResistance = leftPulmonaryCapillaries->GetResistanceBaseline().GetValue(FlowResistanceUnit::cmH2O_s_Per_L);
+
+    //We do not make use of UpdatePulmonaryCapillaryResistance function because it changes the baseline resistance values
+    // (for chronic conditions), which occurs one time after initial stabilization.  We want to apply this change as long
+    // the ARDS action is active, so we just want to set next resistance each time step as a function of the baseline.
+    leftCapillaryResistance = leftCapillaryResistance * (1.0 + 5.0 * severity);
+    leftPulmonaryCapillaries->GetNextResistance().SetValue(leftCapillaryResistance, FlowResistanceUnit::cmH2O_s_Per_L);
+    rightCapillaryResistance = rightCapillaryResistance * (1.0 + 5.0 * severity);
+    rightPulmonaryCapillaries->GetNextResistance().SetValue(rightCapillaryResistance, FlowResistanceUnit::cmH2O_s_Per_L);
+  }
+}
+//--------------------------------------------------------------------------------------------------
+/// \brief
 /// Airway obstruction
 ///
 /// \details
@@ -1402,23 +1429,23 @@ void Respiratory::CalculateVitalSignsLite()
       if (GetCarricoIndex().GetValue(PressureUnit::mmHg) < 100.0) {
         /// \event Patient: Severe ARDS: Carrico Index is below 100 mmHg
         m_Patient->SetEvent(CDM::enumPatientEvent::SevereAcuteRespiratoryDistress, true, m_data.GetSimulationTime()); /// \cite ranieriacute
-        m_Patient->SetEvent(CDM::enumPatientEvent::ModerateAcuteRespiratoryDistress, false, m_data.GetSimulationTime());
-        m_Patient->SetEvent(CDM::enumPatientEvent::MildAcuteRespiratoryDistress, false, m_data.GetSimulationTime());
+        m_Patient->SetEvent(CDM::enumPatientEvent::AcuteRespiratoryDistress, false, m_data.GetSimulationTime());
+        m_Patient->SetEvent(CDM::enumPatientEvent::AcuteLungInjury, false, m_data.GetSimulationTime());
       } else if (GetCarricoIndex().GetValue(PressureUnit::mmHg) < 200.0) {
         /// \event Patient: Moderate ARDS: Carrico Index is below 200 mmHg
-        m_Patient->SetEvent(CDM::enumPatientEvent::ModerateAcuteRespiratoryDistress, true, m_data.GetSimulationTime()); /// \cite ranieriacute
+        m_Patient->SetEvent(CDM::enumPatientEvent::AcuteRespiratoryDistress, true, m_data.GetSimulationTime()); /// \cite ranieriacute
         m_Patient->SetEvent(CDM::enumPatientEvent::SevereAcuteRespiratoryDistress, false, m_data.GetSimulationTime());
-        m_Patient->SetEvent(CDM::enumPatientEvent::MildAcuteRespiratoryDistress, false, m_data.GetSimulationTime());
+        m_Patient->SetEvent(CDM::enumPatientEvent::AcuteLungInjury, false, m_data.GetSimulationTime());
       } else if (GetCarricoIndex().GetValue(PressureUnit::mmHg) < 300.0) {
         /// \event Patient: Mild ARDS: Carrico Index is below 300 mmHg
-        m_Patient->SetEvent(CDM::enumPatientEvent::MildAcuteRespiratoryDistress, true, m_data.GetSimulationTime()); /// \cite ranieriacute
+        m_Patient->SetEvent(CDM::enumPatientEvent::AcuteLungInjury, true, m_data.GetSimulationTime()); /// \cite ranieriacute
         m_Patient->SetEvent(CDM::enumPatientEvent::SevereAcuteRespiratoryDistress, false, m_data.GetSimulationTime());
-        m_Patient->SetEvent(CDM::enumPatientEvent::ModerateAcuteRespiratoryDistress, false, m_data.GetSimulationTime());
+        m_Patient->SetEvent(CDM::enumPatientEvent::AcuteRespiratoryDistress, false, m_data.GetSimulationTime());
       } else {
         /// \event Patient: End ARDS: Carrico Index is above 305 mmHg
         m_Patient->SetEvent(CDM::enumPatientEvent::SevereAcuteRespiratoryDistress, false, m_data.GetSimulationTime());
-        m_Patient->SetEvent(CDM::enumPatientEvent::ModerateAcuteRespiratoryDistress, false, m_data.GetSimulationTime());
-        m_Patient->SetEvent(CDM::enumPatientEvent::MildAcuteRespiratoryDistress, false, m_data.GetSimulationTime());
+        m_Patient->SetEvent(CDM::enumPatientEvent::AcuteRespiratoryDistress, false, m_data.GetSimulationTime());
+        m_Patient->SetEvent(CDM::enumPatientEvent::AcuteLungInjury, false, m_data.GetSimulationTime());
       }
     }
   }
