@@ -60,7 +60,7 @@
       <EC50 readOnly="false" unit="ug/mL" value="0"/>
     </NeuromuscularBlock>
     <PainModifier>
-      <EMax readOnly="false" value="0.05"/>
+      <EMax readOnly="false" value="0.55"/>
       <EC50 readOnly="false" unit="ug/mL" value="2.75"/>
     </PainModifier>
     <PupilReactivityModifier>

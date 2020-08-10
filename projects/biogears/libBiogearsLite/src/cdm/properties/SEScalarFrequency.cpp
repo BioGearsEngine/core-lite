@@ -16,6 +16,7 @@ namespace biogears {
 const FrequencyUnit FrequencyUnit::Per_min("1/min");
 const FrequencyUnit FrequencyUnit::Per_s("1/s");
 const FrequencyUnit FrequencyUnit::Hz("Hz");
+const FrequencyUnit FrequencyUnit::Per_hr("1/hr");
 
 FrequencyUnit::FrequencyUnit(const char* u)
   : FrequencyUnit(std::string{ u })
@@ -44,6 +45,8 @@ bool FrequencyUnit::IsValidUnit(const char* unit)
     return true;
   if (strcmp(Hz.GetString(),unit) == 0)
     return true;
+  if (strcmp(Per_hr.GetString(), unit) == 0)
+    return true;
   return false;
 }
 //-----------------------------------------------------------------------------
@@ -60,6 +63,8 @@ const FrequencyUnit& FrequencyUnit::GetCompoundUnit(const char* unit)
     return Per_s;
   if (strcmp(Hz.GetString(),unit) == 0)
     return Hz;
+  if (strcmp(Per_hr.GetString(), unit) == 0)
+    return Per_hr;
   std::stringstream err;
   err << unit << " is not a valid Frequency unit";
   throw CommonDataModelException(err.str());
