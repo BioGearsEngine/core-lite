@@ -373,6 +373,7 @@ void Respiratory::AtSteadyState()
   m_Patient->GetExpiratoryReserveVolume().SetValue(expiratoryReserveVolume_L, VolumeUnit::L);
   m_Patient->GetInspiratoryReserveVolume().SetValue(inspiratoryReserveVolume_L, VolumeUnit::L);
   m_Patient->GetInspiratoryCapacity().SetValue(inspiratoryCapacity_L, VolumeUnit::L);
+  m_Patient->GetRespiratoryDriverAmplitudeBaseline().Set(GetRespirationDriverPressure());
 
   std::string typeString = "Initial Stabilization Homeostasis: ";
   if (m_data.GetState() == EngineState::AtSecondaryStableState)
@@ -826,7 +827,6 @@ void Respiratory::RespiratoryDriver()
   }
   //Push Driving Data to the Circuit -------------------------------------------------------------------------------
   m_DriverPressurePath->GetNextPressureSource().SetValue(m_DriverPressure_cmH2O, PressureUnit::cmH2O);
-  m_data.GetDataTrack().Probe("PeakPressureActual", m_PeakRespiratoryDrivePressure_cmH2O);
 }
 
 //--------------------------------------------------------------------------------------------------

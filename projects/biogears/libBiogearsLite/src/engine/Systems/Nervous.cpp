@@ -175,6 +175,13 @@ void Nervous::AtSteadyState()
   // The set-points (Baselines) get reset at the end of each stabilization period.
   m_ArterialOxygenSetPoint_mmHg = m_data.GetBloodChemistry().GetArterialOxygenPressure(PressureUnit::mmHg);
   m_ArterialCarbonDioxideSetPoint_mmHg = m_data.GetBloodChemistry().GetArterialCarbonDioxidePressure(PressureUnit::mmHg);
+
+  //Central and peripheral ventilation changes are set to 0 because patient baseline ventilation is updated to include
+  //their contributions at steady state.
+  m_CentralFrequencyDelta_Per_min = 0.0;
+  m_CentralPressureDelta_cmH2O = 0.0;
+  m_PeripheralFrequencyDelta_Per_min = 0.0;
+  m_PeripheralPressureDelta_cmH2O = 0.0;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -568,9 +575,6 @@ void Nervous::ChemoreceptorFeedback()
   const double metabolicModifier = 1.0 + tunedVolumeMetabolicSlope * (metabolicFraction - 1.0);
   nextRespirationRate_Per_min *= metabolicModifier;
   nextDrivePressure_cmH2O *= metabolicModifier;
-
-  m_data.GetDataTrack().Probe("MetabolicModifier", metabolicModifier);
-  m_data.GetDataTrack().Probe("TargetDrivePressure", nextDrivePressure_cmH2O);
 
   if (m_data.GetState() < EngineState::AtInitialStableState) {
     const double upperTolerance = baselineRespirationRate_Per_min * 1.05;
