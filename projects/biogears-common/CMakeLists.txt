@@ -82,7 +82,8 @@ set_target_properties(lib${PROJECT_NAME}
     target_compile_definitions(lib${PROJECT_NAME} PUBLIC  "BIOGEARS_COMMON_BUILD_STATIC")
     set(LIB_TYPE STATIC)
   endif()
-  target_compile_options(lib${PROJECT_NAME} PRIVATE $<$<PLATFORM_ID:Windows>:/bigobj>    PRIVATE $<$<PLATFORM_ID:Windows>:/MP>)
+
+  target_compile_options(lib${PROJECT_NAME} PRIVATE $<$<PLATFORM_ID:Windows>:/bigobj>    PRIVATE $<$<PLATFORM_ID:Windows>:/MP${${ROOT_PROJECT_NAME}_BUILD_PARALLEL_LEVEL}>)
 target_include_directories(lib${PROJECT_NAME}
   PRIVATE  ${${PREFIX}_INCLUDE_DIR} ${${PREFIX}_PRIVATE_INCLUDE_DIR} ${${PREFIX}_GENERATED_INCLUDE_DIR}
   INTERFACE $<BUILD_INTERFACE:${${PREFIX}_GENERATED_INCLUDE_DIR}> 
@@ -112,20 +113,20 @@ set(${PREFIX}_LIBS
 set(${PREFIX}_LIBS ${${PREFIX}_LIBS} PARENT_SCOPE)
 target_link_libraries(lib${PROJECT_NAME}  ${${PREFIX}_LIBS} )
  
-if(${ROOT_PROJECT_NAME}_STAGE_RUNTIME) 
-add_dependencies(lib${PROJECT_NAME} stage_runtime)
+if(TARGET prepare_runtime_dir AND ${ROOT_PROJECT_NAME}_PREPARE_RUNTIME_DIR) 
+	add_dependencies(lib${PROJECT_NAME} prepare_runtime_dir)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     set_target_properties(lib${PROJECT_NAME} PROPERTIES LINK_FLAGS ${${PREFIX}_LDFLAGS})
 endif()
 
- install(TARGETS lib${PROJECT_NAME} EXPORT libBiogears
-     RUNTIME DESTINATION bin
-     LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
-     ARCHIVE DESTINATION lib
+ install(TARGETS lib${PROJECT_NAME} EXPORT libBiogearsLite
+     RUNTIME DESTINATION bin/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>
+     LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>
+     ARCHIVE DESTINATION lib/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>
   )
-
+  
   install(DIRECTORY 
     include/biogears
     DESTINATION include/

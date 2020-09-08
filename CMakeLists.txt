@@ -8,7 +8,7 @@
 #                                           (also required for toolchain file)
 #   ANDROID         GRADLE_EXECUTABLE   Location of the Gradle executable
 ###############################################################################
-set(ROOT_PROJECT_NAME Biogears)
+set(ROOT_PROJECT_NAME BiogearsLite)
 set(${ROOT_PROJECT_NAME}_CMAKE_MIN_VERSION 3.11.0)
 set(${ROOT_PROJECT_NAME}_CMAKE_POLICY 3.11.0)
 
@@ -16,10 +16,6 @@ cmake_minimum_required(VERSION ${${ROOT_PROJECT_NAME}_CMAKE_MIN_VERSION})
 
 include(cmake/cmake-common_logic.cmake)
 
-set(${ROOT_PROJECT_NAME}_VERSION_MAJOR 6)
-set(${ROOT_PROJECT_NAME}_VERSION_MINOR 4)
-set(${ROOT_PROJECT_NAME}_VERSION_PATCH 0)
-set(${ROOT_PROJECT_NAME}_VERSION_TAG  "-beta")
 ################################################################################
 # STEP 1: 
 # Change this to custimize your project
@@ -34,30 +30,37 @@ project( ${ROOT_PROJECT_NAME}  LANGUAGES CXX C)
     CMAKE_PREFIX_PATH  = ${CMAKE_PREFIX_PATH}
     CMAKE_FIND_ROOT_PATH = ${CMAKE_FIND_ROOT_PATH}
     ")
+
+find_package(Git QUIET)
+configure_version_information(GIT_SUCESS MAJOR 0 MINOR 5 PATCH 0 TWEAK "Source" )
+if(GIT_FOUND AND NOT GIT_SUCESS)
+  # Update these variables to ensure out of source build have some sane tags
+  message(WARNING "GIT_EXECUTABLE was not found or no corrisponding GIT_REPO is avaliable." 
+  "If you are building with in a git repo you should ensure GIT is in your current path." 
+	"If you are building outside of a repo ignore this message.")
+endif()
 ###############################################################################
 # Add Repository Subdirectories
 ###############################################################################
 add_subdirectory(projects)
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT scenario_driver)
-###############################################################################
-# Stage Code for IDE Testing
-###############################################################################
-create_cache_file()
-create_stage()
-###############################################################################
-# Step 2:
-# You likely need to add on project to stage for every executable you would like
-# to stage (AKA move dep DLLs to the run folder for debugging.
-################################################################################
-if(${ROOT_PROJECT_NAME}_BUILD_${ROOT_PROJECT_NAME})
-    add_dependencies(STAGE ${ROOT_PROJECT_NAME})
-  if( TARGET EXISTS scenario_driver)
-    add_dependencies(STAGE scenario_driver)
-  elseif ( TARGET EXISTS scenario_driver)
-    add_dependencies(STAGE test_driver)
-  endif()
-  if( TARGET EXISTS unittest)
-    add_dependencies(STAGE test_driver)
+
+if(TARGET bg-cli)
+	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT bg-cli)
+endif()
+
+if(NOT TARGET STAGE)
+  ###############################################################################
+  # Stage Code for IDE Testing
+  ###############################################################################
+  create_cache_file()
+  create_stage()
+  ###############################################################################
+  # Step 2:
+  # You likely need to add on project to stage for every executable you would like
+  # to stage (AKA move dep DLLs to the run folder for debugging.
+  ################################################################################
+  if(TARGET  bg-cli)
+    add_dependencies(BUNDLE_DLLS bg-cli)
   endif()
 endif()
 
@@ -105,3 +108,5 @@ install(FILES
   ${Packages}
   DESTINATION lib/cmake/${ROOT_PROJECT_NAME}
 )
+
+generate_project_suffix()

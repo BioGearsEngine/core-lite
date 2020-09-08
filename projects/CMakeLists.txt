@@ -1,8 +1,8 @@
 enable_language(CXX)
 
 option(${ROOT_PROJECT_NAME}_BUILD_STATIC  "Build ${ROOT_PROJECT_NAME} as a static libraries" OFF)
-option(${ROOT_PROJECT_NAME}_BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" OFF)
-option(${ROOT_PROJECT_NAME}_STAGE_RUNTIME "Automatically move files from share/ toto runtime/ to create a staging ground for BioGears to run. Takes a resonable amount of disk space not needed for some CI task" ON)
+option(${ROOT_PROJECT_NAME}_GENERATE_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" OFF)
+option(${ROOT_PROJECT_NAME}_PREPARE_RUNTIME "Automatically move files from share/ toto runtime/ to create a staging ground for BioGears to run. Takes a resonable amount of disk space not needed for some CI task" ON)
 
 find_path (
   ${ROOT_PROJECT_NAME}_Baseline_DIR
@@ -13,14 +13,9 @@ find_path (
         ${PROJECT_SOURCE_DIR}/../verification  
         ${PROJECT_SOURCE_DIR}/../validation 
         ${PROJECT_SOURCE_DIR}/../baselines
-  DOC "Optional directory path to hiarchial filetree of baseline archives. This will be used by Java Utilities to find Baselines"
+  DOC "Optional directory path to hiarchial filetree of baseline archives. This is used by some uiilities to find Baselines"
 )
-find_path (
-  ${ROOT_PROJECT_NAME}_Reference_DIR
-  NAME BioGears.bib
-  PATHS ${PROJECT_SOURCE_DIR}/../references
-  DOC "Optional directory path to a hiarchial references filetree of publication articles for documentation building"
-)
+
 ###############################################################################
 # Step 1: Some packages need to be configured globally to ensure they find the 
 #         right library all others should be called in the respective projects
@@ -60,28 +55,21 @@ endif()
 #         this list
 ###############################################################################
 
-find_package(Java)
-find_package(JNI)
 verify_package(Log4cpp REQUIRED)
-option(${ROOT_PROJECT_NAME}_BUILD_JAVATOOLS     "Build Java based development tools (requires Doxygen)" ${Java_FOUND} )
 
 add_subdirectory(biogears-common)
 add_subdirectory(biogears)
-add_subdirectory(scenario_driver)
-add_subdirectory(test_driver)
 add_subdirectory(howto)
 add_subdirectory(unit)
-add_subdirectory(cmd_bio)
+add_subdirectory(zip)
+add_subdirectory(cli)
 
-if(Java_FOUND AND ${ROOT_PROJECT_NAME}_BUILD_JAVATOOLS)
-  add_subdirectory(java)
-endif()
 
 ###############################################################################
 # Step 3: Global Doxygen configuration 
 #         you might need to tweak this if you have multiple doxy files
 ###############################################################################
-if(${ROOT_PROJECT_NAME}_BUILD_DOCUMENTATION)
+if(${ROOT_PROJECT_NAME}_GENERATE_DOCUMENTATION)
     find_package(Doxygen REQUIRED)
     if(NOT DOXYGEN_FOUND)
         message(FATAL_ERROR "Doxygen is needed to build the documentation.")
@@ -173,10 +161,11 @@ foreach(_file IN LISTS  source_scenario_list)
 endforeach()
 list(APPEND runtime_glob_list 	"${runtime_xsd_list}"	"${runtime_jar_list}" 	"${runtime_data_list}" 	"${runtime_doc_list}" 	"${runtime_scenario_list}")
 
-add_custom_target( stage_runtime 
+add_custom_target( prepare_runtime_dir 
     DEPENDS 
 	${PROJECT_BINARY_DIR}/runtime
 	${PROJECT_BINARY_DIR}/runtime/UCEDefs.conf
 	${runtime_glob_list}
-	COMMENT "Scanning for need to stage runtime dir"
-)	
+	COMMENT "Scanning for need to prepare a runtime directory"
+)
+set_target_properties(prepare_runtime_dir PROPERTIES FOLDER Other)	

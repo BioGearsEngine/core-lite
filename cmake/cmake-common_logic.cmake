@@ -7,11 +7,7 @@ if( NOT CMAKE_BUILD_TYPE )
     "Debug"
     "Release"
   ) 
-  if(ANDROID)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Release;Debug" FORCE)
-  else()
-    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Release;Debug" FORCE)
-  endif()
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Release;Debug" FORCE)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${BUILD_OPTIONS_STRINGS})
 endif()
 
@@ -83,8 +79,9 @@ function(CHILDLIST result curdir)
   set(${result} ${dirlist} PARENT_SCOPE)
 endfunction()
 
+
 function(add_source_files var prefix regex source_group)
-    message(STATUS "add_source_files( ${var} \"${prefix}\" ${regex} \"${source_group}\")")
+#    message(STATUS "add_source_files( ${var} \"${prefix}\" ${regex} \"${source_group}\")")
     file(GLOB TEMP "${prefix}/${regex}")
 
     source_group("${source_group}" FILES ${TEMP})
@@ -98,6 +95,7 @@ function(add_source_files var prefix regex source_group)
 
     set(${var} ${${var}} ${TEMP} PARENT_SCOPE)
 endfunction()
+
 
 ########################################################################################################
 #
@@ -151,9 +149,9 @@ function(create_cache_file)
   set(OUTPUT_PREFIX ${CMAKE_BINARY_DIR}/outputs)
   file(WRITE ${CacheForScript} "")
   file(APPEND ${CacheForScript} "set(ROOT_PROJECT_NAME ${ROOT_PROJECT_NAME})\n")
-  file(APPEND ${CacheForScript} "set(PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR})\n")
-  file(APPEND ${CacheForScript} "set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})\n")
-  file(APPEND ${CacheForScript} "set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH})\n")
+  file(APPEND ${CacheForScript} "set(PROJECT_SOURCE_DIR \"${PROJECT_SOURCE_DIR}\")\n")
+  file(APPEND ${CacheForScript} "set(CMAKE_BINARY_DIR \"${CMAKE_BINARY_DIR}\")\n")
+  file(APPEND ${CacheForScript} "set(CMAKE_PREFIX_PATH \"${CMAKE_PREFIX_PATH}\")\n")
   file(APPEND ${CacheForScript} "set(CMAKE_EXECUTABLE_SUFFIX ${CMAKE_EXECUTABLE_SUFFIX})\n")
   file(APPEND ${CacheForScript} "set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_PREFIX}/lib)\n")
   file(APPEND ${CacheForScript} "set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_PREFIX}/lib)\n")
@@ -167,13 +165,203 @@ function(create_cache_file)
 endfunction()
 
 function(create_stage)
-  add_custom_target(STAGE 
+  add_custom_target(BUNDLE_DLLS 
     ${CMAKE_COMMAND} 
-    -DCMAKE_INSTALL_CONFIG_NAME=$<CONFIG> -P ${CMAKE_SOURCE_DIR}/cmake/cmake-common_stage.cmake
+    -DCMAKE_INSTALL_CONFIG_NAME=$<CONFIG> -P "${CMAKE_SOURCE_DIR}/cmake/cmake-common_stage.cmake"
     )
-  set_target_properties(STAGE
+  set_target_properties(BUNDLE_DLLS
       PROPERTIES
-      FOLDER "CMakePredefinedTargets"
-      PROJECT_LABEL "STAGE"
+      FOLDER Other
+      PROJECT_LABEL "BUNDLE_DLLS"
   )
 endfunction() 
+########################################################################################################
+# 
+# Git Version Macro
+# 
+# List Tags in the order they appear assumes the version of the project is the latest version split by '.'
+# Creates the following variabels
+#
+# ${ROOT_PROJECT_NAME}_VERSION_MAJOR  #First group of characters in the split
+# ${ROOT_PROJECT_NAME}_VERSION_MINOR  #Second group of characters in the split
+# ${ROOT_PROJECT_NAME}_VERSION_PATCH  #Third set of characters in the split
+# ${ROOT_PROJECT_NAME}_VERSION_TWEAK  #Forth set of characters in the split
+# ${ROOT_PROJECT_NAME}_VERSION_TAG    #A string tag based on how dirty the tag is usually -dirty 
+# ${ROOT_PROJECT_NAME}_VERSION_HASH   #Abriviated Git Hash for the specific commit
+# ${ROOT_PROJECT_NAME}_LIB_VERSION    #MAJOR.MINOR.PATCH - This really only works if your tags use this format
+# ${ROOT_PROJECT_NAME}_CLEAN_BUILD    #True if the number of commits since the last tag is greater then 0
+# ${ROOT_PROJECT_NAME}_COMMIT_DATE    #Date of the latest commit in the repo git  log -1 --format=%ai 
+#
+########################################################################################################
+
+function(configure_version_information _SUCESS_CHECK)
+  cmake_parse_arguments( ""  "" "MAJOR;MINOR;PATCH;TWEAK"
+                         "" ${ARGN} )
+
+  if(NOT _MAJOR AND NOT _MAJOR EQUAL 0) 
+    set(_MAJOR -1)
+  endif()
+  if(NOT _MINOR AND NOT _MINOR EQUAL 0) 
+    set(_MINOR -1)
+  endif()
+  if(NOT _PATCH AND NOT _PATCH EQUAL 0) 
+    set(_PATCH -1)
+  endif()
+  if(NOT _TWEAK AND NOT _TWEAK EQUAL 0) 
+    set(_TWEAK  "source" )
+  endif()
+
+  #Set values based on passed inputs as defaults incase GIT fails
+  set(${ROOT_PROJECT_NAME}_VERSION_MAJOR ${_MAJOR} PARENT_SCOPE)
+  set(${ROOT_PROJECT_NAME}_VERSION_MINOR ${_MINOR} PARENT_SCOPE)
+  set(${ROOT_PROJECT_NAME}_VERSION_PATCH ${_PATCH} PARENT_SCOPE)
+  set(${ROOT_PROJECT_NAME}_VERSION_TWEAK ${_TWEAK} PARENT_SCOPE)
+  set(${ROOT_PROJECT_NAME}_LIB_VERSION "${_MAJOR}.${_MINOR}.${_PATCH}" PARENT_SCOPE)
+  set(${ROOT_PROJECT_NAME}_VERSION_TAG "Custom" PARENT_SCOPE)
+  set(${ROOT_PROJECT_NAME}_CLEAN_BUILD false PARENT_SCOPE)
+  set(${ROOT_PROJECT_NAME}_VERSION_HASH "Unknown" PARENT_SCOPE)
+  set(${ROOT_PROJECT_NAME}_COMMIT_DATE "Unknown" PARENT_SCOPE)
+ 
+  if(GIT_FOUND) 
+    #Pull the latest GIT TAG
+    execute_process(COMMAND ${GIT_EXECUTABLE}  describe --tags
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    OUTPUT_VARIABLE _GIT_REV
+                    RESULT_VARIABLE  _RESULT_VARIABLE
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_QUIET)
+    
+    if(_RESULT_VARIABLE EQUAL 0)
+      message(STATUS "GIT_REV=${_GIT_REV}")
+      string(REPLACE "-" ";"  _GIT_REV_LIST "${_GIT_REV}" )
+      string(REPLACE "." ";"  _GIT_FULL_REV_LIST "${_GIT_REV_LIST}") 
+      list(LENGTH _GIT_FULL_REV_LIST _len)
+
+      list(GET _GIT_REV_LIST 0 _VERSION_TAG)
+      if(_len GREATER 0)
+        list(GET _GIT_FULL_REV_LIST 0 _VERSION_MAJOR)
+      endif()
+      if(_len GREATER 1)
+        list(GET _GIT_FULL_REV_LIST 1 _VERSION_MINOR)
+      endif()
+      if(_len GREATER 2)
+        list(GET _GIT_FULL_REV_LIST 2 _VERSION_PATCH)
+      endif()
+      if(_len GREATER 4)
+        set(_CLEAN_BUILD false)
+        list(GET _GIT_FULL_REV_LIST 3 _VERSION_TWEAK)
+        math(EXPR _last "${_len} - 1")
+        list(GET _GIT_FULL_REV_LIST ${_last}  _VERSION_HASH )
+      else()
+        set(_CLEAN_BUILD true)
+        set(_VERSION_TWEAK 0)
+        if(_len EQUAL 4)
+          list(GET _GIT_FULL_REV_LIST 3 _VERSION_HASH )
+        else()
+           execute_process(COMMAND ${GIT_EXECUTABLE}  rev-parse --short HEAD
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    OUTPUT_VARIABLE _GIT_REV
+                    RESULT_VARIABLE _RESULT_VARIABLE
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_QUIET)
+           set(_VERSION_HASH "g${_GIT_REV}")
+        endif()
+      endif()
+      string(STRIP "${_VERSION_HASH}" _VERSION_HASH )
+	  string(SUBSTRING "${_VERSION_HASH}" 1 -1 _VERSION_HASH)
+      set( ${_SUCESS_CHECK} True PARENT_SCOPE)
+    endif() 
+    #Pull the commit date of the last GIT TAG 
+    execute_process(COMMAND ${GIT_EXECUTABLE}  log -1 --format=%ai 
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    OUTPUT_VARIABLE _GIT_COMMIT_DATE
+                    RESULT_VARIABLE _RESULT_VARIABLE
+                                    ERROR_QUIET)
+    if(_RESULT_VARIABLE EQUAL 0_)    
+      string(STRIP "${_GIT_COMMIT_DATE}" _GIT_COMMIT_DATE)
+      set (${ROOT_PROJECT_NAME}_COMMIT_DATE "${_GIT_COMMIT_DATE}" PARENT_SCOPE)
+    endif()
+
+    # 
+    if( _VERSION_MAJOR MATCHES "[0-9]+")
+      set( ${ROOT_PROJECT_NAME}_VERSION_MAJOR ${_VERSION_MAJOR} PARENT_SCOPE)
+    endif()
+    if( _VERSION_MINOR MATCHES "[0-9]+")
+      set( ${ROOT_PROJECT_NAME}_VERSION_MINOR ${_VERSION_MINOR} PARENT_SCOPE)
+    endif()
+    if( _VERSION_PATCH MATCHES "[0-9]+")
+      set( ${ROOT_PROJECT_NAME}_VERSION_PATCH ${_VERSION_PATCH} PARENT_SCOPE)
+    endif()
+    if( _VERSION_TWEAK MATCHES "[0-9]+")
+      set( ${ROOT_PROJECT_NAME}_VERSION_TWEAK ${_VERSION_TWEAK} PARENT_SCOPE)
+    endif()
+    if( _VERSION_MAJOR AND _VERSION_MINOR )
+      set( ${ROOT_PROJECT_NAME}_LIB_VERSION   "${_VERSION_MAJOR}.${_VERSION_MINOR}" PARENT_SCOPE)
+    endif()
+    if (_VERSION_TAG)
+      set( ${ROOT_PROJECT_NAME}_VERSION_TAG   "${_VERSION_TAG}" PARENT_SCOPE)
+    endif()
+    if (_CLEAN_BUILD)
+      set( ${ROOT_PROJECT_NAME}_CLEAN_BUILD   "${_CLEAN_BUILD}" PARENT_SCOPE)
+    endif()
+    if(_VERSION_HASH)
+      set( ${ROOT_PROJECT_NAME}_VERSION_HASH  "${_VERSION_HASH}"  PARENT_SCOPE)
+    endif()
+ endif() 
+  
+endfunction(configure_version_information)
+
+########################################################################################################
+# 
+# Appends a suffix to the project name to make it easier to tell worktree solutions apart
+# 
+# Will additionally append the MSVC version to the solution if it is of version 14-16
+# Creates the following variabels
+#
+# ${CMAKE_PROJECT_NAME}_SUFFIX        #The value of this variable is appended to the solution name
+#                                     #For Cmake Generators who use the project name in the output files
+#                                     It is useful for determining which MSVC sln you are loading from 
+#                                     the jump list
+#
+# __PROJECT_SUFFIX_SET                This control variable is set in PARENT_SCOPE to prevent calling 
+#                                     of the function twice
+#
+########################################################################################################
+function(generate_project_suffix)
+if(MSVC AND NOT __PROJECT_SUFFIX_SET)
+  set(__PROJECT_SUFFIX_SET ON PARENT_SCOPE)
+  if(${CMAKE_PROJECT_NAME}_PROJECT_SUFFIX)
+    project(${CMAKE_PROJECT_NAME}_${${CMAKE_PROJECT_NAME}_PROJECT_SUFFIX})
+  else()
+    get_filename_component(source_dirname "${PROJECT_SOURCE_DIR}" NAME)
+    if ( NOT source_dirname STREQUAL "core-lite")
+      project(${CMAKE_PROJECT_NAME}_${source_dirname})
+    endif()
+  endif()
+  if(MSVC_VERSION GREATER_EQUAL 1920)
+    project(${CMAKE_PROJECT_NAME}_msvc16)
+  elseif(MSVC_VERSION GREATER_EQUAL 1910)
+    project(${CMAKE_PROJECT_NAME}_msvc15)
+  elseif(MSVC_VERSION GREATER_EQUAL 1900)
+    project(${CMAKE_PROJECT_NAME}_msvc14)
+  endif()
+endif()
+endfunction()
+#######################################################################################################
+#
+#
+#  By default cmake setups up multi configuration directories as {lib,bin}/{debug,release}/<product>
+#  This just sets it to {debug,release}/{lib,bin}/<product> which is more natural to me.
+# 
+#  Optional Cache Value OUTPUT_PREFIX allows you add an additional later to this layout
+#######################################################################################################
+function(setup_unified_output_directory )
+  cmake_parse_arguments( ""  "UNIFIED" "PREFIX"
+                         "" ${ARGN} )
+if(NOT __UNIFIED_DIR) 
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${_PREFIX}/$<CONFIG>/lib" PARENT_SCOPE)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${_PREFIX}/$<CONFIG>/$<IF:$<PLATFORM_ID:Windows>,bin,lib>" PARENT_SCOPE)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${_PREFIX}/$<CONFIG>/bin" PARENT_SCOPE)
+  set(__UNIFIED_DIR ON PARENT_SCOPE)
+endif()
+endfunction()

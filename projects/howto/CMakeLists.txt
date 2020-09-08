@@ -1,5 +1,5 @@
 option(${ROOT_PROJECT_NAME}_BUILD_HOWTOS     "Select to build sdk how to examples." ON)
-
+cmake_policy(SET CMP0087 NEW)
 function(add_howto name)
   ###############################################################################
   # Step 1:  Set the name of this example to a unique identifier
@@ -51,12 +51,8 @@ function(add_howto name)
         VS_DEBUGGER_WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/runtime
         )
 
-    if(WIN32)
-      target_compile_definitions(${TARGET_NAME}  PRIVATE "_CRT_SECURE_NO_WARNINGS"  )
-    elseif(CMAKE_COMPILER_IS_GNUCXX)
-      #target_link_options(${TARGET_NAME} "LINKER:--no-as-needed" )
-      #set_target_properties(${TARGET_NAME} PROPERTIES LINK_FLAGS ${${EXAMPLE_NAME}_LDFLAGS})
-    endif()
+     target_compile_definitions(${TARGET_NAME} PRIVATE ${${PREFIX}_CPPFLAGS} PRIVATE $<$<PLATFORM_ID:Windows>:"_CRT_SECURE_NO_WARNINGS"> )
+     target_compile_options(${TARGET_NAME} PRIVATE $<$<PLATFORM_ID:Windows>:/bigobj>  )
   
     ###############################################################################
     # COMPILATION & LINKAGE MODIFICATIONS
@@ -82,27 +78,21 @@ function(add_howto name)
     )
       
     target_link_libraries(${TARGET_NAME} ${${EXAMPLE_NAME}_LIBS} )
-    if(${ROOT_PROJECT_NAME}_STAGE_RUNTIME) 
-      add_dependencies(${TARGET_NAME} stage_runtime)
+    if(TARGET prepare_runtime_dir AND ${ROOT_PROJECT_NAME}_PREPARE_RUNTIME_DIR) 
+      add_dependencies(${TARGET_NAME} prepare_runtime_dir)
     endif()
-    
+   
+    add_dependencies(howtos ${TARGET_NAME})
+     
+  install(TARGETS ${TARGET_NAME} EXPORT howtos
+	 RUNTIME DESTINATION bin/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>/howtos
+     LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>
+     ARCHIVE DESTINATION lib/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>
+  )
+
   endif(BUILD_EX_${EXAMPLE_NAME})
 endfunction(add_howto)
 
-set(OUTPUT_PREFIX ${CMAKE_BINARY_DIR}/outputs)
-if(UNIX)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_PREFIX}/howto/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_PREFIX}/howto/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_PREFIX}/howto/bin)
-else()
-  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER _${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY${OUTPUTCONFIG_UPPER} "${OUTPUT_PREFIX}/${OUTPUTCONFIG}/lib")
-    set(CMAKE_PDB_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${OUTPUT_PREFIX}/${OUTPUTCONFIG}/lib")
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY${OUTPUTCONFIG_UPPER} "${OUTPUT_PREFIX}/${OUTPUTCONFIG}/bin")
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY${OUTPUTCONFIG_UPPER} "${OUTPUT_PREFIX}/${OUTPUTCONFIG}/bin")
-  endforeach(OUTPUTCONFIG)
-endif()
 ############################################################################
 # Step 1:
 #         Examples are almost never order dependent just add them as we  find
@@ -134,18 +124,57 @@ if(${ROOT_PROJECT_NAME}_BUILD_HOWTOS)
       PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/common-source
   )
 
- target_compile_definitions(howto-common PRIVATE $<$<PLATFORM_ID:Windows>:"_CRT_SECURE_NO_WARNINGS">  )
-
+  target_compile_definitions(howto-common  PRIVATE ${${PREFIX}_CPPFLAGS} PRIVATE $<$<PLATFORM_ID:Windows>:"_CRT_SECURE_NO_WARNINGS"> )
+  target_compile_options(howto-common  PRIVATE $<$<PLATFORM_ID:Windows>:/bigobj>    PRIVATE $<$<PLATFORM_ID:Windows>:/MP${${ROOT_PROJECT_NAME}_BUILD_PARALLEL_LEVEL}>)
+  
+  add_custom_target(howtos COMMENT "Meta Target for compiling all howtos")
+  
   childlist( dir_list ${CMAKE_CURRENT_SOURCE_DIR} )
   foreach( dir IN LISTS dir_list )
   if(NOT dir MATCHES "common-source")
     add_howto( ${dir} )
   endif()
   endforeach()
-endif()
+if(NOT CMAKE_CROSSCOMPILING AND NOT APPLE)
+  install(CODE "
+    include(BundleUtilities)
 
+    function(EXELIST result curdir)
+    file(GLOB children RELATIVE \${curdir} \${curdir}/*)
+    set(dirlist \"\")
+    foreach(child \${children})
+      if(NOT IS_DIRECTORY \${curdir}/\${child} AND \${child} MATCHES \".*${CMAKE_EXECUTABLE_SUFFIX}\" )
+      list(APPEND dirlist \${curdir}/\${child})
+      set(\${result} \${dirlist} PARENT_SCOPE)
+      return()
+      endif()
+    endforeach()
+    endfunction()
+
+    set(CONFIG_SUFFIX ${CMAKE_${CONFIG}_POSTFIX})
+
+    set(CMAKE_PREFIX_PATH  \"${CMAKE_PREFIX_PATH}\")
+
+    foreach(_dir IN LISTS CMAKE_PREFIX_PATH)
+    list(APPEND THIRD_PARTY  \${_dir})
+    list(APPEND THIRD_PARTY_LIB \${_dir}/lib)
+    list(APPEND THIRD_PARTY_BIN \${_dir}/bin)
+    endforeach()
+		
+	FILE(TO_CMAKE_PATH   \"\${CMAKE_INSTALL_PREFIX}\"  INSTALL_PATH)
+
+	set( Biogears_RUNTIME_DESTINATION \"\${INSTALL_PATH}/bin/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>\" )
+    set( Biogears_LIBRARY_DESTINATION \"\${INSTALL_PATH}/${LIBRARY_INSTALL_DIR}/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>\" )
+    set( Biogears_ARCHIVE_DESTINATION \"\${INSTALL_PATH}/lib/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>\" )
+
+    EXELIST(TARGET \"\${INSTALL_PATH}/bin/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>/howtos/\" )
+
+    fixup_bundle(\"\${TARGET}\"
+        \"\"
+        \"\${THIRD_PARTY_LIB};\${THIRD_PARTY_BIN}\;\${INSTALL_PATH}/bin;\${INSTALL_PATH}/lib;\${Biogears_RUNTIME_DESTINATION};\${Biogears_LIBRARY_DESTINATION};\${Biogears_ARCHIVE_DESTINATION}\"
+   
+    )
+  ")
+endif()
+endif()
 message(STATUS "")
-
-if (NOT (Java_FOUND AND ${ROOT_PROJECT_NAME}_BUILD_JAVATOOLS) )
-  message(WARNING "SDK examples require the use of gen-states which requires ${ROOT_PROJECT_NAME}_BUILD_JAVATOOLS and a copy of the Java development kit.")
-endif()
