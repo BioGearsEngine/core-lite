@@ -365,8 +365,8 @@ void Environment::CalculateConvectionLite()
   } else {
     dResistance_K_Per_W = dSurfaceArea_m2 / dConvectiveHeatTransferCoefficient_WPerM2_K;
   }
-  std::max(dResistance_K_Per_W, m_data.GetConfiguration().GetDefaultClosedHeatResistance(HeatResistanceUnit::K_Per_W));
-  m_ClothingToEnvironmentPath->GetNextResistance().SetValue(dResistance_K_Per_W + (0.18 * m_ClothingToEnvironmentPath->GetNextResistance().GetValue(HeatResistanceUnit::K_Per_W)), HeatResistanceUnit::K_Per_W);
+  auto max_result = std::max(dResistance_K_Per_W, m_data.GetConfiguration().GetDefaultClosedHeatResistance(HeatResistanceUnit::K_Per_W));
+  m_ClothingToEnvironmentPath->GetNextResistance().SetValue(max_result + (0.18 * m_ClothingToEnvironmentPath->GetNextResistance().GetValue(HeatResistanceUnit::K_Per_W)), HeatResistanceUnit::K_Per_W);
 
   //Set the source
   double dAmbientTemperature_K = GetConditions().GetAmbientTemperature(TemperatureUnit::K);
@@ -387,8 +387,8 @@ void Environment::CalculateConvectionLite()
     } else {
       dResistance_K_Per_W = dSurfaceArea_m2 / dConvectiveHeatTransferCoefficient_WPerM2_K;
     }
-    std::max(dResistance_K_Per_W, m_data.GetConfiguration().GetDefaultClosedHeatResistance(HeatResistanceUnit::K_Per_W));
-    double ndResistance_K_Per_W = (0.82 * dResistance_K_Per_W) + m_ClothingToEnvironmentPath->GetNextResistance().GetValue(HeatResistanceUnit::K_Per_W);
+    auto max_result = std::max(dResistance_K_Per_W, m_data.GetConfiguration().GetDefaultClosedHeatResistance(HeatResistanceUnit::K_Per_W));
+    double ndResistance_K_Per_W = (0.82 * max_result) + m_ClothingToEnvironmentPath->GetNextResistance().GetValue(HeatResistanceUnit::K_Per_W);
     m_ClothingToEnvironmentPath->GetNextResistance().SetValue(ndResistance_K_Per_W, HeatResistanceUnit::K_Per_W);
 
     //Set the source
