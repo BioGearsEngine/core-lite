@@ -11,8 +11,8 @@
 ###############################################################################
 # Base Variables
 ###############################################################################
-set(PROJECT_NAME biogears_common)
-set(PREFIX common)
+set(PROJECT_NAME biogears_common_lite)
+set(PREFIX common_lite)
 
 set(${PREFIX}_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
 set(${PREFIX}_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" )
@@ -65,13 +65,14 @@ else()
   add_library(lib${PROJECT_NAME} SHARED  ${${PREFIX}_SOURCES} ${${PREFIX}_HEADERS})
 endif()
 
-add_library(Biogears::libbiogears_common ALIAS lib${PROJECT_NAME})
+add_library(BiogearsLite::common ALIAS lib${PROJECT_NAME})
 set_target_properties(lib${PROJECT_NAME}
   PROPERTIES
   DEFINE_SYMBOL ${PROJECT_NAME}_EXPORTS
   FOLDER "Libraries"
   COMPILE_PDB_NAME "${PROJECT_NAME}"
   OUTPUT_NAME "${PROJECT_NAME}"
+  EXPORET_NAME "common"
   PROJECT_LABEL "lib${PROJECT_NAME}"
   DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX}
   CXX_STANDARD 14

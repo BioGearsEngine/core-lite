@@ -83,7 +83,7 @@ int main(int argc, char** argv)
   }
 
   if (args.Option("VERSION") || args.Option("V")) {
-    std::cout << "Using libbiogears-" << biogears::full_version_string() << std::endl;
+    std::cout << "Using libbiogears_lite-" << biogears::full_version_string() << std::endl;
     exit(0);
   }
 

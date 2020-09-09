@@ -52,7 +52,7 @@ target_compile_options(bg-cli PRIVATE $<$<PLATFORM_ID:Windows>:/bigobj> PRIVATE 
 target_include_directories(bg-cli PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src/utils/ PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
 target_link_libraries(bg-cli  ${${PREFIX}_LIBS}      
-      Biogears::libbiogears
+      BiogearsLite::libbiogears_lite
       minizip::lib
 )
 
@@ -76,7 +76,7 @@ set_target_properties(bg-scenario
 target_compile_options(bg-scenario PRIVATE $<$<PLATFORM_ID:Windows>:/bigobj> PRIVATE $<$<PLATFORM_ID:Windows>:/MP${${ROOT_PROJECT_NAME}_BUILD_PARALLEL_LEVEL}>)
 target_include_directories(bg-scenario PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src/utils/ PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 target_link_libraries(bg-scenario  ${${PREFIX}_LIBS} 
-      Biogears::libbiogears
+      BiogearsLite::libbiogears_lite
       minizip::lib )
 
 add_dependencies(bg-cli bg-scenario)

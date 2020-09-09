@@ -127,6 +127,6 @@ list(APPEND UNITTEST_LIBRARIES GTest::GTest GTest::Main
   target_link_libraries(unittest
     ${UNITTEST_LIBRARIES}
     ${bio_LIBRARIES}
-    libbiogears
+    BiogearsLite::libbiogears_lite
   )
 endif(${PROJECT_NAME}_BUILD_TEST)

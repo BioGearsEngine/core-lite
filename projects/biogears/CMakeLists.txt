@@ -14,8 +14,8 @@ option (${ROOT_PROJECT_NAME}_BUILD_CIRCUIT_TESTS       "Toggle on the Circuit Te
 ###############################################################################
 # Base Variables
 ###############################################################################
-set(PROJECT_NAME biogears)
-set(PREFIX bio)
+set(PROJECT_NAME biogears_lite)
+set(PREFIX lite)
 
 set(${PREFIX}_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libBiogearsLite/include" )
 set(${PREFIX}_PRIVATE_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libBiogearsLite/src" )
@@ -87,7 +87,7 @@ message(STATUS CMAKE_GENERATOR=${CMAKE_GENERATOR})
 ###############################################################################
 if(${PREFIX}_BUILD_STATIC)
   add_library(lib${PROJECT_NAME} STATIC ${LIB${PREFIX}_SOURCES} ${LIB${PREFIX}_HEADERS})
-  add_library(Biogears::lib${PROJECT_NAME} ALIAS lib${PROJECT_NAME})
+  add_library(BiogearsLite::lib${PROJECT_NAME} ALIAS lib${PROJECT_NAME})
 	set_target_properties(lib${PROJECT_NAME}
     PROPERTIES
     DEFINE_SYMBOL ${PROJECT_NAME}_EXPORTS
@@ -108,7 +108,8 @@ if(${PREFIX}_BUILD_STATIC)
     list(APPEND ${PREFIX}_CPPFLAGS  ${CodeSynthesis_CPPFLAGS})
     list(APPEND ${PREFIX}_LDFLAGS "-Wl,--no-as-needed" )
     set_target_properties(lib${PROJECT_NAME} PROPERTIES LINK_FLAGS ${${PREFIX}_LDFLAGS})
-endif()
+   endif()
+
   ###############################################################################
   # COMPILATION & LINKAGE MODIFICATIONS
   ###############################################################################
@@ -118,7 +119,7 @@ endif()
   if(${ROOT_PROJECT_NAME}_THROW_READONLY_EXCEPTIONS)
         target_compile_definitions(lib${PROJECT_NAME} PUBLIC BIOGEARS_THROW_READONLY_EXCEPTIONS)
   endif()
-   if(${ROOT_PROJECT_NAME}_THROW_NAN_EXCEPTIONS )
+  if(${ROOT_PROJECT_NAME}_THROW_NAN_EXCEPTIONS )
         target_compile_definitions(lib${PROJECT_NAME} PUBLIC BIOGEARS_THROW_NAN_EXCEPTIONS )
   endif()
   target_include_directories(lib${PROJECT_NAME}
@@ -139,7 +140,7 @@ endif()
         CodeSynthesis::XSD
         ${CMAKE_DL_LIBS}
   )
-  target_link_libraries(lib${PROJECT_NAME} Biogears::common ${${PREFIX}_LIBS} )
+  target_link_libraries(lib${PROJECT_NAME} BiogearsLite::common ${${PREFIX}_LIBS} )
   add_dependencies(lib${PROJECT_NAME} ${XSD_TARGETS} prepare_runtime_dir)
 
 else()
@@ -147,12 +148,13 @@ else()
   # libBiogearsLite_cdm
   ###############################################################################
   add_library(lib${PROJECT_NAME}_cdm    SHARED ${LIB${PREFIX}_CDM_SOURCES} ${LIB${PREFIX}CMD__HEADERS})
-  add_library(Biogears::lib${PROJECT_NAME}_cdm ALIAS lib${PROJECT_NAME}_cdm)
+  add_library(BiogearsLite::cdm ALIAS lib${PROJECT_NAME}_cdm)
   set_target_properties(lib${PROJECT_NAME}_cdm
     PROPERTIES
     DEFINE_SYMBOL ${PROJECT_NAME}_cdm_EXPORTS
     FOLDER "Libraries"
     OUTPUT_NAME "${PROJECT_NAME}_cdm"
+    EXPORT_NAME "cdm"
     COMPILE_PDB_NAME "${PROJECT_NAME}_cdm"
     PROJECT_LABEL "lib${PROJECT_NAME}_cdm"
     DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX}
@@ -195,7 +197,7 @@ else()
   # libBiogearsLite
   ###############################################################################
   add_library(lib${PROJECT_NAME} SHARED ${LIB${PREFIX}_SOURCES} ${LIB${PREFIX}_HEADERS})
-  add_library(Biogears::lib${PROJECT_NAME} ALIAS lib${PROJECT_NAME})
+  add_library(BiogearsLite::lib${PROJECT_NAME} ALIAS lib${PROJECT_NAME})
   	set_target_properties(lib${PROJECT_NAME}
     PROPERTIES
     DEFINE_SYMBOL ${PROJECT_NAME}_EXPORTS
@@ -238,8 +240,8 @@ else()
   set(${PREFIX}_LIBS
             Eigen3::Eigen
             Log4cpp::Log4cpp
-			Biogears::lib${PROJECT_NAME}_common
-            Biogears::lib${PROJECT_NAME}_cdm
+			BiogearsLite::common
+            BiogearsLite::cdm
   )
   message(STATUS "${PREFIX}_LIBS=${${PREFIX}_LIBS}")
   target_link_libraries(lib${PROJECT_NAME}  PUBLIC ${${PREFIX}_LIBS} )
@@ -256,12 +258,13 @@ else()
   ###############################################################################
   if( ${ROOT_PROJECT_NAME}_BUILD_CIRCUIT_TESTS)
      add_library(lib${PROJECT_NAME}_circuit_test  SHARED ${LIB${PREFIX}_CIRCUIT_TEST_SOURCES} ${LIB${PREFIX}_CIRCUIT_TEST_HEADERS})
-     add_library(Biogears::lib${PROJECT_NAME}_circuit_test ALIAS lib${PROJECT_NAME}_circuit_test)
+     add_library(BiogearsLite::circuit_test ALIAS lib${PROJECT_NAME}_circuit_test)
        set_target_properties(lib${PROJECT_NAME}_circuit_test
        PROPERTIES
        DEFINE_SYMBOL ${PROJECT_NAME}_CIRCUIT_TEST_EXPORTS
        FOLDER "Libraries"
        OUTPUT_NAME "${PROJECT_NAME}_circuit_test"
+       EXPORT_NAME "circuit_test"
        COMPILE_PDB_NAME "${PROJECT_NAME}_circuit_test"
        PROJECT_LABEL "lib${PROJECT_NAME}_circuit_test"
        DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX}
@@ -287,7 +290,7 @@ else()
   set(${PREFIX}_CIRCUIT_TEST_LIBS
             CodeSynthesis::XSD
             Eigen3::Eigen
-            Biogears::lib${PROJECT_NAME}
+            BiogearsLite::lib${PROJECT_NAME}
   )
   message(STATUS "${PREFIX}_circuit_test_LIBS=${${PREFIX}_circuit_test_LIBS}")
     target_link_libraries(lib${PROJECT_NAME}_circuit_test  PUBLIC ${${PREFIX}_CIRCUIT_TEST_LIBS} )
@@ -302,59 +305,7 @@ else()
 	    install(FILES $<TARGET_PDB_FILE:lib${PROJECT_NAME}_circuit_test> DESTINATION lib/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>> OPTIONAL)
 	  endif()
    endif()
-  ###############################################################################
-  # libBiogearsLite_jni
-  ###############################################################################
-  if(Java_FOUND AND ${ROOT_PROJECT_NAME}_BUILD_JAVATOOLS AND ${ROOT_PROJECT_NAME}_BUILD_CIRCUIT_TESTS)
-     add_library(lib${PROJECT_NAME}_jni  SHARED ${LIB${PREFIX}_JNI_SOURCES} ${LIB${PREFIX}_JNI_HEADERS})
-     add_library(Biogears::lib${PROJECT_NAME}_jni ALIAS lib${PROJECT_NAME}_jni)
-  	   set_target_properties(lib${PROJECT_NAME}_jni
-       PROPERTIES
-       DEFINE_SYMBOL ${PROJECT_NAME}_jni_EXPORTS
-       FOLDER "Libraries"
-       OUTPUT_NAME "${PROJECT_NAME}_jni"
-       COMPILE_PDB_NAME "${PROJECT_NAME}_jni"
-       PROJECT_LABEL "lib${PROJECT_NAME}_jni"
-       DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX}
-       CXX_STANDARD 14
-       )
-     set_target_properties(lib${PROJECT_NAME}_jni PROPERTIES SOVERSION "${${ROOT_PROJECT_NAME}_LIB_VERSION}")
-  ###############################################################################
-  # libBiogearsLite_jni COMPILATION & LINKAGE MODIFICATIONS
-  ###############################################################################
-  set( ${PREFIX}_CPPFLAGS $<$<PLATFORM_ID:Windows>:_SCL_SECURE_NO_WARNINGS _CRT_SECURE_NO_WARNINGS NOMINMAX > )
-  target_compile_definitions(lib${PROJECT_NAME}_jni  PUBLIC ${${PREFIX}_CPPFLAGS_INTERFACE})
-  target_compile_definitions(lib${PROJECT_NAME}_jni  PRIVATE ${${PREFIX}_CPPFLAGS} )
-  target_compile_options(lib${PROJECT_NAME}_jni PRIVATE $<$<PLATFORM_ID:Windows>:/bigobj>  PRIVATE $<$<PLATFORM_ID:Windows>:/MP${${ROOT_PROJECT_NAME}_BUILD_PARALLEL_LEVEL}>)
-  
-  target_include_directories(lib${PROJECT_NAME}_jni 
-      PRIVATE  ${${PREFIX}_INCLUDE_DIR} ${${PREFIX}_PRIVATE_INCLUDE_DIR} ${${PREFIX}_GENERATED_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/libJNI/include
-	    PUBLIC   ${JNI_INCLUDE_DIRS}
-      INTERFACE 
-                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libJNI/include>
-                $<INSTALL_INTERFACE:include>
-  )
-  
-  set(${PREFIX}_jni_LIBS
-            CodeSynthesis::XSD
-            Eigen3::Eigen
-            Biogears::lib${PROJECT_NAME}_circuit_test
-  )
-	message(STATUS "${PREFIX}_jni_LIBS=${${PREFIX}_jni_LIBS}")
-    target_link_libraries(lib${PROJECT_NAME}_jni  PUBLIC ${${PREFIX}_jni_LIBS} )
-
-
-     install(TARGETS lib${PROJECT_NAME}_jni EXPORT libBiogearsLite
-         RUNTIME DESTINATION bin/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>
-         LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>
-         ARCHIVE DESTINATION lib/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>
-      )
-	  if(WIN32)
-		 install(FILES $<TARGET_PDB_FILE:lib${PROJECT_NAME}_jni> DESTINATION lib/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>> OPTIONAL)
-	  endif()
-   endif()
 endif() #${PREFIX}_BUILD_STATIC
-
 ######################################################################################################
 # INSTALL LOGIC
 ######################################################################################################

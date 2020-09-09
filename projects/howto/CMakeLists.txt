@@ -71,7 +71,7 @@ function(add_howto name)
     )
 
     list(APPEND ${EXAMPLE_NAME}_LIBS
-      Biogears::libbiogears
+      BiogearsLite::libbiogears_lite
       ${CMAKE_THREAD_LIBS_INIT}
       Threads::Threads
       howto::common
@@ -119,7 +119,7 @@ if(${ROOT_PROJECT_NAME}_BUILD_HOWTOS)
         CXX_STANDARD 14
         VS_DEBUGGER_WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/runtime
   )
-  target_link_libraries(howto-common Biogears::libbiogears)
+  target_link_libraries(howto-common BiogearsLite::libbiogears_lite)
   target_include_directories(howto-common
       PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/common-source
   )
