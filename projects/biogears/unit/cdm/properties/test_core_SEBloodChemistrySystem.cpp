@@ -414,11 +414,5 @@ TEST_F(TEST_FIXTURE_NAME, VenousCarbonDioxidePressure)
   auto dvalue = cbcs.GetVenousCarbonDioxidePressure(PressureUnit::Pa);
   EXPECT_NE(dvalue, dvalue);
 }
-TEST_F(TEST_FIXTURE_NAME, AcuteInflammatoryResponse)
-{
-  //todo:lmarin: Spruce this up after Matt's changes are fully in
-  EXPECT_FALSE( bcs->HasAcuteInflammatoryResponse());
-//  bcs->GetAcuteInflammatoryResponse().InitializeState();
-//  EXPECT_TRUE( bcs->HasAcuteInflammatoryResponse());
-}
+
 

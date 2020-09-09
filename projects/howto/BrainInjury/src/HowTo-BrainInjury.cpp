@@ -149,7 +149,7 @@ void HowToBrainInjury()
   tracker.AdvanceModelTime(300);
 
   // You can also get information from the compartment rather than the system, in case you want other metrics
-  const SELiquidCompartment* brain = bg->GetCompartments().GetLiquidCompartment(BGE::VascularLiteCompartment::Brain);
+  const SELiquidCompartment* brain = bg->GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Brain);
 
   bg->GetLogger()->Info(std::stringstream() << "The patient has had a severe brain injury for 5 minutes");
   bg->GetLogger()->Info(std::stringstream() << "Systolic Pressure : " << bg->GetCardiovascularSystem()->GetSystolicArterialPressure(PressureUnit::mmHg) << PressureUnit::mmHg);

@@ -128,7 +128,7 @@ void HowToSmoke()
   bg->GetLogger()->Info(std::stringstream() << "Carbon Monoxide Saturation : " << bg->GetBloodChemistrySystem()->GetCarbonMonoxideSaturation());
   bg->GetLogger()->Info(std::stringstream() << "Pulse Oximetry : " << bg->GetBloodChemistrySystem()->GetPulseOximetry());
   // There are liquid compartments for each of the gas pulmonary compartments, these track the trasportation of liquid and solid substances through the pulmonary tract, and their deposition
-  bg->GetLogger()->Info(std::stringstream() << "Particulate Deposition : " << bg->GetCompartments().GetLiquidCompartment(BGE::PulmonaryCompartment::RightAlveoli)->GetSubstanceQuantity(*Particulate)->GetMassDeposited(MassUnit::ug) << MassUnit::ug);
+  bg->GetLogger()->Info(std::stringstream() << "Particulate Deposition : " << bg->GetCompartments().GetLiquidCompartment(BGE::PulmonaryCompartment::Alveoli)->GetSubstanceQuantity(*Particulate)->GetMassDeposited(MassUnit::ug) << MassUnit::ug);
 
   bg->GetLogger()->Info(std::stringstream() << "Cardiac Output : " << bg->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min) << VolumePerTimeUnit::mL_Per_min);
   bg->GetLogger()->Info(std::stringstream() << "Mean Arterial Pressure : " << bg->GetCardiovascularSystem()->GetMeanArterialPressure(PressureUnit::mmHg) << PressureUnit::mmHg);

@@ -79,10 +79,6 @@ void HowToTensionPneumothorax()
   pneumo.SetType(CDM::enumPneumothoraxType::Closed);
   //pneumo.SetType(CDM::enumPneumothoraxType::Open);
   pneumo.GetSeverity().SetValue(0.75);
-
-  // It can be on the Left or right side
-  pneumo.SetSide(CDM::enumSide::Right);
-  //pneumo.SetSide(CDM::enumSide::Left);
   pneumo.SetComment("ICD-9: 860.0");
   //pneumo.SetComment('ICD-9: 860.0');
   bg->ProcessAction(pneumo);
@@ -107,10 +103,6 @@ void HowToTensionPneumothorax()
 
   // You can turn it off when you would like to remove the intervention
   needleDecomp.SetActive(false);
-
-  // It can be on the Left or right side (it's a good idea to do it on the side of the pneumothorax ;)
-  needleDecomp.SetSide(CDM::enumSide::Right);
-  //needleDecomp.SetSide(CDM::enumSide::Left);
 
   bg->ProcessAction(needleDecomp);
   bg->GetLogger()->Info("Giving the patient a needle decompression");

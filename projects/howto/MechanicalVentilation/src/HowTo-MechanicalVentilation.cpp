@@ -52,18 +52,18 @@ public:
   virtual void HandlePatientEvent(CDM::enumPatientEvent::value type, bool active, const SEScalarTime* time = nullptr)
   {
     switch (type) {
-    case CDM::enumPatientEvent::MildAcuteRespiratoryDistress: {
+    case CDM::enumPatientEvent::AcuteLungInjury: {
       if (active)
-        m_Logger->Info("Do something for MildAcuteRespiratoryDistress");
+        m_Logger->Info("Do something for AcuteLungInjury");
       else
-        m_Logger->Info("Stop doing something for MildAcuteRespiratoryDistress");
+        m_Logger->Info("Stop doing something for AcuteLungInjury");
       break;
     }
-    case CDM::enumPatientEvent::ModerateAcuteRespiratoryDistress: {
+    case CDM::enumPatientEvent::AcuteRespiratoryDistress: {
       if (active)
-        m_Logger->Info("Do something for ModerateAcuteRespiratoryDistress");
+        m_Logger->Info("Do something for AcuteRespiratoryDistress");
       else
-        m_Logger->Info("Stop doing something for ModerateAcuteRespiratoryDistress");
+        m_Logger->Info("Stop doing something for AcuteRespiratoryDistress");
       break;
     }
     case CDM::enumPatientEvent::SevereAcuteRespiratoryDistress: {
@@ -128,8 +128,7 @@ void HowToMechanicalVentialtion()
     {
       SELobarPneumonia lobarPneumonia;
       lobarPneumonia.GetSeverity().SetValue(0.2);
-      lobarPneumonia.GetLeftLungAffected().SetValue(1.0);
-      lobarPneumonia.GetRightLungAffected().SetValue(1.0);
+      lobarPneumonia.GetLungAffectedFraction().SetValue(1.0);
       conditions.push_back(&lobarPneumonia);
     }
     if (false) //Generic ImpairedAlveolarExchange (no specified reason)
@@ -191,7 +190,7 @@ void HowToMechanicalVentialtion()
   //Compartment data
   //Arteriole bicarbonate
   SESubstance* HCO3 = bg->GetSubstanceManager().GetSubstance("Bicarbonate");
-  bg->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularLiteCompartment::Aorta, *HCO3, "Concentration", MassPerVolumeUnit::ug_Per_mL);
+  bg->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularCompartment::Aorta, *HCO3, "Concentration", MassPerVolumeUnit::ug_Per_mL);
   //Lactate - this should have a relationship to lactic acid
   SESubstance* Lactate = bg->GetSubstanceManager().GetSubstance("Lactate");
   bg->GetEngineTrack()->GetDataRequestManager().CreateSubstanceDataRequest().Set(*Lactate, "BloodConcentration", MassPerVolumeUnit::ug_Per_mL);
@@ -256,9 +255,6 @@ void HowToMechanicalVentialtion()
   pneumo.SetType(CDM::enumPneumothoraxType::Open);
   //pneumo.SetType(CDM::enumPneumothoraxType::Open);
   pneumo.GetSeverity().SetValue(0.3);
-  // It can be on the Left or right side
-  pneumo.SetSide(CDM::enumSide::Right);
-  //pneumo.SetSide(CDM::enumSide::Left);
   bg->ProcessAction(pneumo);
 
   tracker.AdvanceModelTime(60.0);
