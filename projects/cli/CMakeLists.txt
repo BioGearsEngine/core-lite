@@ -109,5 +109,11 @@ if(Boost_FOUND)
    )
 endif()
 ####
+install(TARGETS bg-cli bg-scenario
+     RUNTIME DESTINATION bin
+     LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
+     ARCHIVE DESTINATION lib
+)
+
 message(STATUS "")
 endif()

@@ -66,8 +66,8 @@ add_source_files(PUBLIC_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/libBiogearsLite/include
 add_source_files(PUBLIC_CIRCUIT_TEST_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/libCircuitTest/include "*.h"  "Headers\\Public\\")
 add_source_files(CIRCUIT_TEST_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/libCircuitTest/src "*cpp" "Sources\\")
 #Biogears JNI
-add_source_files(PUBLIC_JNI_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/libJNI/include "*.h"  "Headers\\Public\\")
-add_source_files(JNI_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/libJNI/src "*cpp" "Sources\\")
+add_source_files(PUBLIC_JNI_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/libJni/include "*.h"  "Headers\\Public\\")
+add_source_files(JNI_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/libJni/src "*cpp" "Sources\\")
 
 set(LIB${PREFIX}_CDM_HEADERS ${CDM_HDRS} ${PUBLIC_CDM_HDRS} ${GEN_CDM_HDRS})
 set(LIB${PREFIX}_CDM_SOURCES ${CDM_SRCS} ${GEN_CDM_SRCS})
@@ -321,7 +321,7 @@ endif()
 install(DIRECTORY 
     libBiogearsLite/include/biogears
     libCDM/include/biogears
-    libJNI/include/biogears
+    libJni/include/biogears
     libCircuitTest/include/biogears
 	  ${CMAKE_CURRENT_BINARY_DIR}/biogears
     DESTINATION include/
