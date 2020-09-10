@@ -90,7 +90,7 @@ if(${PREFIX}_BUILD_STATIC)
   add_library(BiogearsLite::lib${PROJECT_NAME} ALIAS lib${PROJECT_NAME})
 	set_target_properties(lib${PROJECT_NAME}
     PROPERTIES
-    DEFINE_SYMBOL ${PROJECT_NAME}_EXPORTS
+    DEFINE_SYMBOL biogears_EXPORTS
     FOLDER "Libraries"
     OUTPUT_NAME "${PROJECT_NAME}"
     COMPILE_PDB_NAME "${PROJECT_NAME}"
@@ -151,7 +151,7 @@ else()
   add_library(BiogearsLite::cdm ALIAS lib${PROJECT_NAME}_cdm)
   set_target_properties(lib${PROJECT_NAME}_cdm
     PROPERTIES
-    DEFINE_SYMBOL ${PROJECT_NAME}_cdm_EXPORTS
+    DEFINE_SYMBOL biogears_cdm_EXPORTS
     FOLDER "Libraries"
     OUTPUT_NAME "${PROJECT_NAME}_cdm"
     EXPORT_NAME "cdm"
@@ -200,7 +200,7 @@ else()
   add_library(BiogearsLite::lib${PROJECT_NAME} ALIAS lib${PROJECT_NAME})
   	set_target_properties(lib${PROJECT_NAME}
     PROPERTIES
-    DEFINE_SYMBOL ${PROJECT_NAME}_EXPORTS
+    DEFINE_SYMBOL biogears_EXPORTS
     FOLDER "Libraries"
     OUTPUT_NAME "${PROJECT_NAME}"
     COMPILE_PDB_NAME "${PROJECT_NAME}"
@@ -261,7 +261,7 @@ else()
      add_library(BiogearsLite::circuit_test ALIAS lib${PROJECT_NAME}_circuit_test)
        set_target_properties(lib${PROJECT_NAME}_circuit_test
        PROPERTIES
-       DEFINE_SYMBOL ${PROJECT_NAME}_CIRCUIT_TEST_EXPORTS
+       DEFINE_SYMBOL biogears_CIRCUIT_TEST_EXPORTS
        FOLDER "Libraries"
        OUTPUT_NAME "${PROJECT_NAME}_circuit_test"
        EXPORT_NAME "circuit_test"
