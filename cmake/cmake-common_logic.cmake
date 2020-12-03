@@ -310,7 +310,6 @@ function(configure_version_information _SUCESS_CHECK)
  endif() 
   
 endfunction(configure_version_information)
-
 ########################################################################################################
 # 
 # Appends a suffix to the project name to make it easier to tell worktree solutions apart
