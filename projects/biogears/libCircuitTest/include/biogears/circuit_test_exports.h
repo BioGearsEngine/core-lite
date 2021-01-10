@@ -11,17 +11,21 @@ specific language governing permissions and limitations under the License.
 **************************************************************************************/
 
 #pragma once
-
+#if defined(biogears_lite_BUILT_AS_STATIC)
+#define BIOGEARS_CIRCUIT_TEST_API
+#define BIOGEARS_CIRCUIT_PRIVATE_API
+#else
 #if defined(__clang__)
 #define BIOGEARS_CIRCUIT_TEST_API
 #elif defined(__gnu_linux__)
 #define BIOGEARS_CIRCUIT_TEST_API __attribute__((visibility("default")))
 #elif defined(_WIN32)
-#  ifdef biogears_CIRCUIT_TEST_EXPORTS
+#  ifdef biogears_lite_CIRCUIT_TEST_EXPORTS
 #    define BIOGEARS_CIRCUIT_TEST_API __declspec(dllexport)
 #   else
 #     define BIOGEARS_CIRCUIT_TEST_API __declspec(dllimport)
 #   endif
 #else
 #define BIOGEARS_CIRCUIT_TEST_API
+#endif
 #endif

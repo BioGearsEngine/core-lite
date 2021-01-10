@@ -10,19 +10,23 @@ CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 **************************************************************************************/
 
-
 #pragma once
 
+#if defined(biogears_lite_BUILT_AS_STATIC)
+#define BIOGEARS_CIRCUIT_TEST_API
+#define BIOGEARS_CIRCUIT_PRIVATE_API
+#else
 #if defined(__clang__)
-  #define BIOGEARS_JNI_API
+#define BIOGEARS_JNI_API
 #elif defined(__gnu_linux__)
-  #define BIOGEARS_JNI_API __attribute__ ((visibility ("default")))
+#define BIOGEARS_JNI_API __attribute__((visibility("default")))
 #elif defined(_WIN32)
-  #ifdef biogears_jni_EXPORTS
-    #define BIOGEARS_JNI_API __declspec(dllexport)
-  #else
-    #define BIOGEARS_JNI_API __declspec(dllimport)
-  #endif
-#else 
-  #define BIOGEARS_JNI_API
+#ifdef biogears_lite_jni_EXPORTS
+#define BIOGEARS_JNI_API __declspec(dllexport)
+#else
+#define BIOGEARS_JNI_API __declspec(dllimport)
+#endif
+#else
+#define BIOGEARS_JNI_API
+#endif
 #endif

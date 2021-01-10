@@ -10,20 +10,23 @@ CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 **************************************************************************************/
 
-
 #pragma once
-
+#if defined(biogears_lite_BUILT_AS_STATIC)
+#define BIOGEARS_CDM_API
+#define BIOGEARS_CDM_PRIVATE_API
+#else
 #if defined(__clang__)
-  #define BIOGEARS_CDM_API
-#elif defined(__gnu_linux__) 
-  #define BIOGEARS_CDM_API __attribute__ ((visibility ("default")))
+#define BIOGEARS_CDM_API
+#elif defined(__gnu_linux__)
+#define BIOGEARS_CDM_API __attribute__((visibility("default")))
 #elif defined(_WIN32)
-  //#include <biogears/string-exports.h>
-  //#ifdef biogears_cdm_EXPORTS
-    #define BIOGEARS_CDM_API __declspec(dllexport)
-  //#else
-    //#define BIOGEARS_CDM_API __declspec(dllimport)
-  //#endif
-#else 
-  #define BIOGEARS_CDM_API
+//#include <biogears/string-exports.h>
+//#ifdef biogears_cdm_EXPORTS
+#define BIOGEARS_CDM_API __declspec(dllexport)
+//#else
+//#define BIOGEARS_CDM_API __declspec(dllimport)
+//#endif
+#else
+#define BIOGEARS_CDM_API
+#endif
 #endif
