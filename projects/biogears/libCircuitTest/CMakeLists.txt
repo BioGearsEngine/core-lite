@@ -5,8 +5,8 @@ message(STATUS "")
 message(STATUS "Configuring ${PROJECT_NAME}")
 
 #Biogears circuit_test
-add_source_files(CIRCUIT_TEST_PUBLIC_HDRS ${BIOGEARS_SOURCE_DIR}/libCircuitTest/include "*.h"  "Headers\\Public\\")
-add_source_files(CIRCUIT_TEST_SRCS ${BIOGEARS_SOURCE_DIR}/libCircuitTest/src "*cpp" "Sources\\")
+add_source_files(CIRCUIT_TEST_PUBLIC_HDRS LOCATION ${BIOGEARS_SOURCE_DIR}/libCircuitTest/include REGEX "*.h"  SOURCE_GROUP "Headers\\Public\\")
+add_source_files(CIRCUIT_TEST_SRCS        LOCATION ${BIOGEARS_SOURCE_DIR}/libCircuitTest/src REGEX "*cpp"     SOURCE_GROUP "Sources\\")
 
 set(LIB${PREFIX}_CIRCUIT_TEST_HEADERS ${CIRCUIT_TEST_HDRS} ${PUBLIC_CIRCUIT_TEST_HDRS} ${GEN_CIRCUIT_TEST_HDRS})
 set(LIB${PREFIX}_CIRCUIT_TEST_SOURCES ${CIRCUIT_TEST_SRCS} ${GEN_CIRCUIT_TEST_SRCS})

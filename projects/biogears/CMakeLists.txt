@@ -5,6 +5,7 @@
 ###############################################################################
 # Options
 ###############################################################################
+option (${ROOT_PROJECT_NAME}_BUILD_IO_LIBRARY "When enabled an extra IO Library will be built allowing BioGears to fall back to embeded versions of resource files " ON)
 
 option (${ROOT_PROJECT_NAME}_THROW_READONLY_EXCEPTIONS "Toggle the throwing CommonDataModelExceptions when a ReadOnly SEScalar is Modified." OFF)
 option (${ROOT_PROJECT_NAME}_THROW_NAN_EXCEPTIONS "Toggle the throwing CommonDataModelExceptions when an  SEScalar is NaNExceptions." OFF)
@@ -44,7 +45,7 @@ set (BIOGEARS_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 REGISTER_XSD_DIR(  "${PROJECT_SOURCE_DIR}/share/xsd/"
                     CONFIG "${PROJECT_SOURCE_DIR}/share/xsd/BioGearsDataModel.cfg"
-                    PROJECT "biogears" COMPONENT "schema" RESOURCE_FOLDER "resources/schema"
+                    PROJECT "generated/biogears" COMPONENT "schema" RESOURCE_FOLDER "resources/schema"
                     TARGETS XSD_TARGETS VERBOSITY 1)
 
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/libBiogearsLite/src/version.cpp.in  ${CMAKE_CURRENT_BINARY_DIR}/libBiogearsLite/src/version.cpp NEWLINE_STYLE LF)
@@ -64,6 +65,12 @@ if(${PREFIX}_BUILD_STATIC)
   ###############################################################################
   add_subdirectory(libBiogearsLite)
 else()
+  ###############################################################################
+  # libBiogears_io
+  ###############################################################################
+  if(${ROOT_PROJECT_NAME}_BUILD_IO_LIBRARY)
+    add_subdirectory(libIO)
+  endif()
   ###############################################################################
   # libBiogears_cdm
   ###############################################################################
@@ -96,7 +103,7 @@ install(DIRECTORY
     libCDM/include/biogears
     libJNI/include/biogears
     libCircuitTest/include/biogears
-	  ${CMAKE_CURRENT_BINARY_DIR}/biogears
+	  ${CMAKE_CURRENT_BINARY_DIR}/generated/biogears
     DESTINATION include/
     FILE_PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
   )

@@ -25,10 +25,10 @@ message(STATUS "")
 message(STATUS "Configuring ${PROJECT_NAME}")
 
 #Scenario Driver
-add_source_files(HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include "*.h"   "Headers\\Public\\")
-add_source_files(SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/ "*.cpp"   "Sources\\")
-add_source_files(CONTROLLER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/ "bg-cli-main.cpp" "Sources\\")
-add_source_files(DRONE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/ "bg-scenario-main.cpp" "Sources\\")
+add_source_files(HEADERS LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/include REGEX "*.h" SOURCE_GROUP "Headers\\Public\\")
+add_source_files(SOURCES LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/src/ REGEX "*.cpp"  SOURCE_GROUP "Sources\\")
+add_source_files(CONTROLLER_SOURCES LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/ REGEX "bg-cli-main.cpp" SOURCE_GROUP "Sources\\")
+add_source_files(DRONE_SOURCES LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/ REGEX "bg-scenario-main.cpp" SOURCE_GROUP "Sources\\")
 configure_file(src/utils/KnownPaths.h.in src/utils/KnownPaths.h )
 
 ##########################
