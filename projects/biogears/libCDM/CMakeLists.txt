@@ -20,7 +20,7 @@ message(STATUS CMAKE_GENERATOR=${CMAKE_GENERATOR})
   ###############################################################################
   # libBiogears_cdm
   ###############################################################################
-  add_library(lib${PROJECT_NAME}_cdm    SHARED ${LIB${PREFIX}_CDM_SOURCES} ${LIB${PREFIX}_CMD_HEADERS})
+  add_library(lib${PROJECT_NAME}_cdm    SHARED ${LIB${PREFIX}_CDM_SOURCES} ${LIB${PREFIX}_CDM_HEADERS})
   add_library(BiogearsLite::cdm ALIAS lib${PROJECT_NAME}_cdm)
   set_target_properties(lib${PROJECT_NAME}_cdm
     PROPERTIES

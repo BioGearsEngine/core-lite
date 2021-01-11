@@ -1,35 +1,10 @@
 message(STATUS "  Configuring lib${PROJECT_NAME}_io")
 ###############################################################################
-#Sorce and Header Defines
+#Source files
 ###############################################################################
-#Biogears CDM
-add_source_files(CDM_PUBLIC_HDRS LOCATION ${BIOGEARS_SOURCE_DIR}/libCDM REGEX "*.h" SOURCE_GROUP "Headers\\Public\\")
-add_source_files(CDM_GEN_HDRS LOCATION ${BIOGEARS_BINARY_DIR}/biogears REGEX "*.hxx" SOURCE_GROUP "Headers\\Public\\")
-add_source_files(CDM_GEN_SRCS LOCATION ${BIOGEARS_BINARY_DIR}/biogears REGEX "*.cxx" SOURCE_GROUP "Sources\\")
-
-set(LIB${PREFIX}_IO_HEADERS ${CDM_PUBLIC_HDRS} ${CDM_GEN_HDRS})
-set(LIB${PREFIX}_IO_SOURCES ${CDM_PUBLIC_SRCS} ${CDM_GEN_SRCS})
-
-###############################################################################
-#Define Logic
-###############################################################################
-FILE(GLOB_RECURSE XSD_FILES              RELATIVE "${PROJECT_SOURCE_DIR}/share/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/xsd/*.xsd" )
-FILE(GLOB_RECURSE DATA_CONFIG_FILES      RELATIVE "${PROJECT_SOURCE_DIR}/share/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/config/*.xml")
-FILE(GLOB_RECURSE DATA_ECG_FILES         RELATIVE "${PROJECT_SOURCE_DIR}/share/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/ecg/*.xml")
-FILE(GLOB_RECURSE DATA_ENIRONMENT_FILES  RELATIVE "${PROJECT_SOURCE_DIR}/share/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/environments/*.xml")
-FILE(GLOB_RECURSE DATA_NUTRITION_FILES   RELATIVE "${PROJECT_SOURCE_DIR}/share/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/nutrition/*.xml")
-FILE(GLOB_RECURSE DATA_OVERRIDE_FILES    RELATIVE "${PROJECT_SOURCE_DIR}/share/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/override/*.xml")
-FILE(GLOB_RECURSE DATA_PATIENT_FILES     RELATIVE "${PROJECT_SOURCE_DIR}/share/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/patients/*.xml")
-FILE(GLOB_RECURSE DATA_STATE_FILES       RELATIVE "${PROJECT_SOURCE_DIR}/share/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/states/*.xml")
-FILE(GLOB_RECURSE DATA_SUBSTANCE_FILES   RELATIVE "${PROJECT_SOURCE_DIR}/share/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/substances/*.xml")
-
-LIST(APPEND IO_SOURCE_FILES ${XSD_FILES} ${DATA_CONFIG_FILES} ${DATA_ECG_FILES} ${DATA_ENVIORNMENT_FILES} ${DATA_NUTRITION_FILES} ${DATA_OVERRIDE_FILES} ${DATA_PATIENT_FILES}
-                            ${DATA_STATE_FILES} ${DATA_SUBSTANCE_FILES})
-
 function(generate_hex_header)
-
   set(options )
-  set(oneValueArgs INPUT OUTPUT FOLDER)
+  set(oneValueArgs INPUT OUTPUT FOLDER PATH)
   set(multiValueArgs NAMESPACE)
 
   cmake_parse_arguments("" "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
@@ -42,9 +17,11 @@ function(generate_hex_header)
   if (_INPUT AND _OUTPUT)
     if( NOT EXISTS ${_header} OR NOT EXISTS ${_source} )
       get_filename_component(_source_name ${_OUTPUT} NAME)
-      message(STATUS "\tGenerating ${_source_name}.{hxx,cxx}")
+      get_filename_component(_source_directory ${_OUTPUT} DIRECTORY )
+
+      message(STATUS  "                   ${_source_name}.{hxx,cxx}")
       execute_process( WORKING_DIRECTORY ${BIOGEARS_BINARY_DIR}/
-      COMMAND ${CMAKE_COMMAND} -DIN=${_INPUT} -DOUT=${_OUTPUT} -DNS=${_NS_SAFE}  -P ${PROJECT_SOURCE_DIR}/cmake/common/c_encode_file.cmake
+      COMMAND ${CMAKE_COMMAND} -DIN=${_INPUT} -DOUT=${_OUTPUT} -DNS=${_NS_SAFE}  -DPATH="${_PATH}" -P ${PROJECT_SOURCE_DIR}/cmake/common/c_encode_file.cmake
                         ERROR_VARIABLE CMAKE_ERROR
                         #OUTPUT_QUIET
                       )
@@ -55,49 +32,142 @@ function(generate_hex_header)
                 )
       endif(CMAKE_ERROR)
     endif()
+
     add_custom_command(
       OUTPUT  "${_OUTPUT}.hxx" "${_OUTPUT}.cxx"
       DEPENDS ${_INPUT} ${PROJECT_SOURCE_DIR}/cmake/common/c_encode_file.cmake
-      COMMAND ${CMAKE_COMMAND} -DIN="${_INPUT}" -DOUT="${_OUTPUT}" -DNS="${_NS_SAFE}"  -P "${PROJECT_SOURCE_DIR}/cmake/common/c_encode_file.cmake"
+      COMMAND ${CMAKE_COMMAND} -DIN="${_INPUT}" -DOUT="${_OUTPUT}" -DNS="${_NS_SAFE}"  -DPATH="${_PATH}" -P "${PROJECT_SOURCE_DIR}/cmake/common/c_encode_file.cmake"
     )
     get_filename_component( content_name ${_INPUT} NAME_WE)
 
     string (REPLACE "@" "_at_" content_name "${content_name}")
   
-    add_custom_target( generate_${content_name}   DEPENDS ${_OUTPUT})
+
+    add_custom_target( generate_${content_name}
+      DEPENDS  "${_OUTPUT}.hxx" "${_OUTPUT}.cxx"
+    )
     set_target_properties(generate_${content_name} PROPERTIES 
-      FOLDER "${_FOLDER}"
+      FOLDER ${_FOLDER}
     )
   else()    
     message(FATAL_ERROR "generate_hex_header requires arguments INPUT <file> and OUTPUT <file> ")
   endif()
-
 endfunction(generate_hex_header)
 
 set ( IO_VERSION "${${ROOT_PROJECT_NAME}_LIB_VERSION}")
 set ( IO_INCLUDE "c_encoded/${IO_VERSION}")
 
 message(STATUS "  Iterating over source files to be encoded as C strings. This is a long operation, but only on the initial pass or when the source file changes.")
+message(STATUS "  Encoding: runtime/")
+message(STATUS "            : xsd/")
 
-foreach(src IN LISTS IO_SOURCE_FILES)
+FILE(GLOB_RECURSE XSD_FILES              RELATIVE "${PROJECT_SOURCE_DIR}/share/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/xsd/*.xsd" )
+foreach( src IN LISTS XSD_FILES) 
   get_filename_component(src_dir ${src} DIRECTORY)
-  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/${src} 
-                       FOLDER "Code Generators/IO/${src_dir}"
-                      )
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/${src}
+                       FOLDER "Code Generators/IO/${src_dir}"  PATH ${src}
+  )
+endforeach()
+
+message(STATUS "            : data/config")
+FILE(GLOB_RECURSE DATA_CONFIG_FILES      RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/config/*.xml")
+foreach( src IN LISTS DATA_CONFIG_FILES) 
+  get_filename_component(src_dir ${src} DIRECTORY)
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/${src}
+                       FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
+  )
+endforeach()
+
+message(STATUS "            : data/ecg")
+FILE(GLOB_RECURSE DATA_ECG_FILES         RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/ecg/*.xml")
+foreach( src IN LISTS DATA_ECG_FILES) 
+  get_filename_component(src_dir ${src} DIRECTORY)
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+                       FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
+  )
+endforeach()
+
+message(STATUS "            : data/environments")
+FILE(GLOB_RECURSE DATA_ENIRONMENT_FILES  RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/environments/*.xml")
+foreach( src IN LISTS DATA_ENIRONMENT_FILES) 
+  get_filename_component(src_dir ${src} DIRECTORY)
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+                       FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
+  )
+endforeach()
+
+message(STATUS "            : data/nutrition")
+FILE(GLOB_RECURSE DATA_NUTRITION_FILES   RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/nutrition/*.xml")
+foreach( src IN LISTS DATA_NUTRITION_FILES) 
+  get_filename_component(src_dir ${src} DIRECTORY)
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+                       FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
+  )
+endforeach()
+
+message(STATUS "            : data/override")
+FILE(GLOB_RECURSE DATA_OVERRIDE_FILES    RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/override/*.xml")
+foreach( src IN LISTS DATA_OVERRIDE_FILES) 
+  get_filename_component(src_dir ${src} DIRECTORY)
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+                       FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
+  )
+endforeach()
+
+message(STATUS "            : data/patients")
+FILE(GLOB_RECURSE DATA_PATIENT_FILES     RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/patients/*.xml")
+foreach( src IN LISTS DATA_PATIENT_FILES) 
+  get_filename_component(src_dir ${src} DIRECTORY)
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+                       FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
+  )
+endforeach()
+
+message(STATUS "            : data/states")
+FILE(GLOB_RECURSE DATA_STATE_FILES       RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/states/*.xml")
+foreach( src IN LISTS DATA_STATE_FILES) 
+  get_filename_component(src_dir ${src} DIRECTORY)
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+                       FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
+  )
+endforeach()
+
+message(STATUS "            : data/substances")
+FILE(GLOB_RECURSE DATA_SUBSTANCE_FILES   RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/substances/*.xml")
+foreach( src IN LISTS DATA_SUBSTANCE_FILES) 
+  get_filename_component(src_dir ${src} DIRECTORY)
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+                       FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
+  )
 endforeach()
 
 add_source_files(GEN_HDRS LOCATION ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/
                REGEX "*.hxx" SOURCE_GROUP  "Headers\\Generated\\${IO_VERSION}\\")
 add_source_files(GEN_SRCS LOCATION ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/
-               REGEX "*.cxx" SOURCE_GROUP  "Sources\\Generated\\${IO_VERSION}\\")
+               REGEX "*.cxx" SOURCE_GROUP  "Sources\\Generated\\${IO_VERSION}\\directories\\")
 
-               message(STATUS "GEN_HDRS=${GEN_HDRS}")
-               message(STATUS "GEN_SRCS=${GEN_SRCS}")
+
+FILE(GLOB_RECURSE INTERFACE_FILE_LIST   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/src/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp.in")
+
+foreach( source_file IN LISTS INTERFACE_FILE_LIST)
+  get_filename_component( base_name ${source_file} NAME_WE)
+  get_filename_component( base_directory ${source_file} DIRECTORY)
+  configure_file( "src/${source_file}" ${BIOGEARS_BINARY_DIR}/generated/biogears/io/${base_directory}/${base_name}.cpp NEWLINE_STYLE LF)
+endforeach()
+
+add_source_files(INTERFACE_HEADERS LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/include/
+               REGEX "*.h" SOURCE_GROUP  "Headers\\Public\\")
+add_source_files(INTERFACE_SOURCES LOCATION ${BIOGEARS_BINARY_DIR}/generated/biogears/io/
+               REGEX "*.cpp" SOURCE_GROUP  "Sources\\")
+add_source_files(INTERFACE_SOURCES LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/src/
+               REGEX "*.cpp" SOURCE_GROUP  "Sources\\")
+
+
 ###############################################################################
 # libBiogears_io
 ###############################################################################
-add_library(lib${PROJECT_NAME}_io  SHARED ${GEN_HDRS} ${GEN_SRCS})
-add_library(Biogears::lib${PROJECT_NAME}_io ALIAS lib${PROJECT_NAME}_io)
+add_library(lib${PROJECT_NAME}_io  SHARED ${GEN_HDRS} ${GEN_SRCS} ${INTERFACE_HEADERS} ${INTERFACE_SOURCES})
+add_library(BiogearsLite::lib${PROJECT_NAME}_io ALIAS lib${PROJECT_NAME}_io)
 set_target_properties(lib${PROJECT_NAME}_io
   PROPERTIES
   DEFINE_SYMBOL ${PROJECT_NAME}_io_EXPORTS
@@ -120,15 +190,18 @@ target_compile_definitions(lib${PROJECT_NAME}_io  PRIVATE ${${PREFIX}_CPPFLAGS} 
 target_compile_options(lib${PROJECT_NAME}_io PRIVATE $<$<PLATFORM_ID:Windows>:/bigobj>  PRIVATE $<$<PLATFORM_ID:Windows>:/MP${${ROOT_PROJECT_NAME}_BUILD_PARALLEL_LEVEL}>)
 
 target_include_directories(lib${PROJECT_NAME}_io 
-    PRIVATE  ${${PREFIX}_INCLUDE_DIR} ${${PREFIX}_PRIVATE_INCLUDE_DIR} ${${PREFIX}_GENERATED_INCLUDE_DIR} ${BIOGEARS_SOURCE_DIR}/libCDM/include
+    PRIVATE ${BIOGEARS_SOURCE_DIR}/libIO/include  
+            ${BIOGEARS_SOURCE_DIR}/libIO/include
+            ${BIOGEARS_BINARY_DIR}/generated
+            ${BIOGEARS_BINARY_DIR}/generated/c_encoded/7.3
     INTERFACE 
-              $<BUILD_INTERFACE:${BIOGEARS_SOURCE_DIR}/libCDM/include>
+              $<BUILD_INTERFACE:${BIOGEARS_SOURCE_DIR}/libIO/include>
+              $<BUILD_INTERFACE:${BIOGEARS_BINARY_DIR}/generated>
               $<INSTALL_INTERFACE:include>
 )
 
 set(${PREFIX}_io_LIBS
-          CodeSynthesis::XSD
-          Eigen3::Eigen
+          BiogearsLite::common
 )
 target_link_libraries(lib${PROJECT_NAME}_io  PUBLIC ${${PREFIX}_io_LIBS} )
 
