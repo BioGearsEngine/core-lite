@@ -2,7 +2,6 @@
 
 #include <biogears/filesystem/path.h>
 
-
 namespace biogears {
 namespace io {
   bool generate_substances_directory(const char* file)

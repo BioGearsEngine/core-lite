@@ -21,7 +21,7 @@ specific language governing permissions and limitations under the License.
   #elif defined(__gnu_linux__) 
     #define BIOGEARS_IO_API __attribute__ ((visibility ("default")))
   #elif defined(_WIN32)
-    #ifdef biogears_io_EXPORTS
+    #ifdef biogears_lite_io_EXPORTS
       #define BIOGEARS_IO_API __declspec(dllexport)
     #else
       #define BIOGEARS_IO_API __declspec(dllimport)

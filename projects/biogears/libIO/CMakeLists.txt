@@ -186,7 +186,7 @@ target_include_directories(lib${PROJECT_NAME}_io
     PRIVATE ${BIOGEARS_SOURCE_DIR}/libIO/include  
             ${BIOGEARS_SOURCE_DIR}/libIO/include
             ${BIOGEARS_BINARY_DIR}/generated
-            ${BIOGEARS_BINARY_DIR}/generated/c_encoded/7.3
+            ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}
     INTERFACE 
               $<BUILD_INTERFACE:${BIOGEARS_SOURCE_DIR}/libIO/include>
               $<BUILD_INTERFACE:${BIOGEARS_BINARY_DIR}/generated>
