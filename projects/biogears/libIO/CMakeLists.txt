@@ -15,22 +15,17 @@ function(generate_hex_header)
 
 
   if (_INPUT AND _OUTPUT)
+    
+    get_filename_component( content_name ${_INPUT} NAME_WE)
+    string (REPLACE "@" "_at_" content_name "${content_name}")
+
     if( NOT EXISTS ${_header} OR NOT EXISTS ${_source} )
       get_filename_component(_source_name ${_OUTPUT} NAME)
       get_filename_component(_source_directory ${_OUTPUT} DIRECTORY )
 
       message(STATUS  "                   ${_source_name}.{hxx,cxx}")
-      execute_process( WORKING_DIRECTORY ${BIOGEARS_BINARY_DIR}/
-      COMMAND ${CMAKE_COMMAND} -DIN=${_INPUT} -DOUT=${_OUTPUT} -DNS=${_NS_SAFE}  -DPATH="${_PATH}" -P ${PROJECT_SOURCE_DIR}/cmake/common/c_encode_file.cmake
-                        ERROR_VARIABLE CMAKE_ERROR
-                        #OUTPUT_QUIET
-                      )
-      if(CMAKE_ERROR)
-        message(FATAL_ERROR "Failed to generate c_encoding\n"
-                            "Error Msg:\n"
-                            "${CMAKE_ERROR}\n"
-                )
-      endif(CMAKE_ERROR)
+      file(WRITE ${_header} "//! THIS IS PLACEHOLDER DATA THAT WILL BE REPLACED BY THE FIRST RUN OF TARGET generate_${content_name}")
+      file(WRITE ${_source} "//! THIS IS PLACEHOLDER DATA THAT WILL BE REPLACED BY THE FIRST RUN OF TARGET generate_${content_name}")
     endif()
 
     add_custom_command(
@@ -38,9 +33,6 @@ function(generate_hex_header)
       DEPENDS ${_INPUT} ${PROJECT_SOURCE_DIR}/cmake/common/c_encode_file.cmake
       COMMAND ${CMAKE_COMMAND} -DIN="${_INPUT}" -DOUT="${_OUTPUT}" -DNS="${_NS_SAFE}"  -DPATH="${_PATH}" -P "${PROJECT_SOURCE_DIR}/cmake/common/c_encode_file.cmake"
     )
-    get_filename_component( content_name ${_INPUT} NAME_WE)
-
-    string (REPLACE "@" "_at_" content_name "${content_name}")
   
 
     add_custom_target( generate_${content_name}
@@ -82,7 +74,7 @@ message(STATUS "            : data/ecg")
 FILE(GLOB_RECURSE DATA_ECG_FILES         RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/ecg/*.xml")
 foreach( src IN LISTS DATA_ECG_FILES) 
   get_filename_component(src_dir ${src} DIRECTORY)
-  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/${src}
                        FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
   )
 endforeach()
@@ -91,7 +83,7 @@ message(STATUS "            : data/environments")
 FILE(GLOB_RECURSE DATA_ENIRONMENT_FILES  RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/environments/*.xml")
 foreach( src IN LISTS DATA_ENIRONMENT_FILES) 
   get_filename_component(src_dir ${src} DIRECTORY)
-  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/${src}
                        FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
   )
 endforeach()
@@ -100,7 +92,7 @@ message(STATUS "            : data/nutrition")
 FILE(GLOB_RECURSE DATA_NUTRITION_FILES   RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/nutrition/*.xml")
 foreach( src IN LISTS DATA_NUTRITION_FILES) 
   get_filename_component(src_dir ${src} DIRECTORY)
-  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/${src}
                        FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
   )
 endforeach()
@@ -109,7 +101,7 @@ message(STATUS "            : data/override")
 FILE(GLOB_RECURSE DATA_OVERRIDE_FILES    RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/override/*.xml")
 foreach( src IN LISTS DATA_OVERRIDE_FILES) 
   get_filename_component(src_dir ${src} DIRECTORY)
-  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/${src}
                        FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
   )
 endforeach()
@@ -118,7 +110,7 @@ message(STATUS "            : data/patients")
 FILE(GLOB_RECURSE DATA_PATIENT_FILES     RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/patients/*.xml")
 foreach( src IN LISTS DATA_PATIENT_FILES) 
   get_filename_component(src_dir ${src} DIRECTORY)
-  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/${src}
                        FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
   )
 endforeach()
@@ -127,7 +119,7 @@ message(STATUS "            : data/states")
 FILE(GLOB_RECURSE DATA_STATE_FILES       RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/states/*.xml")
 foreach( src IN LISTS DATA_STATE_FILES) 
   get_filename_component(src_dir ${src} DIRECTORY)
-  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/${src}
                        FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
   )
 endforeach()
@@ -136,7 +128,7 @@ message(STATUS "            : data/substances")
 FILE(GLOB_RECURSE DATA_SUBSTANCE_FILES   RELATIVE "${PROJECT_SOURCE_DIR}/share/data/" LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/share/data/substances/*.xml")
 foreach( src IN LISTS DATA_SUBSTANCE_FILES) 
   get_filename_component(src_dir ${src} DIRECTORY)
-  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/data/${src}
+  generate_hex_header( NAMESPACE biogears io INPUT ${PROJECT_SOURCE_DIR}/share/data/${src} OUTPUT ${BIOGEARS_BINARY_DIR}/generated/${IO_INCLUDE}/biogears/io/${src}
                        FOLDER "Code Generators/IO/${src_dir}"   PATH ${src}
   )
 endforeach()
@@ -167,7 +159,7 @@ add_source_files(INTERFACE_SOURCES LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/src/
 # libBiogears_io
 ###############################################################################
 add_library(lib${PROJECT_NAME}_io  SHARED ${GEN_HDRS} ${GEN_SRCS} ${INTERFACE_HEADERS} ${INTERFACE_SOURCES})
-add_library(BiogearsLite::lib${PROJECT_NAME}_io ALIAS lib${PROJECT_NAME}_io)
+add_library(Biogears::lib${PROJECT_NAME}_io ALIAS lib${PROJECT_NAME}_io)
 set_target_properties(lib${PROJECT_NAME}_io
   PROPERTIES
   DEFINE_SYMBOL ${PROJECT_NAME}_io_EXPORTS
@@ -205,7 +197,7 @@ set(${PREFIX}_io_LIBS
 )
 target_link_libraries(lib${PROJECT_NAME}_io  PUBLIC ${${PREFIX}_io_LIBS} )
 
-install(TARGETS lib${PROJECT_NAME}_io  EXPORT libBiogears
+install(TARGETS lib${PROJECT_NAME}_io  EXPORT libBiogearsLite
     RUNTIME DESTINATION bin/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>
     LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>
     ARCHIVE DESTINATION lib/${${ROOT_PROJECT_NAME}_PLATFORM_PREFIX}$<$<BOOL:${${ROOT_PROJECT_NAME}_BREAKOUT_INSTALL}>:/$<CONFIG>>
