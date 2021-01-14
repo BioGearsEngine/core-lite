@@ -29,6 +29,11 @@ namespace biogears {
     //!  If Checks across the entire embeded library when testing for membership
     //!
     //!  TODO: Implmement behavior control
+    //!  
+    //!  Look First in BIOGEARS_DATA_ROOT
+    //!  Look Second in CWD  FILE
+    //!  Look in the LIBRARY
+
     class IOManager {
     private:
       bool _overwrite_mode = true;
@@ -40,12 +45,12 @@ namespace biogears {
       char* _biogears_schema_root = nullptr;
     public:
       BIOGEARS_IO_API bool generate_runtime_directory(const char* file);
-      BIOGEARS_IO_API bool does_embeded_file_exists(const char* file);
+      BIOGEARS_IO_API bool does_embedded_file_exist(const char* file);
 
-      BIOGEARS_IO_API char const* find_resource_file(const char* file);
-      BIOGEARS_IO_API char const* get_hash(const char* file);
+      BIOGEARS_IO_API size_t find_resource_file(char const* file, char * buffer, size_t buffer_size);
+      BIOGEARS_IO_API char const* get_sha1(const char* file);
 
-      BIOGEARS_IO_API char const* get_embeded_resource_file(const char* file);
+      BIOGEARS_IO_API char const* get_embedded_resource_file(const char* file);
     };
   }
 }

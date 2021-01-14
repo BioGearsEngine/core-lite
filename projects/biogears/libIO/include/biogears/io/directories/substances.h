@@ -25,22 +25,22 @@ specific language governing permissions and limitations under the License.
 namespace biogears {
 namespace io {
   BIOGEARS_IO_API bool generate_substances_directory(const char* file);
-  BIOGEARS_IO_API bool does_embeded_substances_file_exists(const char* file);
+  BIOGEARS_IO_API bool does_embedded_substances_file_exist(const char* file);
 
-  BIOGEARS_IO_API char const* find_substances_file(const char* file);
-  BIOGEARS_IO_API char const* get_substances_file_hash(const char* file);
+  BIOGEARS_IO_API  size_t find_substances_file(const char* file, const char* root, char* buffer, size_t buffer_length);
+  BIOGEARS_IO_API char const* get_substances_file_sha1(const char* file);
 
   BIOGEARS_IO_API char const* const* list_substances_files();
   BIOGEARS_IO_API size_t substances_file_count();
 
-  BIOGEARS_IO_API char const* get_embeded_substances_file(const char* file);
+  BIOGEARS_IO_API char const* get_embedded_substances_file(const char* file);
 
   //biogears::filesystem::path overloads
   BIOGEARS_IO_API bool generate_substances_directory(biogears::filesystem::path file);
-  BIOGEARS_IO_API bool does_embeded_substances_file_exists(biogears::filesystem::path file);
+  BIOGEARS_IO_API bool does_embedded_substances_file_exist(biogears::filesystem::path file);
 
-  BIOGEARS_IO_API char const* get_substances_file_hash(biogears::filesystem::path file);
+  BIOGEARS_IO_API char const* get_substances_file_sha1(biogears::filesystem::path file);
 
-  BIOGEARS_IO_API char const* get_embeded_substances_file(biogears::filesystem::path file);
+  BIOGEARS_IO_API char const* get_embedded_substances_file(biogears::filesystem::path file);
 }
 }
